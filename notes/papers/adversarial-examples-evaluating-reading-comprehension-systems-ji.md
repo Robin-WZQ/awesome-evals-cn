@@ -1,28 +1,37 @@
-# Notes — "Adversarial Examples for Evaluating Reading Comprehension Systems"
+# 笔记——《用于评测阅读理解系统的对抗样本》
 
-**Authors:** Robin Jia, Percy Liang · **Venue/Year:** EMNLP 2017 · **URL:** https://arxiv.org/abs/1707.07328 · **Type:** paper · **Found:** true
+**作者：** Robin Jia、Percy Liang · **发表信息：** EMNLP 2017 · **链接：** https://arxiv.org/abs/1707.07328 · **类型：** 论文 · **已核验：** 是
 
-## Summary
-Standard accuracy on SQuAD suggested reading-comprehension systems were rapidly approaching human performance, but this paper showed that headline metric was hollow. Jia & Liang propose an *adversarial evaluation* scheme: append a distractor sentence to each paragraph that is crafted to fool models without changing the gold answer or misleading humans. Under this attack the average F1 of sixteen published models collapses from 75% to 36%, and with unrestricted ungrammatical word insertions it falls to 7%. The work became a foundational citation in eval literature because it crisply demonstrated that high benchmark accuracy can mask shallow pattern-matching rather than genuine understanding, and it gave the field a concrete, reproducible recipe for stress-testing models with held-out adversarial perturbations. It seeded an entire line of "the benchmark is solved, but is the capability real?" evaluation work and the broader contrast-set / behavioral-testing tradition.
+## 摘要
 
-## Key points
-- **Core insight:** standard held-out accuracy overstates language understanding; models exploit superficial cues, so a benchmark score alone is not evidence of the underlying capability.
-- **AddSent (main attack):** generate a grammatical distractor sentence that looks similar to the question (swapping named entities/numbers with nearest GloVe neighbors and inserting a fake answer) and append it to the paragraph — it does not change the true answer, and human accuracy is essentially unaffected.
-- **AddOneSent:** a model-independent variant that picks one distractor sentence at random rather than querying the model to find the worst case — nearly as damaging as AddSent, showing the vulnerability is not just an artifact of white-box search.
-- **AddAny / AddCommon:** appends sequences of (possibly ungrammatical) words chosen by querying the model, a stronger, model-aware attack that drives scores far lower.
-- **Headline numbers:** across 16 published models, average F1 drops from ~75% to ~36% under AddSent; with the ungrammatical AddAny attack on 4 models, average F1 falls to ~7% (reported as 75.7% → 31.3% for AddSent and → 6.7% for AddAny on the four-model subset).
-- **Generality:** the attack degrades every model tested, including then-state-of-the-art architectures like BiDAF and Match-LSTM, indicating a systemic weakness rather than a single model's flaw.
-- **Distractors placed at the end of the paragraph** still mislead models, exposing over-reliance on lexical overlap with the question rather than reasoning about answer location.
-- **Adversarial training helps only narrowly:** training on one attack type does not robustly transfer to a different attack, foreshadowing the brittleness of adversarial-training defenses.
-- **Introduced a methodology** for adversarial evaluation of NLP systems that preserves semantic correctness for humans — distinct from imperceptible pixel perturbations in vision.
+SQuAD 的标准准确率曾显示阅读理解系统正在快速接近人类，但本文证明这一表面结论十分脆弱。Jia 与 Liang 提出一种**对抗评测**：在每个段落末尾添加专门欺骗模型的干扰句，同时保持标准答案不变，也不误导人类。在该攻击下，16 个已发表模型的平均 F1 从 75% 降至 36%；若允许加入不合语法的任意词序列，则降至 7%。
 
-## Verified quotes
-- "In this adversarial setting, the accuracy of sixteen published models drops from an average of 75% F1 score to 36%; when the adversary is allowed to add ungrammatical sequences of words, average accuracy on four models decreases further to 7%." — https://arxiv.org/abs/1707.07328
-- "Our method tests whether systems can answer questions about paragraphs that contain adversarially inserted sentences, which are automatically generated to distract computer systems without changing the correct answer or misleading humans." — https://arxiv.org/abs/1707.07328
-- "Standard accuracy metrics indicate that reading comprehension systems are making rapid progress, but the extent to which these systems truly understand language remains unclear." — https://arxiv.org/abs/1707.07328
+本文清楚证明，基准高分可能只反映浅层模式匹配，而不是真实理解，并给出利用留出对抗扰动进行压力测试的可复现方法。它推动了“基准表面上已解决，但能力是否真实存在”的研究路线，也是后续对照集和行为测试传统的重要源头。
 
-## Why it matters for agent evals
-This paper is a canonical demonstration of the gap between *benchmark score* and *true capability* — the central anxiety of modern agent evaluation. Its method (insert adversarial-but-answer-preserving distractors and measure robustness) is the direct ancestor of contrast sets, behavioral/CheckList testing, and the practice of building held-out adversarial / perturbed eval splits to catch shortcut learning. For agent evals specifically: (1) it motivates adversarial and stress-test environments rather than relying on i.i.d. test accuracy; (2) it warns that LLM-judge or verifier pipelines built on surface lexical overlap are exploitable — the same heuristic that fools the reading-comprehension models can fool a naive grader; (3) it foreshadows prompt-injection and context-distraction attacks on retrieval-augmented agents, since "append a misleading sentence to the context" is structurally identical to injecting adversarial content into a tool/RAG result; and (4) it establishes the integrity principle that a benchmark can be "solved" on paper while the capability remains brittle, which is why agent benchmarks now pair headline metrics with adversarial / robustness probes.
+## 要点
 
-## Themes
-1 why-evals · 6 benchmark-vs-eval/integrity · 8 judge/verifiers · 9 agent-specific · 10 safety/adversarial
+- **核心洞见：** 标准独立同分布测试准确率会夸大语言理解；模型可能利用表面线索，因此单一基准分数不能证明底层能力。
+- **AddSent：** 生成与问题词面相似的合语法干扰句，替换实体或数字并插入假答案，再附加到段落末尾。真实答案不变，人类准确率几乎不受影响。
+- **AddOneSent：** 不查询模型，随机选择一个干扰句，破坏程度几乎与 AddSent 相同，说明弱点不是白盒搜索特有产物。
+- **AddAny/AddCommon：** 通过查询模型选择可能不合语法的词序列，是更强的模型感知攻击，可进一步大幅降低分数。
+- **代表性结果：** 16 个模型平均 F1 在 AddSent 下从约 75% 降至 36%；四模型子集上从 75.7% 降至 31.3%，AddAny 下进一步降至 6.7%。
+- 所有受测模型都受影响，包括当时最佳的 BiDAF 和 Match-LSTM，表明这是系统性问题而非单一模型缺陷。
+- 干扰句放在段落末尾仍能误导模型，暴露模型依赖与问题的词汇重合，而非推理答案位置。
+- **对抗训练只能狭窄缓解：** 针对一种攻击训练不能稳健迁移到另一种攻击，预示对抗训练防御的脆弱性。
+- 建立保持人类语义正确的 NLP 对抗评测方法，区别于视觉中不可感知的像素扰动。
+
+## 已核验引述（中文翻译）
+
+- “在这种对抗设置下，16 个已发表模型的平均准确率从 75% F1 降至 36%；允许对手添加不合语法的词序列时，四个模型的平均准确率进一步降至 7%。”——https://arxiv.org/abs/1707.07328
+- “我们测试系统能否回答包含对抗插入句子的段落问题；这些句子自动生成，用于干扰计算机系统，但不改变正确答案，也不误导人类。”——https://arxiv.org/abs/1707.07328
+- “标准准确率显示阅读理解系统进展迅速，但这些系统在多大程度上真正理解语言仍不清楚。”——https://arxiv.org/abs/1707.07328
+
+## 对智能体评测的意义
+
+本文是“基准分数与真实能力存在差距”的经典证据，也是现代智能体评测的核心焦虑。其方法——插入保持答案不变的对抗干扰并测量稳健性——直接推动了对照集、CheckList 式行为测试和留出对抗评测集。
+
+对智能体而言，它要求使用对抗和压力测试环境，而不能依赖独立同分布准确率；提醒我们，基于词面重合的大语言模型评审或验证器同样可被利用；还预示了检索增强智能体的提示注入与上下文干扰，因为“向上下文追加误导句子”在结构上与向工具或 RAG 结果注入对抗内容相同。基准在纸面上被解决，并不意味着能力稳健，这正是智能体基准必须搭配对抗探针的原因。
+
+## 主题
+
+1 为什么需要评测 · 6 基准与评测/完整性 · 8 评审/验证器 · 9 智能体特有评测 · 10 安全/对抗

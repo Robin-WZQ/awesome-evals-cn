@@ -1,29 +1,39 @@
-# Notes — "Dense Passage Retrieval for Open-Domain Question Answering"
-**Authors:** Vladimir Karpukhin, Barlas Oğuz, Sewon Min, Patrick Lewis, Ledell Wu, Sergey Edunov, Danqi Chen, Wen-tau Yih · **Venue/Year:** EMNLP 2020 · **URL:** https://arxiv.org/abs/2004.04906 · **Type:** paper · **Found:** true
+# 笔记——《用于开放域问答的稠密段落检索》
 
-## Summary
-DPR shows that open-domain QA passage retrieval — long dominated by sparse lexical methods like TF-IDF and BM25 — can be done better with purely *dense* learned embeddings, trained with a simple dual-encoder over a relatively small number of question–passage pairs. Two independent BERT encoders map questions and passages into a shared space; retrieval is a maximum inner-product search executed efficiently over millions of passages with FAISS. Trained with in-batch negatives plus BM25-mined hard negatives, the dense retriever beats a strong Lucene-BM25 baseline by 9–19 absolute points in top-20 retrieval accuracy, and the better retrieval propagates into new state-of-the-art end-to-end QA. It became foundational because it demonstrated that learned dense retrieval is practical and superior at scale without expensive pretraining, seeding the modern retriever stack behind RAG, dense-retrieval benchmarks (BEIR), and retrieval-augmented LLMs. It is one of the most-cited works underpinning the "retriever + reader" and retrieval-augmented generation paradigms.
+**作者：** Vladimir Karpukhin、Barlas Oğuz、Sewon Min、Patrick Lewis、Ledell Wu、Sergey Edunov、Danqi Chen、Wen-tau Yih · **发表信息：** EMNLP 2020 · **链接：** https://arxiv.org/abs/2004.04906 · **类型：** 论文 · **已核验：** 是
 
-## Key points
-- **Dual-encoder architecture:** separate BERT encoders for questions and passages produce dense vectors; relevance = dot-product / inner product of the two embeddings, so retrieval reduces to maximum inner-product search.
-- **Training objective:** contrastive loss using in-batch negatives (each batch's other passages serve as negatives, giving many negatives cheaply) plus **BM25 hard negatives** (lexically-similar-but-wrong passages), which materially improves accuracy.
-- **Data efficiency:** competitive embeddings learned from a relatively small number of labeled question–passage pairs — no additional retrieval-specific pretraining required to beat BM25.
-- **Indexing/serving:** passage embeddings are precomputed offline and indexed with **FAISS** for fast approximate nearest-neighbor search over millions of passages, making dense retrieval practical at scale.
-- **Eval insight:** retrieval quality is measured by top-k retrieval accuracy (fraction of questions whose top-k passages contain the answer), decoupling retriever evaluation from the downstream reader.
-- **Retrieval results:** outperforms Lucene-BM25 by ~9%–19% absolute in top-20 passage retrieval accuracy across datasets (e.g., Natural Questions top-20 ~79.0% vs ~59.1% for BM25).
-- **End-to-end QA:** the better retriever drives a "retriever + reader" pipeline to new state-of-the-art exact-match on multiple open-domain QA benchmarks.
-- **Benchmark suite:** evaluated across Natural Questions, TriviaQA, WebQuestions, CuratedTREC, and SQuAD — a broad open-domain QA testbed.
-- **Conceptual contribution:** reframed first-stage retrieval as a learnable, supervised dense-embedding problem rather than a fixed lexical heuristic.
+## 摘要
 
-## Verified quotes
-- "In this work, we show that retrieval can be practically implemented using dense representations alone, where embeddings are learned from a small number of questions and passages by a simple dual-encoder framework." — https://arxiv.org/abs/2004.04906
-- "our dense retriever outperforms a strong Lucene-BM25 system largely by 9%-19% absolute in terms of top-20 passage retrieval accuracy, and helps our end-to-end QA system establish new state-of-the-art on multiple open-domain QA benchmarks." — https://arxiv.org/abs/2004.04906
-- "traditional sparse vector space models, such as TF-IDF or BM25, are the de facto method." — https://arxiv.org/abs/2004.04906
+DPR 证明，长期由 TF-IDF 和 BM25 等稀疏词汇方法主导的开放域问答段落检索，可以通过纯粹的学习式**稠密嵌入**获得更好表现，而且只需相对少量问题—段落对和简单双编码器。两个独立 BERT 编码器把问题和段落映射到共享空间，再使用 FAISS 在数百万段落上高效执行最大内积搜索。
 
-(Quotes verified verbatim from the arXiv abstract page. Body-text quotes could not be reliably decoded from the PDF and were not used.)
+通过批内负例和 BM25 挖掘的困难负例训练后，稠密检索器的前 20 检索准确率比强 Lucene-BM25 基线高 9—19 个绝对百分点，并推动端到端问答达到新最佳结果。本文证明稠密检索无需昂贵预训练也能规模化部署并超越词汇方法，奠定了现代 RAG 检索栈、BEIR 等稠密检索基准和检索增强大语言模型的基础。
 
-## Why it matters for agent evals
-DPR is the canonical "learned retriever" that the modern RAG/tool-augmented-agent stack rests on: when an agent retrieves documents to ground its answers, the retriever is usually a DPR-style dense dual-encoder (or its descendants). For evals this matters in three ways. (1) It cleanly separates *retriever* evaluation (top-k retrieval accuracy: did the gold evidence make it into the context?) from *reader/generator* evaluation (did the model use it correctly?) — a decomposition that agent harnesses reuse to localize whether failures are retrieval or reasoning. (2) Its top-k accuracy metric is the ancestor of the recall/grounding metrics used to score RAG verifiers and faithfulness judges, and of retrieval benchmarks like BEIR that became standard eval infrastructure. (3) For RL-environment and agent design, DPR establishes retrieval as a learnable, swappable component whose quality directly bounds downstream task success, so eval suites for retrieval-augmented agents must measure retrieval coverage and hard-negative robustness, not just final-answer correctness. It also models a clean, reproducible benchmark setup (fixed corpora, multiple QA datasets, an answer-recall proxy) that informs how grounded-QA agent benchmarks are constructed.
+## 要点
 
-## Themes
-2 eval⇄capability⇄RL-env · 6 benchmark-vs-eval/integrity · 8 judge/verifiers · 9 agent-specific
+- **双编码器架构：** 问题和段落分别由 BERT 编码器生成稠密向量，相关性等于向量点积，因此检索可转化为最大内积搜索。
+- **训练目标：** 使用对比损失、批内负例，以及词面相似但答案错误的 **BM25 困难负例**；困难负例可显著提高准确率。
+- **数据效率：** 只用相对少量标注问题—段落对就能学习有竞争力的嵌入，无需额外检索预训练即可超过 BM25。
+- **索引与服务：** 离线预计算段落嵌入，并用 **FAISS** 对数百万段落进行快速近似最近邻搜索，使稠密检索具备实际扩展性。
+- **评测分解：** 使用前 k 检索准确率，即前 k 段落中包含答案的问题比例，将检索器评测与下游阅读器分离。
+- **检索结果：** 多个数据集的前 20 检索准确率比 Lucene-BM25 高约 9—19 个绝对百分点；例如 Natural Questions 为约 79.0%，BM25 为约 59.1%。
+- **端到端问答：** 更好的检索器使“检索器加阅读器”流水线在多个开放域问答基准上取得新的最佳精确匹配结果。
+- 在 Natural Questions、TriviaQA、WebQuestions、CuratedTREC 和 SQuAD 上进行广泛评测。
+- 概念贡献是将第一阶段检索从固定词汇启发式重新定义为可学习的监督稠密嵌入问题。
+
+## 已核验引述（中文翻译）
+
+- “我们证明，检索可以只使用稠密表示实际实现；嵌入通过简单双编码器框架从少量问题和段落中学习。”——https://arxiv.org/abs/2004.04906
+- “我们的稠密检索器在前 20 段落检索准确率上比强 Lucene-BM25 系统高出 9%—19%，并帮助端到端问答系统在多个开放域问答基准上建立新最佳结果。”——https://arxiv.org/abs/2004.04906
+- “TF-IDF 或 BM25 等传统稀疏向量空间模型是事实上的标准方法。”——https://arxiv.org/abs/2004.04906
+
+以上引述逐字核对自 arXiv 摘要页；由于 PDF 正文文本无法可靠解码，未采用正文引述。
+
+## 对智能体评测的意义
+
+DPR 是现代 RAG 和工具增强智能体所依赖的典型学习式检索器。它把**检索器评测**——标准证据是否进入上下文，与**阅读器/生成器评测**——模型是否正确使用证据，清楚分离；智能体执行框架仍用这种分解来定位失败属于检索还是推理。
+
+前 k 准确率是后来 RAG 验证器、事实一致性评审及 BEIR 等检索基准中召回和落地指标的前身。对强化学习环境与智能体设计而言，DPR 还确立检索是可学习、可替换且会直接限制下游成功率的组件。因此，检索增强智能体评测必须检查证据覆盖率和困难负例稳健性，不能只看最终答案。固定语料、多问答数据集和答案召回代理指标也为可复现的知识落地智能体基准提供了清晰模板。
+
+## 主题
+
+2 评测—能力—强化学习环境 · 6 基准与评测/完整性 · 8 评审/验证器 · 9 智能体特有评测

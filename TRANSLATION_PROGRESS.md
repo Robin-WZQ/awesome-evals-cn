@@ -1,9 +1,9 @@
 # 深度笔记中文翻译进度
 
-进度：`[██░░░░░░░░░░░░░░░░░░] 9%（13/143）`
+进度：`[██░░░░░░░░░░░░░░░░░░] 11%（16/143）`
 
 - 文章：3/68
-- 论文：10/28
+- 论文：13/28
 - 演讲与播客：0/47
 
 ## 翻译规则
@@ -28,3 +28,6 @@
 11. `notes/papers/async-methods-deep-rl-a3c-2016.md`
 12. `notes/papers/realm-retrieval-augmented-lm-pretraining.md`
 13. `notes/articles/montecarlo-ai-agent-evaluation-5-lessons.md`
+14. `notes/papers/realtoxicityprompts-neural-toxic-degeneration.md`
+15. `notes/papers/adversarial-examples-evaluating-reading-comprehension-systems-ji.md`
+16. `notes/papers/dense-passage-retrieval-open-domain-qa.md`

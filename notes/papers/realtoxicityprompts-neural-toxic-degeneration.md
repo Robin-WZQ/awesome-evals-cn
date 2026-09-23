@@ -1,28 +1,37 @@
-# Notes — "RealToxicityPrompts: Evaluating Neural Toxic Degeneration in Language Models"
+# 笔记——《RealToxicityPrompts：评测语言模型的神经毒性退化》
 
-**Authors:** Samuel Gehman, Suchin Gururangan, Maarten Sap, Yejin Choi, Noah A. Smith · **Venue/Year:** Findings of EMNLP 2020 · **URL:** https://arxiv.org/abs/2009.11462 · **Type:** paper · **Found:** true
+**作者：** Samuel Gehman、Suchin Gururangan、Maarten Sap、Yejin Choi、Noah A. Smith · **发表信息：** EMNLP 2020 Findings · **链接：** https://arxiv.org/abs/2009.11462 · **类型：** 论文 · **已核验：** 是
 
-## Summary
-The paper introduces RealToxicityPrompts, a benchmark of 100K naturally-occurring sentence-level prompts (drawn from English web text and scored with a toxicity classifier) designed to systematically probe how readily pretrained LMs "degenerate" into toxic text. Its central, widely-cited finding is that even seemingly innocuous prompts reliably elicit toxic continuations from models like GPT-1/2/3 and CTRL, and that no detoxification method tested is failsafe. It established a now-standard evaluation protocol — sampling 25 generations per prompt and reporting *expected maximum toxicity* (worst-case) and *probability of toxicity* (at least one toxic generation) — that became a template for safety/harm evals. It also traced the root cause upstream, auditing the pretraining corpora (OpenWebText-style data behind GPT-2) and finding substantial offensive, factually unreliable, and toxic content. It became foundational because it operationalized "toxic degeneration" as a measurable, reproducible benchmark, paired generation-time evaluation with a data-provenance critique, and gave the field a shared test bed and metrics that countless later detoxification and safety papers report against.
+## 摘要
 
-## Key points
-- Releases **RealToxicityPrompts**: 100K naturally-occurring sentence-level prompts from web text, each paired with toxicity scores from a widely-used classifier (Perspective API).
-- Toxicity measured via the **Perspective API** (0–1 score); the work both depends on and implicitly stress-tests this black-box classifier as the eval signal.
-- Introduces a two-metric protocol over **k = 25 generations per prompt**: **Expected Maximum Toxicity** (worst-case max toxicity, with std-dev) and **Probability of Toxicity** (empirical chance of ≥1 toxic generation) — a worst-case + frequency framing that has been broadly reused.
-- Evaluates degeneration across **GPT-1, GPT-2, GPT-3, and CTRL**; shows toxic continuations arise even from non-toxic / innocuous prompts.
-- Compares controllable-generation / detoxification methods: **domain-adaptive pretraining (DAPT)** on non-toxic data, **PPLM** (plug-and-play steering), **word/vocabulary filtering**, and **vocabulary shifting**.
-- Finding: **data-/compute-intensive methods (DAPT) beat simple word-banning**, but **no method is failsafe** — toxic degeneration persists under all interventions.
-- Audits the **pretraining corpora** behind GPT-2 (OpenWebText-style web text) and finds a "significant amount of offensive, factually unreliable, and otherwise toxic content," linking model behavior to data provenance.
-- Frames the deliverable explicitly as a **test bed for evaluating toxic generation** and argues for **better data-selection processes** for pretraining.
+本文提出 RealToxicityPrompts，一个包含 10 万条自然出现的句子级提示的基准。这些提示来自英语网页文本，并由毒性分类器评分，用于系统测试预训练语言模型有多容易“退化”为有毒文本。广为引用的核心发现是，即使提示表面无害，GPT-1/2/3 和 CTRL 等模型仍会稳定地产生有毒续写，而且没有一种受测去毒方法能够完全避免失败。
 
-## Verified quotes
-- "We create and release RealToxicityPrompts, a dataset of 100K naturally occurring, sentence-level prompts derived from a large corpus of English web text, paired with toxicity scores from a widely-used toxicity classifier." — https://arxiv.org/abs/2009.11462
-- "Using RealToxicityPrompts, we find that pretrained LMs can degenerate into toxic text even from seemingly innocuous prompts." — https://arxiv.org/abs/2009.11462
-- "...while data- or compute-intensive methods (e.g., adaptive pretraining on non-toxic data) are more effective at steering away from toxicity than simpler solutions (e.g., banning \"bad\" words), no current method is failsafe against neural toxic degeneration." — https://arxiv.org/abs/2009.11462
-- "Our work provides a test bed for evaluating toxic generations by LMs and stresses the need for better data selection processes for pretraining." — https://arxiv.org/abs/2009.11462
+论文建立了后来常用于安全和危害评测的协议：每个提示采样 25 次，报告**期望最大毒性**，即最坏情况，以及**毒性概率**，即至少一次产生有毒文本的概率。作者还审计 GPT-2 背后的 OpenWebText 类预训练语料，发现大量冒犯、不可靠和有毒内容，将模型行为追溯到数据来源。本文将“毒性退化”转化为可测、可复现问题，并把生成时评测与数据来源审计结合，为后续去毒和安全研究提供共享测试床。
 
-## Why it matters for agent evals
-RealToxicityPrompts is a canonical example of a **classifier-as-judge safety eval**: it uses a black-box toxicity model (Perspective API) as the automated verifier and builds a reproducible benchmark around it, seeding both the practice and the later critique of using opaque APIs as eval scorers. Its **expected-maximum / probability-of-toxicity over k samples** protocol is a reusable pattern for any stochastic-agent safety eval — measure worst-case behavior across repeated rollouts rather than a single greedy decode, directly relevant to evaluating agents that sample actions. The detoxification comparison (DAPT/PPLM vs. filtering) prefigures **RL/steering-based alignment** evaluation, and the corpus audit foreshadows **benchmark-integrity / data-provenance** concerns (toxic and factually unreliable training data contaminating downstream behavior). For agent and red-team work, it is an early, influential template for **adversarial/triggered-failure evaluation**: showing that benign-looking inputs surface latent unsafe behavior, and that single-intervention "fixes" don't guarantee safety — a lesson that carries directly into judge/verifier reliability and safety harnesses.
+## 要点
 
-## Themes
-1 why-evals · 6 benchmark-vs-eval/integrity · 8 judge/verifiers · 10 safety/adversarial
+- 发布 **RealToxicityPrompts**：10 万条来自网页文本的自然句子级提示，每条都附有 Perspective API 给出的毒性分数。
+- 毒性由黑盒 **Perspective API** 以 0—1 评分；该研究既依赖这个分类器作为评测信号，也间接对它进行压力测试。
+- 每个提示生成 **k=25** 个续写，并报告两个指标：期望最大毒性及标准差，以及至少一次产生有毒文本的经验概率。最坏情况加发生频率的框架被后续广泛复用。
+- 在 GPT-1、GPT-2、GPT-3 和 CTRL 上评测，发现无毒或无害提示也会诱发有毒续写。
+- 比较多种可控生成和去毒方法：在无毒数据上进行领域自适应预训练、PPLM 引导、词语/词表过滤和词表偏移。
+- 数据和计算密集的方法优于简单禁词，但**没有任何方法万无一失**，所有干预下仍存在毒性退化。
+- 审计 GPT-2 背后的 OpenWebText 类语料，发现大量冒犯、事实不可靠和其他有毒内容，直接连接模型行为与数据来源。
+- 明确将成果定位为毒性生成评测测试床，并呼吁改进预训练数据选择流程。
+
+## 已核验引述（中文翻译）
+
+- “我们创建并发布 RealToxicityPrompts：由大型英语网页语料中的 10 万条自然句子级提示组成，并配有常用毒性分类器的评分。”——https://arxiv.org/abs/2009.11462
+- “使用 RealToxicityPrompts，我们发现预训练语言模型即使面对看似无害的提示，也会退化为有毒文本。”——https://arxiv.org/abs/2009.11462
+- “数据或计算密集方法比禁用坏词等简单方案更有效，但目前没有方法能够完全防止神经毒性退化。”——https://arxiv.org/abs/2009.11462
+- “本研究提供语言模型毒性生成测试床，并强调预训练需要更好的数据选择流程。”——https://arxiv.org/abs/2009.11462
+
+## 对智能体评测的意义
+
+RealToxicityPrompts 是**分类器充当安全评审**的经典案例：使用黑盒毒性模型作为自动验证器，并围绕它构建可复现基准，同时也引出了对不透明 API 评分器的批评。跨 k 次采样测量期望最大值和毒性概率，可推广到随机智能体安全评测：不能只看一次贪心运行，而应在重复轨迹中衡量最坏行为和发生频率。
+
+去毒比较预示了基于强化学习或引导的对齐评测；语料审计则体现基准完整性和数据来源问题。对智能体红队而言，它也是对抗性触发失败评测的早期模板：无害输入可以暴露潜在不安全行为，单一修复无法保证安全，这一经验可直接迁移到评审可靠性和安全执行框架。
+
+## 主题
+
+1 为什么需要评测 · 6 基准与评测/完整性 · 8 评审/验证器 · 10 安全/对抗
