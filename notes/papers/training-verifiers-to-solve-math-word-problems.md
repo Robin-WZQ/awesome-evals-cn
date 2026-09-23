@@ -1,30 +1,41 @@
-# Notes — "Training Verifiers to Solve Math Word Problems"
+# 笔记——《训练验证器求解数学文字题》
 
-**Authors:** Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano, Christopher Hesse, John Schulman (OpenAI) · **Venue/Year:** arXiv preprint, 2021 · **URL:** https://arxiv.org/abs/2110.14168 · **Type:** paper · **Found:** true
+**作者：** Karl Cobbe、Vineet Kosaraju、Mohammad Bavarian、Mark Chen、Heewoo Jun、Lukasz Kaiser、Matthias Plappert、Jerry Tworek、Jacob Hilton、Reiichiro Nakano、Christopher Hesse、John Schulman（OpenAI）· **发表信息：** arXiv 预印本，2021 年 · **链接：** https://arxiv.org/abs/2110.14168 · **类型：** 论文 · **已核验：** 是
 
-## Summary
-This OpenAI paper introduces **GSM8K**, a dataset of 8.5K linguistically diverse grade-school math word problems, built specifically to diagnose the multi-step reasoning failures of large language models. The headline methodological contribution is **training verifiers**: instead of relying on a single finetuned generator, they sample many candidate solutions at test time and use a learned verifier model to judge correctness and select the best one. They show this verification-plus-sampling approach substantially outperforms finetuning a generator of equal size, and — crucially — that it **scales more effectively with additional data** than the finetuning baseline. The paper became foundational because it crystallized the generator/verifier split, established GSM8K as the default benchmark for LLM arithmetic reasoning, and provided the conceptual seed for later work on outcome- and process-reward models, best-of-N selection, and verifier-guided RL.
+## 摘要
 
-## Key points
-- Introduces **GSM8K**: 8.5K high-quality, linguistically diverse grade-school math word problems (split ~7.5K train / 1K test), each requiring 2–8 steps of elementary arithmetic — conceptually simple but multi-step.
-- Core finding: **even the largest transformer models fail** to achieve high test performance despite the conceptual simplicity, exposing a robustness gap in multi-step reasoning.
-- **Method — verification:** train a separate verifier to score the correctness of full model completions; at test time **sample many candidates and select the one the verifier ranks highest** (a best-of-N / reranking scheme).
-- Verifiers are trained on a dataset of model-generated solutions labeled by whether they reached the correct final answer (outcome-based correctness signal).
-- **Verification beats finetuning** at the same model scale, and the gap widens with more data — i.e., verification has a better scaling trend than simply finetuning a larger generator.
-- Token-level (per-step) verifier scoring outperformed solution-level scoring, foreshadowing later process-reward-model work.
-- Establishes the **generator + verifier** decomposition that decouples producing candidate reasoning from judging it — a now-standard pattern in reasoning systems.
-- GSM8K became one of the most widely adopted reasoning benchmarks, used to evaluate chain-of-thought, self-consistency, tool use, and later frontier reasoning models.
-- Demonstrates that **test-time compute** (sampling more candidates and reranking) is a lever for accuracy, not just training scale.
+本文提出 **GSM8K**，一个包含 8,500 道语言表达多样的小学数学文字题的数据集，专门用于诊断大型语言模型的多步推理失败。其最重要的方法贡献是**训练验证器**：不只依赖一个微调生成器，而是在测试时采样多个候选解答，再用学习得到的验证器判断正确性并选出最佳答案。
 
-## Verified quotes
-- "we introduce GSM8K, a dataset of 8.5K high quality linguistically diverse grade school math word problems." — https://arxiv.org/abs/2110.14168
-- "To increase performance, we propose training verifiers to judge the correctness of model completions. At test time, we generate many candidate solutions and select the one ranked highest by the verifier." — https://arxiv.org/abs/2110.14168
-- "We demonstrate that verification significantly improves performance on GSM8K, and we provide strong empirical evidence that verification scales more effectively with increased data than a finetuning baseline." — https://arxiv.org/abs/2110.14168
+实验表明，“验证加采样”明显优于相同规模的生成器微调；更关键的是，随着数据增加，**验证方法的扩展效率更高**。本文明确建立了生成器/验证器分工，使 GSM8K 成为大语言模型算术推理的默认基准，并为后续结果奖励模型、过程奖励模型、多样本择优和验证器引导强化学习奠定概念基础。
 
-## Why it matters for agent evals
-This paper is a direct ancestor of the **verifier / reward-model** line that underpins modern eval and RL infrastructure. The generator+verifier split is the conceptual template for **LLM-as-judge** and **learned verifiers**: a model that scores candidate trajectories rather than producing them. The outcome-supervised verifier here is the precursor to **outcome reward models (ORM)** and **process reward models (PRM)** used in RLHF/RLVR pipelines, and GSM8K became a canonical **RL-environment / verifiable-reward benchmark** — math problems have checkable final answers, making them ideal for automated grading without human judges. The best-of-N reranking insight (spend test-time compute, then verify-and-select) is the foundation for self-consistency, tree search, and verifier-guided decoding in agentic systems. For agent evals specifically, it seeds the principle that **verification is often easier and more scalable than generation**, motivating eval designs where a trusted checker grades an agent's outputs, and it gave the field a clean, automatically-gradable benchmark that anchored years of reasoning-capability measurement.
+## 要点
 
-## Themes
-- **2 eval⇄capability⇄RL-env** — GSM8K is a verifiable-reward environment that ties a capability (multi-step reasoning) to an automatically-gradable eval/RL signal.
-- **6 benchmark-vs-eval/integrity** — introduces a foundational, widely-cited benchmark (with the attendant saturation/contamination concerns it later raised).
-- **8 judge/verifiers** — the central contribution is a trained verifier that judges completion correctness, the direct ancestor of ORM/PRM and LLM-as-judge.
+- 提出 **GSM8K**：8,500 道高质量、语言表达多样的小学数学文字题，约 7,500 道训练题和 1,000 道测试题；每题需要 2—8 步基础算术，概念简单但具有多步结构。
+- 即使最大的 Transformer 模型也无法取得很高测试表现，暴露了多步推理中的稳健性缺口。
+- **验证方法：** 训练独立验证器为完整模型回答的正确性评分；测试时**采样多个候选方案，并选择验证器排名最高的方案**，即多样本择优/重排。
+- 验证器使用模型生成的解答训练，标签依据是否得到正确最终答案，是一种结果监督的正确性信号。
+- 在相同模型规模下，**验证优于微调**；数据越多，差距越大，说明验证比单纯微调更具扩展优势。
+- 词元级、逐步骤的验证器评分优于整份解答级评分，预示了后来的过程奖励模型研究。
+- 建立**生成器加验证器**分解，将候选推理的生成与判断解答正确性分离，后来成为推理系统中的常用模式。
+- GSM8K 此后成为应用最广泛的推理基准之一，被用于思维链、自一致性、工具使用和前沿推理模型评测。
+- 证明**测试时计算**也是提升准确率的杠杆：不仅可以扩大训练规模，还可增加候选采样并进行验证重排。
+
+## 已核验引述（中文翻译）
+
+- “我们提出 GSM8K，一个包含 8,500 道高质量、语言表达多样的小学数学文字题的数据集。”——https://arxiv.org/abs/2110.14168
+- “为了提升表现，我们提出训练验证器来判断模型回答的正确性。测试时，我们生成多个候选解答，并选择验证器排名最高的一个。”——https://arxiv.org/abs/2110.14168
+- “我们证明，验证显著提升了 GSM8K 上的表现，并提供有力实证证据表明，随着数据增加，验证比微调基线具有更高的扩展效率。”——https://arxiv.org/abs/2110.14168
+
+## 对智能体评测的意义
+
+本文是现代评测和强化学习基础设施中**验证器/奖励模型**路线的直接前身。生成器与验证器的分工是**大语言模型评审**和**学习式验证器**的概念模板：一个模型负责评价候选轨迹，而不是生成轨迹。文中的结果监督验证器，预示了 RLHF/RLVR 流水线中的结果奖励模型和过程奖励模型。
+
+GSM8K 也成为典型的**强化学习环境和可验证奖励基准**。数学问题具有可检查的最终答案，非常适合不依赖人工评审的自动评分。多样本择优重排——增加测试时计算，再验证并选择——则奠定了自一致性、树搜索和智能体系统中验证器引导解码的基础。
+
+对智能体评测而言，本文确立了“**验证往往比生成更容易、也更容易扩展**”这一原则，推动人们构建由可信检查器评价智能体输出的评测。它还为多年推理能力测量提供了一个干净、可自动评分的锚点。
+
+## 主题
+
+- **2 评测—能力—强化学习环境：** GSM8K 是可验证奖励环境，把多步推理能力连接到可自动评分的评测与强化学习信号。
+- **6 基准与评测/完整性：** 提出被广泛引用的基础基准，也带来后续饱和和污染问题。
+- **8 评审/验证器：** 核心贡献是训练验证器判断回答正确性，是结果/过程奖励模型及大语言模型评审的直接前身。

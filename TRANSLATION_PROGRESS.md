@@ -1,9 +1,9 @@
 # 深度笔记中文翻译进度
 
-进度：`[█░░░░░░░░░░░░░░░░░░░] 6%（8/143）`
+进度：`[█░░░░░░░░░░░░░░░░░░░] 7%（10/143）`
 
 - 文章：2/68
-- 论文：6/28
+- 论文：8/28
 - 演讲与播客：0/47
 
 ## 翻译规则
@@ -23,3 +23,5 @@
 6. `notes/articles/vercel-eval-driven-development.md`
 7. `notes/papers/fine-tuning-language-models-from-human-preferences.md`
 8. `notes/papers/superglue-stickier-benchmark-2019.md`
+9. `notes/papers/annotation-artifacts-nli-data-2018.md`
+10. `notes/papers/training-verifiers-to-solve-math-word-problems.md`

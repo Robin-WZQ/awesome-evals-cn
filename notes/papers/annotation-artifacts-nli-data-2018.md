@@ -1,27 +1,38 @@
-# Notes — "Annotation Artifacts in Natural Language Inference Data"
+# 笔记——《自然语言推断数据中的标注伪影》
 
-**Authors:** Suchin Gururangan, Swabha Swayamdipta, Omer Levy, Roy Schwartz, Samuel R. Bowman, Noah A. Smith · **Venue/Year:** NAACL-HLT 2018 · **URL:** https://arxiv.org/abs/1803.02324 · **Type:** paper · **Found:** true
+**作者：** Suchin Gururangan、Swabha Swayamdipta、Omer Levy、Roy Schwartz、Samuel R. Bowman、Noah A. Smith · **发表信息：** NAACL-HLT 2018 · **链接：** https://arxiv.org/abs/1803.02324 · **类型：** 论文 · **已核验：** 是
 
-## Summary
-This short paper exposes a now-canonical failure mode in benchmark construction: the crowdsourcing protocol used to build large NLI datasets (SNLI, MultiNLI) leaves systematic "annotation artifacts" in the hypotheses that let a model guess the gold label without ever reading the premise. A simple fastText-style text classifier reading only the hypothesis scores ~67% on SNLI and ~53% on MultiNLI, far above the ~33% majority/chance baseline — meaning a large fraction of these "inference" examples are solvable by surface heuristics rather than reasoning. The authors trace the artifacts to predictable annotator behaviors (e.g., negation words for contradiction, generic/vague words for neutral, purpose-stripping for entailment). They then show that reported model accuracy is inflated: when you re-evaluate on the "hard" subset (examples the hypothesis-only model gets wrong), strong models drop substantially. It became foundational because it crisply demonstrated that high leaderboard numbers can reflect dataset shortcuts rather than capability, seeding a whole literature on spurious correlations, shortcut learning, dataset-bias diagnostics, and hard/contrast evaluation splits.
+## 摘要
 
-## Key points
-- **Diagnostic method — the hypothesis-only baseline:** train a classifier on hypotheses alone (premise withheld). If it beats chance, the dataset contains label-leaking artifacts. This is now a standard sanity check for any premise/hypothesis-style benchmark.
-- **Concrete result:** hypothesis-only model reaches ~67% accuracy on SNLI and ~53% on MultiNLI, vs. a ~33% (3-class majority) baseline — so roughly two-thirds of SNLI labels are partially recoverable from the hypothesis alone.
-- **Artifacts are class-specific lexical/stylistic tells:** negation words ("no", "never", "nobody") cue *contradiction*; purpose/specificity removal and superordinate ("animal", "outdoors", "instrument") generic words cue *entailment*; vague/modal and unrelated-detail words ("tall", "first", "sad") cue *neutral*. These come from how workers cheaply generate three hypotheses per prompt.
-- **Length signal:** entailed hypotheses tend to be shorter (workers drop words), neutral ones longer (workers add unsupported detail) — another premise-independent give-away.
-- **"Hard" vs "easy" split introduced:** partition the test set by whether the hypothesis-only model is correct. Models that look strong overall do much worse on the *hard* subset, quantifying how much of headline accuracy rides on artifacts.
-- **Inflated capability claims:** the paper argues prior SNLI/MultiNLI accuracy overstated genuine inference ability; the task is "less solved" than leaderboards suggested.
-- **Introduced reusable evaluation primitives:** the hypothesis-only probe and the artifact-stratified hard set became templates copied across NLI and many other crowdsourced tasks.
-- **Cause is the protocol, not the workers:** elicitation by asking humans to *write* entailments/contradictions/neutrals systematically imprints style, so the fix has to be at dataset-design time.
+这篇短文揭示了基准构建中的一种经典失效模式：用于构建 SNLI、MultiNLI 等大型自然语言推断数据集的众包协议，会在假设句中留下系统性的“标注伪影”，使模型不用阅读前提句就能猜出真实标签。一个只读取假设句的简单 fastText 式文本分类器，在 SNLI 上达到约 67%，在 MultiNLI 上达到约 53%，远高于约 33% 的多数类或随机基线。这意味着大量所谓“推断”样本可以通过表面启发式解决，而不需要真正推理。
 
-## Verified quotes
-- "We show that, in a significant portion of such data, this protocol leaves clues that make it possible to identify the label by looking only at the hypothesis, without observing the premise." — https://arxiv.org/abs/1803.02324
-- "Specifically, we show that a simple text categorization model can correctly classify the hypothesis alone in about 67% of SNLI (Bowman et. al, 2015) and 53% of MultiNLI (Williams et. al, 2017)." — https://arxiv.org/abs/1803.02324
-- "Our analysis reveals that specific linguistic phenomena such as negation and vagueness are highly correlated with certain inference classes." — https://arxiv.org/abs/1803.02324
+作者将伪影追溯到可预测的标注行为，例如用否定词构造矛盾，用宽泛、模糊词构造中立样本，通过删除目的和具体信息构造蕴含。论文进一步证明，已报告的模型准确率受到虚增：在“困难”子集，即仅假设模型回答错误的样本上重新评测时，强模型表现明显下降。本文清楚证明了排行榜高分可能反映数据集捷径而非真实能力，并推动了虚假相关、捷径学习、数据偏差诊断和困难/对照评测集等研究。
 
-## Why it matters for agent evals
-This is a cornerstone "benchmark-integrity" result: it operationalizes the idea that a benchmark can be *passable without the intended capability*, and gives a concrete, cheap detector (the partial-input / hypothesis-only baseline) plus a remediation pattern (artifact-stratified hard splits). For agent and judge/verifier work the lessons transfer directly: (1) any eval built by human elicitation can encode the elicitation process's tells, so always run a degenerate-input baseline (e.g., answer the task with the question/tool-call/transcript partially hidden) before trusting a score; (2) model/agent rankings should be checked on hard, artifact-controlled subsets, not just aggregate accuracy, to avoid rewarding shortcut exploitation; (3) it foreshadows reward-hacking and spurious-correlation concerns in RL environments, where an agent will happily exploit a leaked label or environment artifact instead of solving the task. It is upstream of contrast sets, counterfactually-augmented data, and "dataset cartography"/data-difficulty methods that the eval-integrity community now relies on.
+## 要点
 
-## Themes
-6 benchmark-vs-eval/integrity · 1 why-evals · 8 judge/verifiers · 2 eval⇄capability⇄RL-env
+- **诊断方法——仅假设基线：** 隐去前提，只用假设训练分类器。如果表现超过随机水平，说明数据集中存在泄漏标签的伪影。如今这已成为前提—假设类基准的标准健全性检查。
+- **具体结果：** 仅假设模型在 SNLI 上约 67%、MultiNLI 上约 53%，而三分类多数类基线约 33%；因此 SNLI 中约三分之二标签可以部分从假设句恢复。
+- **伪影是类别特定的词汇和风格信号：** “no”“never”“nobody”等否定词提示矛盾；删除目的或具体性，以及使用“animal”“outdoors”“instrument”等上位宽泛词提示蕴含；“tall”“first”“sad”等模糊、情态或无关细节词提示中立。这些模式来自标注者为每个提示快速写出三类假设的方式。
+- **长度信号：** 蕴含假设通常更短，因为标注者会删词；中立假设通常更长，因为标注者会添加无依据细节。这也是不依赖前提的泄漏信号。
+- 提出**困难与简单划分：** 根据仅假设模型是否答对来划分测试集。总体表现很强的模型在困难子集上明显变差，从而量化总准确率中有多少依赖伪影。
+- **能力结论被夸大：** 论文认为，先前 SNLI/MultiNLI 准确率高估了真实推断能力，排行榜所暗示的任务解决程度并不真实。
+- 提出可复用评测原语：仅假设探针和按伪影分层的困难集，后来被自然语言推断及其他众包任务广泛采用。
+- 根因在**协议而非标注者**：要求人类主动编写蕴含、矛盾和中立句子会系统性地烙下风格特征，因此必须在数据设计阶段修复。
+
+## 已核验引述（中文翻译）
+
+- “我们证明，在此类数据的相当大一部分中，这种协议会留下线索，使人们不观察前提、只查看假设就能识别标签。”——https://arxiv.org/abs/1803.02324
+- “具体而言，一个简单文本分类模型只看假设，就能正确分类约 67% 的 SNLI 和 53% 的 MultiNLI 样本。”——https://arxiv.org/abs/1803.02324
+- “分析表明，否定和模糊性等特定语言现象与某些推断类别高度相关。”——https://arxiv.org/abs/1803.02324
+
+## 对智能体评测的意义
+
+这是基准完整性研究的基石：它把“无需目标能力也能通过基准”转化为可操作问题，并给出低成本检测器——部分输入/仅假设基线，以及补救方法——按伪影构建困难子集。
+
+这些经验可直接迁移到智能体和评审/验证器研究：人类诱导构造的评测可能编码收集流程的线索，因此在相信分数之前，应运行退化输入基线，例如隐藏部分问题、工具调用或轨迹后尝试作答；模型和智能体排名应在控制伪影的困难子集上复核，而不能只看总体准确率；在强化学习环境中，智能体会主动利用泄漏标签或环境伪影，而不会坚持解决预期任务。
+
+本文也是对照集、反事实增强数据、数据集制图和数据难度分析方法的重要前置工作。
+
+## 主题
+
+6 基准与评测/完整性 · 1 为什么需要评测 · 8 评审/验证器 · 2 评测—能力—强化学习环境
