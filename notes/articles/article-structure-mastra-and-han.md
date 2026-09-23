@@ -1,38 +1,42 @@
-# Notes — How Mastra & Han-Chung Lee structure their articles (the model for our rewrite)
+# 笔记——Mastra 与 Han-Chung Lee 如何组织文章：我们改写时采用的范式
 
-Studied 2026-06-23. The user's directive: chapters must be **technical/practical via structure + illustration**, NOT code. "Illustration is even more important than code."
+研究日期：2026 年 6 月 23 日。用户要求：章节应通过**结构和图示**体现技术性与实用性，而不是依靠代码。“图示甚至比代码更重要。”
 
-## Mastra — "Principles of Building AI Agents" (Sam Bhagwat)
-- **Short**: ~150pp / ~33 chapters → 3–6pp each. Code-first, but only **~3 diagrams in the whole book** (MCP architecture, context-window comparison, RAG pipeline) — diagrams only where the concept is *spatial*, placed early to orient, one job each, never the centerpiece.
-- **Chapter skeleton:** Hook (1–2 sentences: a problem/definition/question) → Frame (1 para: the trade-off + a human analogy) → Decompose (arrow/numbered list of **named** stages, e.g. RAG = Chunk→Embed→Index→Query→Rerank→Synthesize) → Show it (one concrete artifact) → **Rule of thumb** (one quotable imperative) → Transition.
-- **Stays practical via:** named real-world examples as anchors ("Alana's book-rec agent", Replit's 4-agent arch, Perplexity A/B testing); comparison tables / "triangles"; **escalation ladders** instead of "it depends" (RAG: load-full-context → tools → full pipeline); named patterns ("seed crystal", "Size-Speed-Cost triangle"); a quotable closer per chapter.
-- **Anti-patterns:** a principle with no named artifact; "it depends" with no ladder; decorative/redundant diagrams; essay drift (long intros, hedging, reflective endings); no take-home vocabulary; unquantified quality claims.
+## Mastra——Sam Bhagwat《构建 AI 智能体的原则》
 
-## Han-Chung Lee (leehanchung.github.io — agent eval infra, RL-env taxonomy, runtime, harness)
-- **Diagram- and table-heavy** (5–7 figures/post). Arc: **debunk → reframe → decompose → systematize → close.**
-- **Article skeleton:**
-  1. **Hook** — quote the lazy consensus and puncture it in 2–3 sentences ("Most conversations about evals collapse into which SaaS tool to buy…").
-  2. **Thesis** — one-line inversion ("Chat Eval Was a Spreadsheet. Agent Eval Is a System.").
-  3. **Vocabulary** — define 4–6 load-bearing terms, distinguishing near-synonyms (rollout/episode/trajectory/trace/state-delta).
-  4. **Framework** — a spine as notation or a plane/surface split + its diagram (control plane / data plane; E = {T,H,V,S,C}).
-  5. **Component sections** — one heading per part, each with a comparison table.
-  6. **Contrast table** — old world vs new world (the 8-row Chat-vs-Agent eval table carries the whole thesis).
-  7. **Practice section** — how to operate it (experiment loop, checkpoints/branch/replay, gates).
-  8. **Close** — map components → consequences + one aphorism ("Agents need worlds… get them wrong and you've trained an expensive demo.").
-- **His 5 recreatable diagram types (Mermaid-able):**
-  1. **"Swamped small box" debt diagram** — tiny "agent model call" node dwarfed by big infra boxes (runtime, harness, eval, state, tools). Job: model is a sliver of the system. (Book opener.)
-  2. **Control-plane / data-plane pipeline** — `[T,C,G] → [M,A,R,S,τ] → traces/state-deltas → ship/rollback/retrain/acquire`. Job: eval is a closed control system whose output is a *decision*, not a score.
-  3. **"Five surfaces" fan** — central "Agent behavior" → {Output, Trace, Memory, Environment, Mechanistic-interp}. Job: break out of the output-only trap; a recurring spine.
-  4. **Canonical RL/eval loop** — Task → Harness ⇄ Tools/Env → Verifier → Trainer, reward looping back. Job: ground the abstract set in data-flow.
-  5. **Annotated failure trace** — vertical trace rows (msg → tool call → empty result → fabricated answer) with the bad step boxed. Job: make a failure mode visceral.
-- **Legibility devices:** set notation as memory anchor; tables as the workhorse (Type | Description | When-to-use); define near-synonyms once; concrete named systems (SWE-bench, MCP, Firecracker); analogies ("memory dark hole", "cargo cult evaluation"); coinages ("state delta", "release gates", "verifiable beats judgeable"); small-N enumerations.
+- **篇幅短：** 全书约 150 页、33 章，每章约 3—6 页。内容以代码为先，但全书只有约 3 张图，分别用于 MCP 架构、上下文窗口比较和 RAG 流水线。图只在概念具有空间关系时出现，而且会较早放置以建立读者方向感；每张图只完成一项任务，从不喧宾夺主。
+- **章节骨架：** 钩子（用 1—2 句话提出问题、定义或疑问）→ 框架（用一段话说明权衡，并给出人类类比）→ 分解（用箭头或编号列出**有名称的**阶段，例如 RAG = 分块→嵌入→索引→查询→重排→综合）→ 展示（一个具体产物）→ **经验法则**（一句可引用的祈使句）→ 过渡。
+- **保持实用性的方法：** 用有名称的真实案例作为锚点，例如 Alana 的图书推荐智能体、Replit 的四智能体架构、Perplexity 的 A/B 测试；使用比较表或“三角形”；不用“视情况而定”，而是给出**逐级升级路径**，例如 RAG 从加载完整上下文，到调用工具，再到完整流水线；为模式命名，例如“种子晶体”和“规模—速度—成本三角”；每章以一句可引用的话收束。
+- **反模式：** 只讲原则而没有具名产物；只说“视情况而定”却不给升级路径；装饰性或重复性图示；文章漂移成散文，包括过长引言、反复保留意见和感想式结尾；读者带不走新的概念词汇；质量判断没有量化依据。
 
-## OUR new chapter format (synthesis — illustration-first, minimal code)
-1. **Hook** — puncture the lazy version of the topic (Han), 1–2 sentences.
-2. **Thesis** — one-line inversion = the maxim, restated operationally.
-3. **Signature illustration** — ONE Mermaid diagram doing one job (plane-split / fan / loop / pipeline / annotated trace / contrast). The centerpiece.
-4. **Decompose** — named parts (Mastra arrow-list / Han component sections), usually a **comparison or old-vs-new TABLE**.
-5. **One named concrete example** — pin the abstraction to a real system (flight-booking agent's `bookings` row; SWE-bench tests; tau-bench DB state).
-6. **Escalation ladder / decision rule** — not "it depends."
-7. **Rule of thumb** — a quotable closer + 1-line transition to the neighbor principle.
-- Code only where a 3–5 line snippet genuinely clarifies (or none). Tables + diagrams + named examples carry it. Target ~500–800 words + 1 diagram + ≤1 table.
+## Han-Chung Lee：智能体评测基础设施、强化学习环境分类、运行时与执行框架
+
+- **大量使用图和表：** 每篇文章约 5—7 张图。整体叙事弧线是：**破除误解→重新定义→拆解→系统化→收束。**
+- **文章骨架：**
+  1. **钩子：** 先引用一种懒惰共识，再用 2—3 句话将其击破。例如：“大多数关于评测的讨论最终都退化成应该购买哪一种软件服务……”
+  2. **论点：** 用一句反转式判断概括全文，例如：“聊天评测是一张表，智能体评测是一个系统。”
+  3. **术语表：** 定义 4—6 个承重概念，并区分容易混淆的近义词，例如运行、回合、轨迹、跟踪记录和状态增量。
+  4. **框架：** 用一套符号，或平面/表面的划分建立文章主轴，并配一张图，例如控制平面与数据平面，或 `E={T,H,V,S,C}`。
+  5. **组件章节：** 每个组成部分独立设置标题，并各配一张比较表。
+  6. **对照表：** 对比旧世界与新世界；例如包含八行的“聊天评测与智能体评测”表承担整篇文章的核心论证。
+  7. **实践章节：** 说明如何运行这套系统，包括实验循环、检查点、分支、重放和门禁。
+  8. **结尾：** 将各组件映射到实际后果，并以一句格言收束，例如：“智能体需要世界；把世界建错，你训练出的只是一个昂贵演示。”
+- **五种可复刻、可用 Mermaid 实现的图：**
+  1. **“小盒子被淹没”的技术债图：** 很小的“智能体模型调用”节点，被运行时、执行框架、评测、状态和工具等大型基础设施方框包围。作用：说明模型只是整个系统的一小部分，适合作为全书开篇图。
+  2. **控制平面/数据平面流水线：** `[T,C,G] → [M,A,R,S,τ] → 轨迹/状态增量 → 发布/回滚/再训练/数据采集`。作用：说明评测是一个输出**决策**而非分数的闭环控制系统。
+  3. **“五个表面”扇形图：** 从中心“智能体行为”展开为输出、轨迹、记忆、环境和机制解释。作用：打破只评最终输出的陷阱，可作为全文反复使用的主轴。
+  4. **经典强化学习/评测循环：** 任务→执行框架⇄工具/环境→验证器→训练器，奖励再反馈到前端。作用：用数据流把抽象集合落到实处。
+  5. **带注释的失败轨迹：** 按纵向列出消息→工具调用→空结果→编造答案，并框出错误发生的步骤。作用：让失败模式变得直观、可感知。
+- **增强可读性的手段：** 用集合符号充当记忆锚点；把表格作为主力表达形式，例如“类型｜描述｜何时使用”；对近义词只做一次集中定义；使用 SWE-bench、MCP、Firecracker 等真实系统；使用“记忆黑洞”“货物崇拜式评测”等类比；创造“状态增量”“发布门禁”“可验证优于仅可判断”等术语；采用数量较少、容易记忆的枚举。
+
+## 我们的新章节格式：图示优先，代码最少
+
+1. **钩子：** 用 1—2 句话击破这个主题的懒惰版本，采用 Han 的做法。
+2. **论点：** 用一句反转式格言表达核心判断，并进一步说明其操作含义。
+3. **标志性图示：** 使用一张 Mermaid 图完成一项任务，可选择平面划分、扇形、循环、流水线、带注释轨迹或对照图。它是章节视觉中心。
+4. **拆解：** 将主题分成有名称的部分，采用 Mastra 的箭头列表或 Han 的组件章节；通常搭配一张比较表或新旧对照表。
+5. **一个具名实例：** 将抽象概念固定到真实系统，例如航班预订智能体中的 `bookings` 数据行、SWE-bench 测试，或 τ-bench 数据库状态。
+6. **升级路径或决策规则：** 不使用“视情况而定”作为答案。
+7. **经验法则：** 用一句可引用的话收束，并用一行文字过渡到相邻原则。
+
+只有在 3—5 行代码能够真正澄清概念时才使用代码，也可以完全不使用。主要表达载体是表格、图示和具名实例。目标篇幅为约 500—800 字，包含一张图，最多一张表。

@@ -1,30 +1,41 @@
-# Notes — "Evaluating Large Language Models Trained on Code"
+# 笔记——《评测在代码上训练的大语言模型》
 
-**Authors:** Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de Oliveira Pinto, Jared Kaplan, et al. (OpenAI, ~58 authors) · **Venue/Year:** arXiv preprint (cs.LG), 2021 · **URL:** https://arxiv.org/abs/2107.03374 · **Type:** paper · **Found:** true
+**作者：** Mark Chen、Jerry Tworek、Heewoo Jun、Qiming Yuan、Henrique Ponde de Oliveira Pinto、Jared Kaplan 等；OpenAI，约 58 位作者 · **发表信息：** arXiv 预印本，cs.LG，2021 年 · **链接：** https://arxiv.org/abs/2107.03374 · **类型：** 论文 · **已核验：** 是
 
-## Summary
-This paper introduces Codex, a GPT model fine-tuned on public GitHub code that powered GitHub Copilot, and—more consequentially for the eval literature—introduces **HumanEval**, a hand-written benchmark of 164 programming problems that measures *functional correctness* by executing model-generated code against unit tests rather than matching reference text. It formalizes the **pass@k** metric (the probability that at least one of k sampled solutions passes all tests) and provides an unbiased estimator for it, establishing execution-based, test-driven evaluation as the standard for code generation. The key empirical finding is that repeated sampling dramatically lifts measured capability: a single sample solves 28.8% of problems but 100 samples solve 70.2%. The paper became foundational because HumanEval/pass@k became the default code-eval harness for nearly every subsequent code LLM, and because it pioneered the now-standard pattern of grading generative models by running their outputs in a verifier (test suite) instead of comparing strings. It is also an early, careful treatment of the safety, security, alignment, and economic risks of deploying code-generation models.
+## 摘要
 
-## Key points
-- Introduces **Codex**, GPT fine-tuned on public GitHub Python, the model behind GitHub Copilot.
-- Introduces **HumanEval**: 164 original, hand-written programming problems (function signature + docstring + hidden unit tests) designed to avoid training-set contamination.
-- Defines **functional correctness** evaluation: a sample is correct iff it passes all unit tests when executed—an execution/verifier-based metric, not BLEU or exact-match.
-- Formalizes **pass@k** and gives a numerically stable *unbiased estimator* (generate n ≥ k samples, count correct c) to reduce variance versus naively computing 1−(1−p)^k.
-- Headline numbers: Codex solves **28.8%** of HumanEval (pass@1-ish single sample); **GPT-3 solves 0%**, **GPT-J solves 11.4%**.
-- **Repeated sampling is highly effective**: with 100 samples per problem and an oracle that picks any passing sample, **70.2%** of problems are solved.
-- Practical ranking insight: choosing the highest mean-log-probability sample recovers much of the oracle gain when you cannot run tests, foreshadowing reranking/best-of-n.
-- Fine-tuned variants (Codex-S on standalone functions) and filtered/curated training improve performance over raw Codex.
-- Documents concrete **limitations**: difficulty with docstrings describing long chains of operations and with binding operations to variables (compositional reasoning failures).
-- Extensive **broader-impacts** analysis: over-reliance, misalignment, bias, security (insecure code generation), and economic/labor effects.
+本文提出 Codex，一种在公开 GitHub 代码上微调并用于驱动 GitHub Copilot 的 GPT 模型。对评测研究更具影响的是，论文同时提出了 **HumanEval**：一个由人工编写、包含 164 道编程题的基准。它通过执行模型生成的代码并运行单元测试来衡量**功能正确性**，而不是匹配参考文本。
 
-## Verified quotes
-- "On HumanEval, a new evaluation set we release to measure functional correctness for synthesizing programs from docstrings, our model solves 28.8% of the problems, while GPT-3 solves 0% and GPT-J solves 11.4%." — https://arxiv.org/abs/2107.03374
-- "Using this method, we solve 70.2% of our problems with 100 samples per problem." — https://arxiv.org/abs/2107.03374
-- "Careful investigation of our model reveals its limitations, including difficulty with docstrings describing long chains of operations and with binding operations to variables." — https://arxiv.org/abs/2107.03374
-- "Finally, we discuss the potential broader impacts of deploying powerful code generation technologies, covering safety, security, and economics." — https://arxiv.org/abs/2107.03374
+论文形式化定义了 **pass@k** 指标，即从 k 个采样解答中至少有一个通过全部测试的概率，并给出其无偏估计量，从而确立了基于执行和测试驱动的代码生成评测范式。关键实验发现是，重复采样会显著提高可测得的能力：单次采样只能解决 28.8% 的问题，而每题采样 100 次时可解决 70.2%。本文具有奠基意义，是因为 HumanEval 和 pass@k 此后成为几乎所有代码大语言模型的默认评测方法，也因为它率先推广了如今已很常见的模式：通过验证器中的测试套件运行生成结果，而不是比较字符串。论文还较早且细致地讨论了代码生成模型部署中的安全、安保、对齐和经济风险。
 
-## Why it matters for agent evals
-This is arguably the origin point of the execution-grounded eval pattern that dominates agentic coding and tool-use evaluation. HumanEval established that you grade a generative model by *running its output against a verifier* (a unit-test suite) rather than scoring surface text—the same verifier-based reward signal that powers code RL environments, SWE-bench-style agent benchmarks, and RLVR (RL from verifiable rewards). The **pass@k** estimator made sampling-and-checking a first-class evaluation primitive, directly motivating best-of-n, self-consistency, and agent loops that generate many candidates and filter by a checker. The paper's "rank by mean log-prob when you can't execute" result prefigures LLM-judge/verifier reranking. For agents specifically, the execution-test harness is the conceptual ancestor of sandboxed test-running environments used to score multi-step coding agents, and the safety/security analysis (insecure code, misuse) seeds the adversarial and safety-eval thread for code-capable agents.
+## 要点
 
-## Themes
-1 why-evals · 2 eval⇄capability⇄RL-env · 6 benchmark-vs-eval/integrity · 7 RL environments · 8 judge/verifiers · 9 agent-specific · 10 safety/adversarial
+- 提出 **Codex**：在公开 GitHub Python 代码上微调的 GPT，也是 GitHub Copilot 背后的模型。
+- 提出 **HumanEval**：包含 164 道原创人工编程题。每题由函数签名、文档字符串和隐藏单元测试组成，并尽量避免训练集污染。
+- 定义**功能正确性**评测：只有生成代码执行后通过全部单元测试，样本才被视为正确；这是基于执行和验证器的指标，而不是 BLEU 或精确匹配。
+- 形式化定义 **pass@k**，并提供数值稳定的**无偏估计量**：生成 `n ≥ k` 个样本并统计其中正确样本数 `c`。与直接计算 `1−(1−p)^k` 相比，该估计方式方差更低。
+- 代表性结果：Codex 单次采样在 HumanEval 上解决 **28.8%** 的问题；**GPT-3 为 0%**，**GPT-J 为 11.4%**。
+- **重复采样十分有效：** 每题生成 100 个样本，并使用能够选中任意通过样本的预言式选择器时，可解决 **70.2%** 的问题。
+- 实践性的排序发现：无法运行测试时，选择平均对数概率最高的样本，可以恢复相当一部分预言式选择收益，并预示了后来的重排和多样本择优方法。
+- 针对独立函数微调的 Codex-S，以及经过过滤和精选的训练数据，都能比原始 Codex 获得更好表现。
+- 明确记录了模型的**局限性**：难以处理描述长操作链的文档字符串，也难以正确地把操作绑定到变量，体现出组合推理失败。
+- 广泛讨论了**更广泛的影响**：过度依赖、失配、偏见、安全问题（生成不安全代码）以及经济和劳动影响。
+
+## 已核验引述（中文翻译）
+
+- “在我们发布、用于衡量根据文档字符串合成程序之功能正确性的新评测集 HumanEval 上，我们的模型解决了 28.8% 的问题，而 GPT-3 为 0%，GPT-J 为 11.4%。”——https://arxiv.org/abs/2107.03374
+- “使用这种方法，在每道题生成 100 个样本时，我们解决了 70.2% 的问题。”——https://arxiv.org/abs/2107.03374
+- “对模型的细致研究揭示了它的局限，包括难以处理描述长操作链的文档字符串，以及难以将操作绑定到变量。”——https://arxiv.org/abs/2107.03374
+- “最后，我们讨论了部署强大代码生成技术可能产生的广泛影响，涵盖安全、安保和经济问题。”——https://arxiv.org/abs/2107.03374
+
+## 对智能体评测的意义
+
+本文可以被视为当今智能体代码评测和工具使用评测中“以执行结果为依据”范式的起点。HumanEval 证明，生成模型应通过**运行其输出并交由验证器中的单元测试检查**来评分，而不是根据表面文本相似度评分。这与代码强化学习环境、SWE-bench 类智能体基准以及基于可验证奖励的强化学习所使用的奖励信号属于同一范式。
+
+**pass@k** 无偏估计量让“多次采样并检查”成为一等评测操作，直接推动了多样本择优、自一致性，以及生成多个候选方案后通过检查器筛选的智能体循环。论文提出的“无法执行时按平均对数概率排序”，也预示了后来利用大语言模型评审或验证器进行重排的方法。
+
+对智能体而言，HumanEval 的执行测试框架是现代沙箱测试环境的概念前身；后者被用于评分执行多步操作的代码智能体。论文对不安全代码和滥用的分析，也为具备代码能力的智能体安全评测和对抗性评测奠定了早期问题意识。
+
+## 主题
+
+1 为什么需要评测 · 2 评测—能力—强化学习环境 · 6 基准与评测/完整性 · 7 强化学习环境 · 8 评审/验证器 · 9 智能体特有评测 · 10 安全/对抗

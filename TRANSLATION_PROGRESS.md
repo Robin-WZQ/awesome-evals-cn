@@ -1,9 +1,9 @@
 # 深度笔记中文翻译进度
 
-进度：`[█░░░░░░░░░░░░░░░░░░░] 2%（3/143）`
+进度：`[█░░░░░░░░░░░░░░░░░░░] 3%（5/143）`
 
-- 文章：0/68
-- 论文：3/28
+- 文章：1/68
+- 论文：4/28
 - 演讲与播客：0/47
 
 ## 翻译规则
@@ -18,3 +18,5 @@
 1. `notes/papers/llms-are-not-fair-evaluators.md`
 2. `notes/papers/bertscore-evaluating-text-generation-with-bert.md`
 3. `notes/papers/drop-discrete-reasoning-over-paragraphs.md`
+4. `notes/articles/article-structure-mastra-and-han.md`
+5. `notes/papers/evaluating-large-language-models-trained-on-code.md`
