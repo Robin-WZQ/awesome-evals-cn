@@ -1,9 +1,9 @@
 # 深度笔记中文翻译进度
 
-进度：`[███░░░░░░░░░░░░░░░░░] 13%（19/143）`
+进度：`[███░░░░░░░░░░░░░░░░░] 15%（22/143）`
 
 - 文章：3/68
-- 论文：16/28
+- 论文：19/28
 - 演讲与播客：0/47
 
 ## 翻译规则
@@ -34,3 +34,6 @@
 17. `notes/papers/snli-large-annotated-corpus-nli-bowman-2015.md`
 18. `notes/papers/direct-preference-optimization-dpo.md`
 19. `notes/papers/deep-rl-from-human-preferences-2017.md`
+20. `notes/papers/adversarial-nli-anli-benchmark.md`
+21. `notes/papers/glue-multi-task-benchmark-nlu.md`
+22. `notes/papers/general-language-assistant-laboratory-for-alignment.md`

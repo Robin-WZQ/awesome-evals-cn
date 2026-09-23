@@ -1,29 +1,34 @@
-# Notes — "Adversarial NLI: A New Benchmark for Natural Language Understanding"
+# 笔记——《对抗式 NLI：自然语言理解的新基准》
 
-**Authors:** Yixin Nie, Adina Williams, Emily Dinan, Mohit Bansal, Jason Weston, Douwe Kiela · **Venue/Year:** ACL 2020 (arXiv Oct 2019) · **URL:** https://arxiv.org/abs/1910.14599 · **Type:** paper · **Found:** true
+**作者：** Yixin Nie、Adina Williams、Emily Dinan、Mohit Bansal、Jason Weston、Douwe Kiela · **会议/年份：** ACL 2020（arXiv 2019 年 10 月）· **链接：** https://arxiv.org/abs/1910.14599 · **类型：** 论文 · **已找到：** 是
 
-## Summary
-ANLI introduces a large-scale Natural Language Inference benchmark built through an iterative, **human-and-model-in-the-loop** adversarial procedure (HAMLET): human annotators are paid to write hypotheses that fool a strong current model, those fooling examples are verified by other humans, and the fooled-on examples become the test/train set for the next round, with a fresh stronger model trained on the accumulated data each round. The result is a benchmark that is hard *by construction* — it targets the live weaknesses of state-of-the-art models rather than sampling a static distribution. The paper showed that even RoBERTa, near-ceiling on SNLI/MNLI, collapses on ANLI, and that training on ANLI improves performance across other NLI benchmarks. It became foundational because it operationalized "dynamic adversarial benchmarking" — reframing a benchmark as a *moving target* that resists saturation, an idea that seeded Dynabench and a wave of human-in-the-loop adversarial evaluation work. It is heavily cited as the canonical reference both for the NLI dataset itself and for the broader argument that static benchmarks saturate and mislead.
+## 摘要
 
-## Key points
-- **Method (HAMLET):** annotators see a premise (context) and a target label and must write a hypothesis that makes the target model *mis*classify; examples that fool the model are kept, then validated by independent human annotators before entering the dataset.
-- **Three rounds with escalating adversaries:** Round 1 (A1) targets a BERT-Large model; Rounds 2 and 3 (A2, A3) target progressively stronger RoBERTa models trained on the accumulated data — the model is retrained each round so the bar keeps rising.
-- **Scale:** ~162,865 total examples across the three rounds — A1 ≈ 16,946, A2 ≈ 45,460, A3 ≈ 100,459 training examples (rounds grow as the adversary gets harder to fool).
-- **Headline difficulty:** RoBERTa-Large reaches roughly **73.8% on A1, 48.9% on A2, 44.4% on A3** test — i.e. near chance on the hardest round, despite being state-of-the-art on SNLI/MNLI.
-- **Capability transfer:** training on ANLI yields **state-of-the-art performance on existing NLI benchmarks** while the ANLI test set remains a much harder challenge — adversarial data is useful training signal, not just a hard test.
-- **Diagnostic value:** the analysis characterizes *why* models fail (numerical/quantitative reasoning, references/names, lexical traps, hard negation), turning the benchmark into an error taxonomy of model weaknesses.
-- **Non-experts find the weaknesses:** crowd annotators, not domain experts, were able to reliably break SOTA models — adversarial weakness-finding scales cheaply with people.
-- **Never-ending / moving-target framing:** the collection loop can run indefinitely, so the benchmark co-evolves with models rather than being a fixed artifact that quickly saturates.
-- **Verification loop:** a separate human-validation step on fooling examples controls label noise, distinguishing genuine model errors from bad annotations — a precursor pattern for trustworthy adversarial eval data.
+ANLI 提出了一个大规模自然语言推理基准，其数据由迭代式的“**人类与模型在环**”对抗流程（HAMLET）构建：付费请人类标注者撰写能骗过当前强模型的假设，再由其他人验证这些样本；成功误导模型的样本会成为下一轮的测试集和训练集，并在每轮使用累积数据训练新的更强模型。这使基准“生来就难”——它针对的是最先进模型的实时弱点，而非从某个静态分布中抽样。论文表明，即使 RoBERTa 在 SNLI/MNLI 上已接近天花板，在 ANLI 上的表现仍大幅下降；而用 ANLI 训练又能提升其在其他 NLI 基准上的表现。这项工作将“动态对抗基准”落实为可执行方法，把基准重新定义为能抵抗饱和的**移动靶**，并由此启发了 Dynabench 及一系列人在环的对抗评测工作。它既是 ANLI 数据集的经典引文，也是论证静态基准会饱和并产生误导的标志性文献。
 
-## Verified quotes
-- "We introduce a new large-scale NLI benchmark dataset, collected via an iterative, adversarial human-and-model-in-the-loop procedure." — https://arxiv.org/abs/1910.14599
-- "We show that training models on this new dataset leads to state-of-the-art performance on a variety of popular NLI benchmarks, while posing a more difficult challenge with its new test set." — https://arxiv.org/abs/1910.14599
-- "Our analysis sheds light on the shortcomings of current state-of-the-art models, and shows that non-expert annotators are successful at finding their weaknesses." — https://arxiv.org/abs/1910.14599
-- "The data collection method can be applied in a never-ending learning scenario, becoming a moving target for NLU, rather than a static benchmark that will quickly saturate." — https://arxiv.org/abs/1910.14599
+## 要点
 
-## Why it matters for agent evals
-ANLI is one of the cleanest early demonstrations of the core agent-eval failure mode: a benchmark that looks "solved" (RoBERTa near-ceiling on SNLI/MNLI) hides systematic capability gaps that only appear under adversarial pressure. Its **human-and-model-in-the-loop loop** is a direct template for how to build evals that don't saturate — point an annotator (or, today, a red-team model/agent) at the *current* system, harvest its failures, verify them, retrain, and repeat. That loop is the conceptual ancestor of dynamic/adversarial benchmarking (Dynabench), of red-teaming pipelines for LLMs and agents, and of the general "evaluator-as-adversary" stance behind judge/verifier robustness work. The mandatory human-verification stage prefigures the integrity concerns in modern eval design: adversarial examples are only useful if their labels are trustworthy, which maps onto verifier reliability and label-noise control in RL reward and judge pipelines. For agent builders, the durable lesson is that **a benchmark's value decays as soon as systems are optimized against it**, so evals worth keeping must be regenerable against the live frontier rather than a frozen test set.
+- **方法（HAMLET）：**标注者看到一个前提（上下文）和一个目标标签，需要撰写一条能让目标模型做出错误分类的假设；骗过模型的样本会被保留，并在进入数据集前由独立的人类标注者验证。
+- **三轮逐步增强的对手：**第 1 轮（A1）针对 BERT-Large；第 2、3 轮（A2、A3）针对使用累积数据训练的、逐步更强的 RoBERTa 模型。每轮都会重新训练模型，因而门槛持续提高。
+- **规模：**三轮共约 162,865 个样本；A1 约 16,946 个、A2 约 45,460 个、A3 约 100,459 个训练样本（随着对手越来越难以误导，各轮规模也在扩大）。
+- **标志性难度：**RoBERTa-Large 在 A1、A2、A3 测试集上分别约为 **73.8%、48.9%、44.4%**；尽管它在 SNLI/MNLI 上属于当时最先进模型，在最难的一轮中仍接近随机水平。
+- **能力迁移：**使用 ANLI 训练可在现有 NLI 基准上取得**最先进表现**，同时 ANLI 测试集仍极具挑战性。这说明对抗数据不只是困难测试，也是有价值的训练信号。
+- **诊断价值：**分析归纳了模型失败的原因，包括数值/定量推理、指代/名称、词汇陷阱和困难否定，因此该基准也构成了模型弱点的错误分类体系。
+- **非专家也能找到弱点：**普通众包标注者而非领域专家，也能稳定攻破当时最先进模型；借助人类扩展对抗弱点发现的成本并不高。
+- **无尽学习/移动靶视角：**该收集闭环可以无限运行，使基准与模型协同演化，而不是成为迅速饱和的固定产物。
+- **验证闭环：**针对成功误导模型的样本增设独立的人工验证步骤，以控制标签噪声，区分真实模型错误与不良标注。这是可信对抗评测数据的早期典型模式。
 
-## Themes
-1 why-evals · 6 benchmark-vs-eval/integrity · 8 judge/verifiers · 10 safety/adversarial
+## 已核验引述（中文翻译）
+
+- “我们提出了一个新的大规模 NLI 基准数据集，它通过迭代的、对抗式的人类与模型在环流程收集。”—— https://arxiv.org/abs/1910.14599
+- “我们表明，在这个新数据集上训练模型，能使其在多种流行 NLI 基准上取得最先进表现；同时，新测试集提出了更困难的挑战。”—— https://arxiv.org/abs/1910.14599
+- “我们的分析阐明了当前最先进模型的不足，并表明非专家标注者能够成功找出这些模型的弱点。”—— https://arxiv.org/abs/1910.14599
+- “该数据收集方法可用于无尽学习场景，成为 NLU 的移动靶，而非一个很快就会饱和的静态基准。”—— https://arxiv.org/abs/1910.14599
+
+## 为什么它对智能体评测很重要
+
+ANLI 是对智能体评测核心失效模式最清晰的早期演示之一：一个看似“已被解决”的基准（RoBERTa 在 SNLI/MNLI 上接近天花板），会隐藏只有在对抗压力下才暴露的系统性能力缺口。它的**人类与模型在环闭环**直接给出了如何构建不会饱和的评测：让标注者（今天也可以是红队模型/智能体）针对**当前**系统，收集其失败案例，验证、重新训练，然后重复这一过程。这一闭环是动态/对抗基准（Dynabench）、大模型与智能体红队流水线，以及裁判器/验证器鲁棒性研究所采用的“评估者即对手”立场的概念先驱。强制人工验证阶段也预示了现代评测设计的完整性问题：只有标签可信，对抗样本才有用；这对应于强化学习奖励和裁判流水线中的验证器可靠性与标签噪声控制。对智能体开发者而言，最持久的教训是：**系统一旦开始针对某基准优化，该基准的价值就会衰减**。因此，值得长期保留的评测必须能针对当前前沿系统再生，而不能只是冻结的测试集。
+
+## 主题
+
+1 为什么需要评测 · 6 基准与评测/完整性 · 8 裁判器/验证器 · 10 安全/对抗

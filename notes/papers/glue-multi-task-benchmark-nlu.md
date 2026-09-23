@@ -1,28 +1,33 @@
-# Notes — "GLUE: A Multi-Task Benchmark and Analysis Platform for Natural Language Understanding"
+# 笔记——《GLUE：自然语言理解的多任务基准与分析平台》
 
-**Authors:** Alex Wang, Amanpreet Singh, Julian Michael, Felix Hill, Omer Levy, Samuel R. Bowman · **Venue/Year:** ICLR 2019 (arXiv Apr 2018) · **URL:** https://arxiv.org/abs/1804.07461 · **Type:** paper · **Found:** true
+**作者：** Alex Wang、Amanpreet Singh、Julian Michael、Felix Hill、Omer Levy、Samuel R. Bowman · **会议/年份：** ICLR 2019（arXiv 2018 年 4 月）· **链接：** https://arxiv.org/abs/1804.07461 · **类型：** 论文 · **已找到：** 是
 
-## Summary
-GLUE bundles nine pre-existing English natural-language-understanding tasks (single-sentence, similarity/paraphrase, and inference) into one model-agnostic benchmark, scored by averaging per-task metrics into a single leaderboard number. Its explicit goal is to measure *general* NLU rather than performance tuned to a single dataset, and its task mix deliberately spans dataset sizes (some with very little training data) to reward knowledge sharing across tasks. The paper also ships a hand-crafted diagnostic test suite that isolates linguistic phenomena (lexical semantics, predicate-argument structure, logic, world knowledge) so failures can be analyzed, not just scored. Baselines at publication — including BiLSTM models with ELMo/attention and multi-task/transfer-learning setups — showed only modest gains over per-task training, leaving deliberate headroom. GLUE became foundational because it standardized how the field reported "general" language understanding: it was the canonical proving ground for BERT and successors, drove the human-baseline-saturation narrative, and seeded the entire leaderboard-benchmark genre (SuperGLUE, and indirectly later LM eval harnesses).
+## 摘要
 
-## Key points
-- Aggregates **nine tasks**: CoLA (grammatical acceptability), SST-2 (sentiment), MRPC (paraphrase), STS-B (semantic similarity), QQP (duplicate questions), MNLI (multi-genre entailment), QNLI (SQuAD recast as entailment), RTE (entailment), WNLI (Winograd coreference recast as inference).
-- **Single headline number**: per-task metrics (accuracy, F1, Pearson/Spearman correlation, Matthews correlation for imbalanced CoLA) averaged into one GLUE score — the move that made cross-model ranking trivial.
-- **Model-agnostic by design**: GLUE constrains nothing about architecture; it only fixes the tasks, splits, and submission format, with a private test set scored via an **online leaderboard/evaluation server** to limit overfitting.
-- **Incentivizes transfer**: task pool intentionally includes low-resource tasks (RTE, MRPC, WNLI), so multi-task/transfer learning has a built-in advantage — the benchmark encodes a hypothesis about generalization, not just a scoreboard.
-- **Diagnostic suite**: ~550 hand-labeled NLI examples tagged by linguistic phenomenon (lexical semantics, predicate-argument structure, logic, knowledge/world facts), enabling fine-grained capability analysis rather than a single accuracy.
-- **Key empirical finding**: out-of-the-box multi-task and transfer baselines did *not* substantially beat training a separate model per task — framed as evidence that general, robust NLU was unsolved.
-- ELMo and attention helped baselines, but all sat well below the human/headroom ceiling at release — GLUE was built to be hard and to have a long lifespan (it was largely saturated within ~1 year by BERT-era models, motivating SuperGLUE).
-- Recasting trick: QNLI and WNLI convert QA/coreference into a uniform sentence-pair classification format, showing how heterogeneous tasks can be normalized into one harness interface.
+GLUE 将九项已有的英语自然语言理解任务（单句任务、相似度/复述任务和推理任务）整合为一个与模型无关的基准，并通过对各任务指标取平均，得到用于排行榜的单一分数。它的明确目标是衡量**通用** NLU，而不是为某个数据集调优后的表现。其任务组合故意覆盖不同数据规模（包括训练数据极少的任务），以奖励跨任务知识共享。论文还提供了手工构建的诊断测试套件，将词汇语义、谓词—论元结构、逻辑和世界知识等语言现象分离，从而不只给出分数，还能分析失败原因。发表时的基线包括带 ELMo/注意力的 BiLSTM，以及多任务/迁移学习方案，它们相较单任务训练只有温和改进，刻意留出了充足提升空间。GLUE 之所以具有奠基性，在于它规范了领域如何报告“通用”语言理解：它成为 BERT 及后续模型的经典试验场，推动了“超越人类基线/基准饱和”的叙事，并开启了整个排行榜基准范式（包括 SuperGLUE，并间接影响了后来的语言模型评测框架）。
 
-## Verified quotes
-- "we introduce the General Language Understanding Evaluation benchmark (GLUE), a tool for evaluating and analyzing the performance of models across a diverse range of existing NLU tasks." — https://arxiv.org/abs/1804.07461
-- "GLUE is model-agnostic, but it incentivizes sharing knowledge across tasks because certain tasks have very limited training data." — https://arxiv.org/abs/1804.07461
-- "We further provide a hand-crafted diagnostic test suite that enables detailed linguistic analysis of NLU models." — https://arxiv.org/abs/1804.07461
-- "they do not immediately give substantial improvements over the aggregate performance of training a separate model per task, indicating room for improvement in developing general and robust NLU systems." — https://arxiv.org/abs/1804.07461
+## 要点
 
-## Why it matters for agent evals
-GLUE is the archetype of the multi-task leaderboard benchmark that later agent/LM evals inherited wholesale: a fixed task suite, a private held-out test set scored by a submission server, and a single aggregate number for ranking. Three ideas it seeds are directly relevant to agent-evals infrastructure. (1) **Benchmark-vs-eval integrity** — its private test set + evaluation server is an early answer to overfitting/leaderboard-gaming, the same contamination problem that now dominates LLM benchmark trust; GLUE's rapid saturation is the canonical case study for "benchmarks have a shelf life" and the move to harder successors (SuperGLUE). (2) **Diagnostic/capability decomposition** — its phenomenon-tagged diagnostic set is a precursor to today's behavioral/capability-sliced evals and to verifier-style checks that ask *why* a model fails, not just whether it scored. (3) **Harness normalization** — recasting heterogeneous tasks (QA, coreference) into one uniform input/output interface is the same abstraction that LM eval harnesses and agent task suites use to score many capabilities through one runner. It is a foundational reference point when arguing that good evals need aggregate-plus-breakdown reporting, contamination-resistant held-out sets, and deliberate headroom.
+- 汇总**九项任务**：CoLA（语法可接受性）、SST-2（情感）、MRPC（复述）、STS-B（语义相似度）、QQP（重复问题）、MNLI（多领域蕴含）、QNLI（将 SQuAD 重构为蕴含任务）、RTE（蕴含）、WNLI（将 Winograd 指代消解重构为推理任务）。
+- **单一总分：**把各任务指标（准确率、F1、Pearson/Spearman 相关性，以及用于类别不平衡 CoLA 的 Matthews 相关系数）平均为一个 GLUE 分数，使跨模型排名变得非常简单。
+- **设计上与模型无关：**GLUE 不约束模型架构，只固定任务、数据划分和提交格式；私有测试集由**在线排行榜/评测服务器**计分，以限制过拟合。
+- **激励迁移：**任务池有意包含低资源任务（RTE、MRPC、WNLI），因此多任务/迁移学习自然具有优势。换言之，该基准编码了一项有关泛化的假设，而不只是一张积分表。
+- **诊断套件：**约 550 个手工标注的 NLI 样本，按语言现象（词汇语义、谓词—论元结构、逻辑、知识/世界事实）打标签，从而支持细粒度能力分析，而非只看单一准确率。
+- **关键实证发现：**现成的多任务和迁移基线，并没有显著超过为各任务分别训练模型的方案；论文将此解读为通用、鲁棒 NLU 仍未解决的证据。
+- ELMo 和注意力机制改进了基线，但发布时所有基线均明显低于人类水平/性能上限。GLUE 原本被设计得很难且具有较长寿命，但大约一年内就被 BERT 时代的模型基本饱和，因而催生了 SuperGLUE。
+- **任务重构技巧：**QNLI 和 WNLI 把问答/指代消解转换为统一的句对分类格式，说明异构任务可以被标准化到同一个评测框架接口中。
 
-## Themes
-1 why-evals · 6 benchmark-vs-eval/integrity · 8 judge/verifiers
+## 已核验引述（中文翻译）
+
+- “我们提出了通用语言理解评测基准（GLUE）；这是一项用于评估和分析模型在多种现有 NLU 任务上表现的工具。”—— https://arxiv.org/abs/1804.07461
+- “GLUE 与模型无关，但它鼓励在任务之间共享知识，因为某些任务的训练数据非常有限。”—— https://arxiv.org/abs/1804.07461
+- “我们还提供了一套手工构建的诊断测试集，以实现对 NLU 模型的详细语言学分析。”—— https://arxiv.org/abs/1804.07461
+- “它们并未直接显著超过为各任务分别训练模型的汇总表现，这表明开发通用、鲁棒的 NLU 系统仍有提升空间。”—— https://arxiv.org/abs/1804.07461
+
+## 为什么它对智能体评测很重要
+
+GLUE 是后来的智能体/语言模型评测整体继承的多任务排行榜基准范型：固定的任务套件、由提交服务器评分的私有留出测试集，以及用于排名的单一汇总分数。它奠定的三个思想与智能体评测基础设施直接相关。（1）**基准与评测完整性**：私有测试集加评测服务器，是对过拟合和操纵排行榜的早期应对，对应于今日左右大模型基准信任度的数据污染问题。GLUE 的迅速饱和，成为“基准有保质期”及转向更困难后继基准（SuperGLUE）的经典案例。（2）**诊断/能力分解**：按语言现象标注的诊断集，是今日行为分片/能力分片评测的前身，也预示了验证器式检查——它们不仅问模型得了多少分，还问为什么失败。（3）**评测框架归一化**：将问答、指代消解等异构任务重构到统一输入/输出接口，与语言模型评测框架和智能体任务套件通过同一运行器为多种能力打分的抽象相同。当我们主张良好评测需要“总分加分项”报告、抗污染的留出集和精心预留的提升空间时，GLUE 是一个奠基性参照点。
+
+## 主题
+
+1 为什么需要评测 · 6 基准与评测/完整性 · 8 裁判器/验证器
