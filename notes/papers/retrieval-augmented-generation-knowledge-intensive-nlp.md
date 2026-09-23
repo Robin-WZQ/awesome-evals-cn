@@ -1,32 +1,38 @@
-# Notes — "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks"
-**Authors:** Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen-tau Yih, Tim Rocktäschel, Sebastian Riedel, Douwe Kiela (Facebook AI Research / UCL / NYU) · **Venue/Year:** NeurIPS 2020 · **URL:** https://arxiv.org/abs/2005.11401 · **Type:** paper · **Found:** true
+# 笔记——《面向知识密集型 NLP 任务的检索增强生成》
 
-## Summary
-This is the paper that coined "RAG" and gave it a clean, general-purpose recipe: pair a **parametric** generator (a pre-trained seq2seq model, BART-large) with a **non-parametric** memory (a dense vector index of ~21M Wikipedia passages) accessed by a learned neural retriever (DPR), and fine-tune the two end-to-end so the model retrieves passages and conditions its generation on them. The motivation is squarely an evaluation/reliability one: pure parametric LLMs store knowledge in weights but can't precisely access it, can't cite **provenance**, and can't be **updated** without retraining — so they lag task-specific architectures and hallucinate. RAG set state-of-the-art on three open-domain QA benchmarks and produced more factual, specific generation than a parametric-only baseline, while also showing knowledge could be edited simply by **hot-swapping the index**. It became foundational (in-degree 24 here, tens of thousands of citations overall) because it turned "retrieval + generation" into a single differentiable architecture and a named pattern that the entire grounding/agent-tooling stack — and a whole sub-genre of evals (faithfulness, groundedness, attribution) — now builds on.
+**作者：** Patrick Lewis、Ethan Perez、Aleksandra Piktus、Fabio Petroni、Vladimir Karpukhin、Naman Goyal、Heinrich Küttler、Mike Lewis、Wen-tau Yih、Tim Rocktäschel、Sebastian Riedel、Douwe Kiela（Facebook AI Research / UCL / NYU）· **会议/年份：** NeurIPS 2020 · **链接：** https://arxiv.org/abs/2005.11401 · **类型：** 论文 · **已找到：** 是
 
-## Key points
-- **Architecture:** parametric memory = BART-large (~400M) generator; non-parametric memory = a FAISS dense index of 21M 100-word Wikipedia chunks; retriever = DPR (BERT-base bi-encoder via MIPS). The retriever's query encoder + generator are trained jointly; the document index is kept fixed.
-- **Two formulations introduced:** **RAG-Sequence** (one retrieved passage conditions the *whole* output) vs **RAG-Token** (the model can attend to a *different* passage for each generated token, marginalizing over top-k docs). RAG-Token helps when an answer draws on multiple documents.
-- **Latent-retrieval training:** documents are treated as a latent variable and marginalized out, so the system learns *what to retrieve* from only question→answer supervision — no gold-passage labels required.
-- **Open-domain QA SOTA (exact match):** NQ 44.5, WebQuestions 68.0, CuratedTrec 45.5 — beating DPR, REALM, and T5-11B; TriviaQA 56.8. Notably it outperforms much larger parametric models with far fewer parameters.
-- **FEVER fact verification:** 72.5% (3-way) / 89.5% (2-way) label accuracy, within a few points of pipelines that use gold evidence retrieval — without supervised retrieval supervision.
-- **Generation quality (the eval insight):** on open-ended/abstractive tasks (incl. Jeopardy question generation), human eval rated RAG output **more factual** (42.7% of cases vs BART's 7.1%) and more specific/diverse than a parametric-only seq2seq baseline.
-- **Knowledge editing without retraining:** swapping the Wikipedia index (2016 vs 2018) changes which world the model answers about — e.g., it correctly returns period-appropriate world leaders, demonstrating updatable, non-parametric knowledge.
-- **Provenance for free:** because answers are conditioned on retrieved passages, the retrieved set is an inspectable citation trail — the seed of "attribution/groundedness" as a measurable property.
-- **What it introduced as vocabulary:** the term "RAG," the parametric vs non-parametric memory framing, and the sequence/token marginalization split — all of which became standard.
+## 摘要
 
-## Verified quotes
-- "We explore a general-purpose fine-tuning recipe for retrieval-augmented generation (RAG) -- models which combine pre-trained parametric and non-parametric memory for language generation." — https://arxiv.org/abs/2005.11401
-- "providing provenance for their decisions and updating their world knowledge remain open research problems." — https://arxiv.org/abs/2005.11401
-- "For language generation tasks, we find that RAG models generate more specific, diverse and factual language than a state-of-the-art parametric-only seq2seq baseline." — https://arxiv.org/abs/2005.11401
-- "We compare two RAG formulations, one which conditions on the same retrieved passages across the whole generated sequence, the other can use different passages per token." — https://arxiv.org/abs/2005.11401
+这篇论文创造了“RAG”一词，并给出了一个清晰的通用配方：将**参数化**生成器（预训练序列到序列模型 BART-large）与**非参数化**记忆（由约 2100 万个维基百科文段组成的稠密向量索引）结合，由学习型神经检索器（DPR）访问该记忆，再对两者做端到端微调，使模型检索文段并以它们为条件生成内容。其动机本质上关于评测和可靠性：纯参数大模型将知识储存在权重中，却无法精确访问它，无法引用**来源**，也无法在不重新训练的情况下**更新**；因此它们落后于任务特定架构并会幻觉。RAG 在三个开放域问答基准上取得最先进成绩，且生成内容比纯参数基线更具事实性和具体性；它还说明只要**热替换索引**就可编辑知识。该工作把“检索 + 生成”整合为一个可微分架构和有名范式，为如今整个落地/智能体工具栈，以及忠实性、落地性、归因等评测类型奠定了基础。
 
-## Why it matters for agent evals
-RAG is the architectural ancestor of nearly every grounded/tool-using agent, and it seeds three eval ideas that recur throughout the agent-eval literature. (1) **Faithfulness / groundedness as a first-class metric:** by conditioning generation on retrieved evidence, RAG makes "is the answer supported by the context?" a checkable property — exactly the C-vs-A relationship that later RAG-eval taxonomies (RAGAS, TruLens, and jxnl's "only 6 RAG evals") formalize, and the substrate LLM-judges/verifiers score. (2) **Provenance and attribution as verifiable signals:** the retrieved set is an inspectable citation trail, which is what attribution benchmarks and citation-checking verifiers operationalize — and what lets a verifier ground a reward rather than trust the model's parametric recall. (3) **Knowledge cutoff and index-as-environment:** hot-swapping the index to change the answerable world prefigures treating the retrieval corpus/tool surface as a controllable part of the eval/RL environment, and the mismatched-index experiment is an early, clean demonstration of how to *test* whether a model is actually using external knowledge vs. its weights — a probe directly relevant to detecting hallucination and memorization in agent benchmarks.
+## 要点
 
-## Themes
-- **1 why-evals** — frames parametric LLMs' inability to access knowledge, cite provenance, or update as the core problem motivating measurement of factuality and grounding.
-- **8 judge/verifiers** — grounding answers in retrieved evidence is the substrate for faithfulness/attribution scoring that LLM-judges and verifiers later automate.
-- **9 agent-specific** — the founding architecture for retrieval/tool-augmented agents; retrieval-then-generate is the canonical agent pattern.
-- **2 eval⇄capability⇄RL-env** — the swappable non-parametric index is an early instance of treating the knowledge corpus/tool surface as a controllable environment that defines what's answerable.
-- **6 benchmark-vs-eval/integrity** (secondary) — the mismatched-index test is a template for probing whether a model truly uses external knowledge vs. memorized parametric recall.
+- **架构：**参数化记忆是约 4 亿参数的 BART-large 生成器；非参数化记忆是包含 2100 万个、每个约 100 词的维基百科文段的 FAISS 稠密索引；检索器是 DPR（通过 MIPS 检索的 BERT-base 双编码器）。检索器的查询编码器与生成器联合训练，文档索引保持固定。
+- **提出两种形式：****RAG-Sequence** 用一个检索文段条件化**整段**输出；**RAG-Token** 则在 top-k 文档上边缘化，使模型可为每个生成词元关注**不同**文段。答案需从多文档取材时，RAG-Token 更有帮助。
+- **潜在检索训练：**将文档视为潜变量并对其边缘化，因此系统只需问题→答案监督就能学会**应检索什么**，不需要标准文段标签。
+- **开放域问答最先进成绩（精确匹配）：**NQ 44.5、WebQuestions 68.0、CuratedTrec 45.5，超越 DPR、REALM 和 T5-11B；TriviaQA 为 56.8。值得注意的是，它用远少于后者的参数超越了更大的参数模型。
+- **FEVER 事实验证：**三分类/二分类标签准确率分别为 72.5%/89.5%；在没有监督检索信号的情况下，与使用标准证据检索的流水线仅相差几个点。
+- **生成质量（评测洞见）：**在开放式/抽象式任务（包括 Jeopardy 问题生成）上，人工评估认为 RAG 输出**事实性更强**（RAG 有 42.7% 的样本更事实，BART 仅为 7.1%），也比纯参数序列到序列基线更具体、更多样。
+- **无需重训练的知识编辑：**切换使用 2016 年与 2018 年维基百科的索引，会改变模型回答所依据的世界；例如，它可正确给出符合当时时代的世界领导人，证明非参数知识可更新。
+- **自带来源：**由于答案以检索文段为条件，检索集自然成为可检查的引用轨迹，这是将“归因/落地性”视为可测性质的萌芽。
+- **引入的标准词汇：**“RAG”一词、参数化与非参数化记忆框架，以及序列/词元边缘化划分，后来都成为标准。
+
+## 已核验引述（中文翻译）
+
+- “我们探索了一种通用的检索增强生成（RAG）微调方案——这类模型将预训练的参数化记忆和非参数化记忆结合起来进行语言生成。”—— https://arxiv.org/abs/2005.11401
+- “为决策提供来源，以及更新它们的世界知识，仍然是开放研究问题。”—— https://arxiv.org/abs/2005.11401
+- “对于语言生成任务，我们发现 RAG 模型生成的语言，比最先进的纯参数序列到序列基线更具体、更多样、更有事实性。”—— https://arxiv.org/abs/2005.11401
+- “我们比较了两种 RAG 形式：其一在整个生成序列上使用相同的检索文段作为条件，另一种可为每个词元使用不同文段。”—— https://arxiv.org/abs/2005.11401
+
+## 为什么它对智能体评测很重要
+
+RAG 是几乎所有落地型/工具使用型智能体的架构先驱，并奠定了智能体评测文献中反复出现的三个思想。（1）**将忠实性/落地性作为一等指标：**通过以检索证据为条件生成，RAG 使“答案是否得到上下文支持？”成为可检验性质。这正是后来 RAG 评测分类（RAGAS、TruLens 及 jxnl 的“只有 6 种 RAG 评测”）所形式化的上下文与答案关系，也是大模型裁判器/验证器的评分基础。（2）**将来源与归因作为可验证信号：**检索集是可检查的引用轨迹，后来的归因基准和引用核查验证器将其落实为可评测对象，也使验证器能在证据上建立奖励，而无需信任模型的参数化回忆。（3）**知识截止与索引即环境：**通过热替换索引改变可回答的世界，预示了把检索语料/工具表面视为评测/RL 环境中可控部分的思路。索引不匹配实验也早期清晰地演示了，如何**测试**模型究竟在使用外部知识，还是借助权重中的记忆；这种探针与在智能体基准中检测幻觉和记忆直接相关。
+
+## 主题
+
+- **1 为什么需要评测**——将参数模型无法准确访问知识、引用来源或更新知识，视为衡量事实性和落地性的核心动机。
+- **8 裁判器/验证器**——将答案落地于检索证据，是后来大模型裁判器和验证器自动评估忠实性/归因的基础。
+- **9 智能体专属**——检索/工具增强智能体的奠基架构；“先检索、再生成”是经典智能体模式。
+- **2 评测↔能力↔强化学习环境**——可替换的非参数索引是将知识语料/工具表面视为可控环境的早期例子，它定义了什么是可回答的。
+- **6 基准与评测/完整性（次要）**——索引不匹配测试提供了探查模型是否真正使用外部知识、还是参数化记忆的模板。

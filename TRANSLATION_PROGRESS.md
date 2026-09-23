@@ -1,9 +1,9 @@
 # 深度笔记中文翻译进度
 
-进度：`[████░░░░░░░░░░░░░░░░] 20%（28/143）`
+进度：`[████░░░░░░░░░░░░░░░░] 22%（31/143）`
 
 - 文章：3/68
-- 论文：25/28
+- 论文：28/28
 - 演讲与播客：0/47
 
 ## 翻译规则
@@ -43,3 +43,6 @@
 26. `notes/papers/arcade-learning-environment-ale-2012.md`
 27. `notes/papers/red-teaming-language-models-with-language-models.md`
 28. `notes/papers/sparrow-targeted-human-judgements-2209-14375.md`
+29. `notes/papers/retrieval-augmented-generation-knowledge-intensive-nlp.md`
+30. `notes/papers/workflow-guided-exploration-web-interfaces-rl.md`
+31. `notes/papers/playing-atari-with-deep-reinforcement-learning.md`

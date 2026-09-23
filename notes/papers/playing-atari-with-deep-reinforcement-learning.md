@@ -1,31 +1,37 @@
-# Notes — "Playing Atari with Deep Reinforcement Learning"
-**Authors:** Volodymyr Mnih, Koray Kavukcuoglu, David Silver, Alex Graves, Ioannis Antonoglou, Daan Wierstra, Martin Riedmiller (DeepMind) · **Venue/Year:** NIPS 2013 Deep Learning Workshop / arXiv 2013 · **URL:** https://arxiv.org/abs/1312.5602 · **Type:** paper · **Found:** true
+# 笔记——《用深度强化学习玩 Atari》
 
-## Summary
-This is the original "DQN" paper — the first demonstration that a single deep network can learn control policies end-to-end, straight from raw pixels, using reinforcement learning. The model is a convolutional neural network trained with a variant of Q-learning that maps screen pixels to a value function over actions, and it is applied to seven Atari 2600 games from the Arcade Learning Environment (ALE) with no per-game tuning of architecture or hyperparameters. It outperformed all prior approaches on six of the seven games and beat a human expert on three. Its enduring methodological contribution is the recipe for making RL stable with a deep function approximator: experience replay (a buffer of past transitions sampled to break correlation between consecutive updates) plus stochastic-gradient training of the Q-network. It became foundational because it established a fixed, shared, score-based benchmark suite (ALE) as the standard yardstick for general agent capability, and the "one algorithm, many games, no per-game adjustment" framing is the direct ancestor of how modern agent and RL-environment evals are designed.
+**作者：** Volodymyr Mnih、Koray Kavukcuoglu、David Silver、Alex Graves、Ioannis Antonoglou、Daan Wierstra、Martin Riedmiller（DeepMind）· **会议/年份：** NIPS 2013 Deep Learning Workshop / arXiv 2013 · **链接：** https://arxiv.org/abs/1312.5602 · **类型：** 论文 · **已找到：** 是
 
-## Key points
-- **One algorithm, raw input, no per-game tuning.** A single CNN consumes raw 210×160 game pixels (preprocessed to 84×84 stacked frames) and outputs Q-values for each action; "no adjustment of the architecture or learning algorithm" is made across the seven games — generality is the headline claim, not peak score on any one game.
-- **The eval insight: a shared, score-based benchmark suite.** Using the Arcade Learning Environment as a fixed battery of games with the game's own score as reward is the load-bearing design choice — it turns "is this agent generally capable?" into a comparable, reproducible number across many tasks, which is exactly the template later agent benchmarks copy.
-- **Experience replay** is the key trick that made deep RL stable: store transitions (s, a, r, s′) in a replay memory and train on random minibatches, which de-correlates samples, smooths the data distribution, and reuses each experience many times. This is the paper's most-cited mechanism.
-- **Q-learning variant, not policy imitation.** The network is trained to minimize the temporal-difference error of the Bellman target — i.e., a grounded environment reward (game score), not a human label or judge preference, drives learning.
-- **Concrete results:** evaluated on seven games (Beam Rider, Breakout, Enduro, Pong, Q*bert, Seaquest, Space Invaders); it "outperforms all previous approaches on six of the games and surpasses a human expert on three of them." Prior ALE work relied on hand-engineered features; DQN beat them with learned features.
-- **Same network, same hyperparameters, same reward clipping** (rewards clipped to {-1, 0, +1}) across all games — a deliberate constraint to demonstrate that the method is not silently over-fit to a single environment.
-- **What it introduced to the field:** the "DQN" architecture, experience replay for deep RL, and the ALE-as-benchmark paradigm — later scaled in the 2015 Nature paper ("human-level control") to 49 games with a target network.
-- **Online, from-scratch learning.** The agent learns purely by interacting with the emulator (an RL environment / simulator) with no access to the game's internal state, demonstrators, or labels — the purest form of "the environment is the supervision."
+## 摘要
 
-## Verified quotes
-- "We present the first deep learning model to successfully learn control policies directly from high-dimensional sensory input using reinforcement learning." — Abstract (https://arxiv.org/abs/1312.5602)
-- "The model is a convolutional neural network, trained with a variant of Q-learning, whose input is raw pixels and whose output is a value function estimating future rewards." — Abstract (https://arxiv.org/abs/1312.5602)
-- "We apply our method to seven Atari 2600 games from the Arcade Learning Environment, with no adjustment of the architecture or learning algorithm." — Abstract (https://arxiv.org/abs/1312.5602)
-- "We find that it outperforms all previous approaches on six of the games and surpasses a human expert on three of them." — Abstract (https://arxiv.org/abs/1312.5602)
+这是最初的 DQN 论文，首次证明单个深度网络可使用强化学习，直接从原始像素中端到端学习控制策略。该模型是使用 Q 学习变体训练的卷积神经网络，将屏幕像素映射到动作价值函数；它被应用于 Arcade Learning Environment（ALE）中的七款 Atari 2600 游戏，架构和超参数均不针对单款游戏调整。它在七款游戏中的六款上超越所有先前方法，在三款上超越人类专家。其持久的方法论贡献是使带深度函数逼近器的 RL 稳定训练的配方：经验回放（将过去的转移存入缓冲区，随机采样以破除连续更新间的相关性），再对 Q 网络进行随机梯度训练。它确立了固定、共享、基于得分的 ALE 基准套件，作为通用智能体能力的标准尺度，因而具有奠基性。“一种算法、多款游戏、不按游戏调整”的框架，是现代智能体和 RL 环境评测设计的直接先驱。
 
-## Why it matters for agent evals
-This paper is a foundational node in the eval citation graph for two reasons. First, it canonized the **RL-environment-as-benchmark** pattern: the Arcade Learning Environment is a sandboxed, deterministic, replayable world whose built-in score is the verifier — no human judge, no LLM grader, just a grounded environment reward. That is the cleanest possible instance of "verify the end state / let the environment supply the reward," and it is the conceptual ancestor of today's agentic RL environments (the harness *is* both the eval and the training curriculum). Second, it set the **generalization-evaluation norm** that modern agent evals chase: run one fixed agent across many held-out tasks with no per-task tuning, and report the spread — the antidote to the over-fit-to-one-benchmark failure mode. Its weaknesses are also instructive for eval design: ALE scores are easy to over-interpret (deterministic emulation invites memorization, which later work countered with sticky-actions/no-op-start randomization — an early "benchmark integrity" lesson), and a single scalar score per game hides *how* the agent succeeds. For agent-evals specifically, DQN is the bridge between "RL needs a world" (RL environments, verifiers, grounded reward) and "evals need many comparable tasks with no per-task hacking."
+## 要点
 
-## Themes
-- **2 eval⇄capability⇄RL-env** — the canonical demonstration that capability is measured by running one learning algorithm across a battery of RL environments; capability, training signal, and eval are the same object.
-- **7 RL environments** — ALE/Atari as the archetypal sandboxed, replayable, score-bearing RL environment; experience replay as the mechanism for learning inside it.
-- **8 judge/verifiers** — the game score is a pure programmatic verifier (grounded environment reward), the opposite of an LLM-judge; the template for "let the environment grade, not a rater."
-- **1 why-evals** — establishes the "one algorithm, many tasks, no per-game adjustment" generalization yardstick that agent benchmarks still use.
-- **6 benchmark-vs-eval/integrity** — deterministic emulation makes ALE gameable via memorization, seeding later integrity fixes (sticky actions, random starts).
+- **一种算法、原始输入、无游戏特定调优：**单个 CNN 接收原始 210×160 游戏像素（预处理为 84×84 的堆叠帧），输出每个动作的 Q 值；七款游戏之间“不调整架构或学习算法”。标志性主张是通用性，而非单款游戏的峰值得分。
+- **评测洞见——共享的得分型基准套件：**使用 ALE 作为固定游戏组，并以游戏自身得分为奖励，是关键设计选择。它将“这个智能体是否通用？”转换为跨多项任务可比较、可复现的数字，后来的智能体基准直接复制了这一模板。
+- **经验回放**是使深度 RL 稳定的关键技巧：把转移（s, a, r, s′）存入回放记忆，用随机小批量训练，从而去相关样本、平滑数据分布，并重复利用各次经验。这是本文被引用最多的机制。
+- **Q 学习变体，而非策略模仿：**网络通过最小化 Bellman 目标的时序差分误差训练；驱动学习的是落地环境奖励（游戏得分），而非人类标签或裁判偏好。
+- **具体结果：**在七款游戏（Beam Rider、Breakout、Enduro、Pong、Q*bert、Seaquest、Space Invaders）上评测；它“在六款游戏上超越所有先前方法，在三款游戏上超越人类专家”。先前 ALE 工作依赖手工特征，DQN 以学习特征超越了它们。
+- 所有游戏使用**相同网络、相同超参数和相同奖励裁剪**（奖励裁剪为 {-1, 0, +1}），这是为了刻意证明方法没有暗中过拟合某个环境。
+- **它引入了什么：**DQN 架构、深度 RL 的经验回放，以及将 ALE 作为基准的范式。后来的 2015 年 Nature 论文（“人类水平控制”）将它扩展到 49 款游戏，并加入目标网络。
+- **在线、从零学习：**智能体纯粹通过与模拟器（RL 环境）交互学习，无法访问游戏内部状态、演示者或标签。这是“环境即监督”最纯粹的形式。
+
+## 已核验引述（中文翻译）
+
+- “我们提出了第一个能使用强化学习，直接从高维感知输入成功学习控制策略的深度学习模型。”——摘要（https://arxiv.org/abs/1312.5602）
+- “该模型是使用 Q 学习变体训练的卷积神经网络；输入是原始像素，输出是对未来奖励做出估计的价值函数。”——摘要（https://arxiv.org/abs/1312.5602）
+- “我们将该方法应用于 Arcade Learning Environment 中的七款 Atari 2600 游戏，不对架构或学习算法做任何调整。”——摘要（https://arxiv.org/abs/1312.5602）
+- “我们发现，它在六款游戏上超越了所有先前方法，并在三款游戏上超越了人类专家。”——摘要（https://arxiv.org/abs/1312.5602）
+
+## 为什么它对智能体评测很重要
+
+这篇论文因两个原因成为评测引文图谱中的奠基节点。首先，它将**RL 环境即基准**范式经典化：Arcade Learning Environment 是一个沙箱化、确定性、可回放的世界，其内置得分就是验证器——没有人类裁判、没有大模型评分器，只有落地环境奖励。这是“验证终态/让环境提供奖励”最干净的范例，也是今日智能体 RL 环境的概念先驱：评测框架**既**是评测，**也**是训练课程。其次，它设立了现代智能体评测所追求的**泛化评测规范**：让一个固定智能体在多个留出任务上运行，不做任务特定调优，并报告分布情况；这是对“过拟合一个基准”失败的解药。其局限也对评测设计具有启示：ALE 得分很容易被过度解读；确定性模拟鼓励记忆，后续工作用粘性动作/随机无操作开局加以缓解，这是早期的“基准完整性”教训；每款游戏的单一标量得分也隐藏了智能体**如何**成功。对智能体评测而言，DQN 连接了“RL 需要一个世界”（RL 环境、验证器、落地奖励）与“评测需要多个可比任务且不得按任务作弊”。
+
+## 主题
+
+- **2 评测↔能力↔强化学习环境**——典型地证明通过在一组 RL 环境上运行同一学习算法来衡量能力；能力、训练信号和评测是同一对象。
+- **7 强化学习环境**——ALE/Atari 是沙箱化、可回放、有得分 RL 环境的原型；经验回放是在其中学习的机制。
+- **8 裁判器/验证器**——游戏得分是纯程序化验证器（落地环境奖励），与大模型裁判器相反；这是“让环境评分，不让评分者评分”的模板。
+- **1 为什么需要评测**——确立了“一种算法、多项任务、不按游戏调整”的泛化标尺，智能体基准至今仍在使用。
+- **6 基准与评测/完整性**——确定性模拟使 ALE 可通过记忆被博弈，促使后续引入粘性动作和随机开局等完整性修复。
