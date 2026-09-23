@@ -1,33 +1,45 @@
-# Notes — "Eval-driven development: Build better AI faster"
+# 笔记——《评测驱动开发：更快构建更好的 AI》
 
-**Author:** Malte Ubl, Alice Alexandra Moore, Ido Pesok (Vercel) · **URL:** https://vercel.com/blog/eval-driven-development-build-better-ai-faster · **Type:** eng-blog · **Found:** true
+**作者：** Malte Ubl、Alice Alexandra Moore、Ido Pesok（Vercel）· **链接：** https://vercel.com/blog/eval-driven-development-build-better-ai-faster · **类型：** 工程博客 · **已核验：** 是
 
-## Summary (3-6 sentences)
-Vercel's engineering team argues that traditional, deterministic testing breaks down for AI features because LLMs are probabilistic black boxes, so evals — described as "end-to-end tests for AI" — should become the central development loop instead. They lay out three grading modes (code-based, human, LLM-based) and a trade-off space between speed, cost, and the dimensions each can actually measure. The piece grounds this in their own product, v0 (the AI app/UI generator), where evals run in CI on every PR that touches the output pipeline, prompts are iterated daily, and safety/refusal evals are held to a 100% pass rate. The overarching mental model is an "AI-native flywheel": evals → data → models/strategies → user feedback, looping back to better evals. The thesis is to replace vibes with measurement so teams can iterate on prompts and models with confidence rather than fear of silent regressions.
+## 摘要
 
-## Key points (5-12 substantive bullets)
-- **Core reframe:** "Evaluations (evals) are like end-to-end tests for AI and other probabilistic systems." Because LLMs "operate as black boxes," classic input→deterministic-output testing (their example: "two plus two always equals four") doesn't apply — you measure aggregate output quality, not individual code paths.
-- **Three grading types, each with a trade-off:**
-  - *Code-based grading* — automated assertions for objective criteria; fastest/cheapest feedback, but can only check what's mechanically verifiable.
-  - *Human grading* — needed for subjective/nuanced quality (clarity, coherence, creativity); highest fidelity, least scalable.
-  - *LLM-based grading (LLM-as-judge)* — scalable middle ground, but explicitly noted to cost ~**1.5x–2x more than code-based grading**.
-- **Pick the cheapest grader that can measure the dimension you care about** — push as much as possible to code-based checks, escalate to LLM, reserve humans for what only humans can judge.
-- **The AI-native flywheel:** a positive feedback loop of evals (measurement) → high-quality data → models & strategies (testing approaches) → user feedback (explicit, implicit, error reports), each turn feeding the next. "This positive feedback loop accelerates development and ensures your AI systems consistently improve."
-- **Evals live in CI:** "Every GitHub pull request that impacts the output pipeline includes eval results." The automated suite reports both regressions and improvements, so eval deltas become a reviewable artifact on the PR, not an afterthought.
-- **Concrete code-based checks in v0:** validating that generated code has correct imports, that files referenced are actually used, and balanced/correct comments — cheap deterministic signals on probabilistic output.
-- **Safety as a hard gate:** refusal and safety evals are prioritized and held at a **100% pass rate** — a non-negotiable threshold distinct from quality evals that move on a gradient.
-- **Daily prompt iteration:** prompts are tuned daily, with the eval suite providing the guardrail that lets them change prompts aggressively without silently degrading behavior.
-- **War story / product grounding:** all of this is drawn from shipping v0, Vercel's AI product, which combines code checks, human feedback, and LLM grading rather than relying on any single signal.
+Vercel 工程团队认为，传统的确定性测试不适用于 AI 功能，因为大语言模型是概率性黑盒。因此，评测——他们将其描述为“AI 的端到端测试”——应成为开发循环的中心。文章介绍了三种评分方式：基于代码、人工和基于大语言模型的评分，并分析了它们在速度、成本和可测维度上的权衡。
 
-## Verified quotes
-All verbatim from https://vercel.com/blog/eval-driven-development-build-better-ai-faster:
-- "Evaluations (evals) are like end-to-end tests for AI and other probabilistic systems."
-- "LLMs, however, introduce probabilistic behavior. They operate as black boxes, making their responses difficult to predict."
-- "We prioritize refusal and safety evals, maintaining a 100% pass rate."
-- "Every GitHub pull request that impacts the output pipeline includes eval results."
+文章以 Vercel 自己的产品 v0，即 AI 应用和界面生成器，为实际案例：只要拉取请求修改了输出流水线，CI 就会运行评测；团队每天迭代提示词；安全和拒绝评测必须保持 100% 通过率。整体思维模型是一个“AI 原生飞轮”：评测→数据→模型与策略→用户反馈，再回流到更好的评测。其核心主张是用测量替代感觉，让团队能够有信心地迭代提示词和模型，而不必担心悄无声息的回归。
 
-## What it adds / why it's good
-Unlike conceptual "why you need evals" essays, this is a shipping team's operational playbook: evals wired into GitHub PR review as a gating artifact, an explicit cost ratio (LLM judging ≈ 1.5–2x code-based) that forces you to be deliberate about which grader to spend on, and concrete code-based checks (imports resolve, files get used, comments balanced) that show how much can be graded deterministically before reaching for an LLM judge. The 100%-pass-rate safety gate vs. gradient quality evals is a useful distinction practitioners often blur. The "flywheel" framing connects evals to data and user feedback rather than treating evals as an isolated test step — it's evals as the development loop, not a QA checkbox. Caveat: it's a vendor/product post and light on raw numbers (only the cost ratio and the pass rate are quantified) and on judge-calibration detail.
+## 要点
 
-## Themes
-1 why-evals · 3 model/harness/skill · 5 eval infra · 8 judge/verifiers · 9 agent-specific · 10 safety
+- **核心重构：** “评测就像 AI 和其他概率系统的端到端测试。”由于大语言模型“以黑盒方式运行”，传统的输入到确定输出测试不再适用，例如“二加二永远等于四”。团队测量的是总体输出质量，而不是单条代码路径。
+- **三种评分方式各有权衡：**
+  - **基于代码的评分：** 使用自动断言检查客观标准，反馈最快、成本最低，但只能检查可机械验证的属性。
+  - **人工评分：** 用于清晰度、连贯性和创造性等主观或细微质量，保真度最高，但最难扩展。
+  - **基于大语言模型的评分：** 提供可扩展的中间方案，但文章明确指出，其成本约为基于代码评分的 **1.5—2 倍**。
+- **选择能够测量目标维度的最低成本评分器：** 尽量将检查下沉到代码，无法程序化验证时再升级到大语言模型，只把必须由人判断的内容留给人工。
+- **AI 原生飞轮：** 评测（测量）→高质量数据→模型与策略（测试方案）→用户反馈（显式反馈、隐式反馈和错误报告），每一轮都为下一轮提供输入。这个正反馈循环可以加速开发，并推动 AI 系统持续改进。
+- **评测进入 CI：** “每一个影响输出流水线的 GitHub 拉取请求都会包含评测结果。”自动化套件同时报告退化和改进，使评测差异成为拉取请求中可审查的产物，而不是事后补充。
+- **v0 中的确定性检查：** 验证生成代码的导入是否正确、被引用文件是否真的使用、注释是否配对且正确。它们是对概率输出进行评测的低成本确定性信号。
+- **安全是硬门禁：** 拒绝和安全评测具有最高优先级，要求保持 **100% 通过率**。这是一项不可妥协的阈值，与可以连续变化的质量指标不同。
+- **每天迭代提示词：** 评测套件充当护栏，使团队可以积极修改提示词，而不会在不知情的情况下损害行为。
+- **来自真实产品的经验：** 这些方法来自 v0 的实际交付过程。该系统同时使用代码检查、人工反馈和大语言模型评分，而不依赖任何单一信号。
+
+## 已核验引述（中文翻译）
+
+以下内容均出自 https://vercel.com/blog/eval-driven-development-build-better-ai-faster ：
+
+- “评测就像 AI 和其他概率系统的端到端测试。”
+- “但是，大语言模型会引入概率性行为。它们以黑盒方式运行，因此很难预测其回答。”
+- “我们优先处理拒绝和安全评测，并保持 100% 的通过率。”
+- “每一个影响输出流水线的 GitHub 拉取请求都会包含评测结果。”
+
+## 新增价值与局限
+
+与只解释“为什么需要评测”的概念性文章不同，这是一支真实交付团队的操作手册：它把评测接入 GitHub 拉取请求审查并作为门禁产物；给出大语言模型评分约为代码评分 1.5—2 倍的明确成本比例，迫使团队审慎决定在哪些维度上使用更昂贵的评分器；还列出导入能否解析、文件是否使用、注释是否配对等具体检查，说明在使用大语言模型评审之前，有相当多内容可以确定性验证。
+
+文章将要求 100% 通过的安全门禁与连续变化的质量评测区分开来，这一点很有价值，因为实践中经常混淆两者。“飞轮”框架则把评测与数据和用户反馈联系起来，不再将其视为孤立的测试步骤。换言之，评测是开发循环本身，而不仅是质量保证清单中的一个复选框。
+
+需要注意的是，这是一篇厂商产品博客，缺少充分的原始数据；除成本比例和通过率外，几乎没有其他量化结果，也没有深入讨论评审校准。
+
+## 主题
+
+1 为什么需要评测 · 3 模型/执行框架/技能 · 5 评测基础设施 · 8 评审/验证器 · 9 智能体特有评测 · 10 安全

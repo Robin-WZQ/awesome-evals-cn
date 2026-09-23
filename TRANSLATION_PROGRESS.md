@@ -1,8 +1,8 @@
 # 深度笔记中文翻译进度
 
-进度：`[█░░░░░░░░░░░░░░░░░░░] 3%（5/143）`
+进度：`[█░░░░░░░░░░░░░░░░░░░] 4%（6/143）`
 
-- 文章：1/68
+- 文章：2/68
 - 论文：4/28
 - 演讲与播客：0/47
 
@@ -20,3 +20,4 @@
 3. `notes/papers/drop-discrete-reasoning-over-paragraphs.md`
 4. `notes/articles/article-structure-mastra-and-han.md`
 5. `notes/papers/evaluating-large-language-models-trained-on-code.md`
+6. `notes/articles/vercel-eval-driven-development.md`
