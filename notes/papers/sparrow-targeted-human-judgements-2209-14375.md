@@ -1,28 +1,33 @@
-# Notes — "Improving alignment of dialogue agents via targeted human judgements"
+# 笔记——《通过针对性人类判断改进对话智能体的对齐》
 
-**Authors:** Amelia Glaese, Nat McAleese, Maja Trębacz, John Aslanides, Vlad Firoiu, Timo Ewalds, Maribeth Rauh, Laura Weidinger, Martin Chadwick, Phoebe Thacker, Lucy Campbell-Gillingham, Jonathan Uesato, Po-Sen Huang, Ramona Comanescu, Fan Yang, Abigail See, Sumanth Dathathri, Rory Greig, Charlie Chen, Doug Fritz, Jaume Sanchez Elias, Richard Green, Soňa Mokrá, Nicholas Fernando, Boxi Wu, Rachel Foley, Susannah Young, Iason Gabriel, William Isaac, John Mellor, Demis Hassabis, Koray Kavukcuoglu, Lisa Anne Hendricks, Geoffrey Irving (DeepMind) · **Venue/Year:** arXiv preprint, 2022 · **URL:** https://arxiv.org/abs/2209.14375 · **Type:** paper · **Found:** true
+**作者：** Amelia Glaese、Nat McAleese、Maja Trębacz、John Aslanides、Vlad Firoiu、Timo Ewalds、Maribeth Rauh、Laura Weidinger、Martin Chadwick、Phoebe Thacker、Lucy Campbell-Gillingham、Jonathan Uesato、Po-Sen Huang、Ramona Comanescu、Fan Yang、Abigail See、Sumanth Dathathri、Rory Greig、Charlie Chen、Doug Fritz、Jaume Sanchez Elias、Richard Green、Soňa Mokrá、Nicholas Fernando、Boxi Wu、Rachel Foley、Susannah Young、Iason Gabriel、William Isaac、John Mellor、Demis Hassabis、Koray Kavukcuoglu、Lisa Anne Hendricks、Geoffrey Irving（DeepMind）· **会议/年份：** arXiv 预印本，2022 年 · **链接：** https://arxiv.org/abs/2209.14375 · **类型：** 论文 · **已找到：** 是
 
-## Summary
-This paper introduces **Sparrow**, an information-seeking dialogue agent trained with reinforcement learning from human feedback (RLHF) to be more helpful, correct, and harmless than prompted LM baselines. Its central contribution is the idea of **targeted human judgements**: rather than asking raters for a single holistic preference, the authors decompose "good dialogue" into a set of specific natural-language **rules** (e.g., do not give medical/financial/legal advice, do not make threats, do not claim to be a person), and ask raters about each rule independently. This yields cleaner, more targeted labels and supports **rule-conditional reward models** — effectively per-rule classifiers/judges — alongside a standard preference reward model. A second contribution is **evidence-grounded responses**: Sparrow retrieves and quotes external sources to support factual claims, which both improves factual correctness and makes preference judgements easier for raters to verify. It became foundational because it operationalized "constitution-like" rule decomposition, adversarial human red-teaming as a standard evaluation, and inline retrieval/evidence as alignment levers — a template echoed in later RLHF, judge-model, and safety-eval work (including Constitutional AI and many LLM-as-judge pipelines).
+## 摘要
 
-## Key points
-- **Two methodological additions to RLHF:** (1) decompose dialogue quality into discrete natural-language **rules** and collect **per-rule** human judgements; (2) have the agent **provide evidence from sources** supporting factual claims when collecting preferences.
-- **Rule-conditional reward models:** the per-rule breakdown enables targeted reward/classifier models (rule-violation judges) that are more efficient and more precise than a single global reward signal; a separate preference reward model handles overall response quality.
-- **Adversarial probing as evaluation:** humans are recruited to deliberately probe the agent to elicit rule-breaking; robustness is measured as the rate of rule violations under this adversarial pressure.
-- **Headline results (verbatim from abstract):** evidence supports the sampled response **78% of the time** for factual questions; Sparrow violates the rules **only 8% of the time when probed** adversarially, and is preferred more often than baselines.
-- **Inline retrieval/evidence:** Sparrow can issue search queries and condition responses on retrieved evidence, coupling grounding/verification with the alignment objective rather than treating them separately.
-- **Distributional harms caveat:** extensive analysis shows that even though the model learns to follow the specified rules, it can still **exhibit distributional biases** — rule-following is not the same as being unbiased.
-- **Rule set as a "constitution" precursor:** the explicit, enumerated, human-readable rule list anticipates the principle-based decomposition later formalized in Constitutional AI and RLAIF.
-- **Decomposition improves label quality:** breaking a vague "is this good?" question into specific yes/no rule questions reduces rater ambiguity and produces more reliable, more actionable supervision.
+这篇论文提出了 **Sparrow**：一个使用人类反馈强化学习（RLHF）训练的信息检索对话智能体，目标是比带提示的语言模型基线更有用、更正确、更无害。其核心贡献是**针对性人类判断**：不让评分者给出单一的整体偏好，而是把“良好对话”分解为一组具体的自然语言**规则**，例如不给出医疗/金融/法律建议、不作出威胁、不声称自己是人；然后就每条规则分别询问评分者。这会产生更干净、更具针对性的标签，并能在标准偏好奖励模型之外，训练**规则条件奖励模型**，实质上是按规则划分的分类器/裁判器。第二项贡献是**证据支撑的回答**：Sparrow 检索并引用外部来源以支持事实性声明，既改善事实正确性，也让评分者更容易核验偏好判断。该工作将“类宪法”规则分解、人类对抗红队测试和内联检索/证据落实为对齐手段，因而具有奠基性；后来的 RLHF、裁判模型和安全评测工作（包括 Constitutional AI 和许多大模型裁判流水线）都重复了这一模板。
 
-## Verified quotes
-- "We present Sparrow, an information-seeking dialogue agent trained to be more helpful, correct, and harmless compared to prompted language model baselines." — https://arxiv.org/abs/2209.14375
-- "we break down the requirements for good dialogue into natural language rules the agent should follow, and ask raters about each rule separately. We demonstrate that this breakdown enables us to collect more targeted human judgements of agent behaviour and allows for more efficient rule-conditional reward models." — https://arxiv.org/abs/2209.14375
-- "For factual questions, evidence provided by Sparrow supports the sampled response 78% of the time. Sparrow is preferred more often than baselines while being more resilient to adversarial probing by humans, violating our rules only 8% of the time when probed." — https://arxiv.org/abs/2209.14375
-- "Finally, we conduct extensive analyses showing that though our model learns to follow our rules it can exhibit distributional biases." — https://arxiv.org/abs/2209.14375
+## 要点
 
-## Why it matters for agent evals
-Sparrow seeds several patterns now central to agent evaluation. (1) **Rule-decomposed judging:** instead of one holistic score, evaluate behavior against an explicit checklist of rules, each scored independently — the direct ancestor of rubric-based and per-criterion **LLM-as-judge / verifier** setups and of safety taxonomies used in red-team scoring. (2) **Rule-conditional reward models** are early **trained verifiers**: classifiers that judge whether a specific constraint was violated, the building block for automated graders in RL environments and eval harnesses. (3) **Adversarial human probing** establishes break-rate-under-attack (here 8%) as a first-class **safety/adversarial metric**, formalizing red-teaming as evaluation rather than anecdote. (4) **Evidence/source grounding** ties factual correctness to verifiable retrieval (78% support rate), prefiguring citation-faithfulness and attribution evals for retrieval-augmented agents. (5) The **distributional-bias caveat** is a durable evaluation lesson: passing an enumerated rule set does not certify fairness, so benchmarks must separately probe distributional harms. Together these make the paper a reference point connecting judges, verifiers, RLHF reward design, and adversarial safety evals.
+- **RLHF 的两项方法增量：**（1）将对话质量分解为离散的自然语言**规则**，并收集**逐规则**人类判断；（2）收集偏好时，让智能体**提供来源证据**以支持事实声明。
+- **规则条件奖励模型：**逐规则分解可训练具有针对性的奖励/分类模型（规则违反裁判器），比单一全局奖励信号更高效、更精确；独立偏好奖励模型则处理回答的整体质量。
+- **将对抗探测作为评测：**征募人类故意试探智能体，以引发违规行为；鲁棒性通过这种对抗压力下的违规率衡量。
+- **标志性结果（摘要原始数字）：**对事实性问题，所提证据有 **78%** 的时间能支持采样回答；Sparrow 在人类对抗探测时的违规率**仅为 8%**，且比基线更受偏好。
+- **内联检索/证据：**Sparrow 可以发出搜索查询，并以检索证据为条件生成回答，从而将落地/验证与对齐目标耦合，而不是分开处理。
+- **分布伤害警示：**广泛分析显示，尽管模型学会了遵循指定规则，仍可能**表现出分布偏差**。遵循规则不等于无偏。
+- **规则集是“宪法”的先驱：**显式列举、人类可读的规则清单，预示了后来在 Constitutional AI 和 RLAIF 中被正式化的基于原则的分解。
+- **分解改善标签质量：**将模糊的“这好吗？”拆成具体的是/否规则问题，可降低评分者歧义，产生更可靠、更可操作的监督。
 
-## Themes
-1 why-evals · 2 eval⇄capability⇄RL-env · 8 judge/verifiers · 10 safety/adversarial · 9 agent-specific
+## 已核验引述（中文翻译）
+
+- “我们提出 Sparrow，这是一个信息检索对话智能体；与带提示的语言模型基线相比，它经训练可以更有用、更正确且更无害。”—— https://arxiv.org/abs/2209.14375
+- “我们将良好对话的要求分解为智能体应遵循的自然语言规则，并就每条规则分别询问评分者。我们证明，这种分解使我们能够收集对智能体行为更具针对性的人类判断，并支持更高效的规则条件奖励模型。”—— https://arxiv.org/abs/2209.14375
+- “对于事实性问题，Sparrow 提供的证据有 78% 的时间能支持采样回答。Sparrow 比基线更常被偏好，同时对人类的对抗探测更有韧性，受探测时仅有 8% 的情况违反规则。”—— https://arxiv.org/abs/2209.14375
+- “最后，我们进行了广泛分析，结果表明，尽管我们的模型学会了遵循规则，但仍可能表现出分布偏差。”—— https://arxiv.org/abs/2209.14375
+
+## 为什么它对智能体评测很重要
+
+Sparrow 奠定了如今智能体评测中的多个核心模式。（1）**规则分解裁判：**不给一个整体分数，而是用显式规则清单评估行为，每条规则独立评分；这是基于评分细则和逐准则的**大模型裁判器/验证器**的直接祖先，也是红队评分所用安全分类体系的前身。（2）**规则条件奖励模型**是早期的**已训练验证器**：这类分类器判断是否违反某一约束，是 RL 环境和评测框架中自动评分器的基本模块。（3）**人类对抗探测**将受攻击时的失败率（此处为 8%）确立为一等**安全/对抗指标**，把红队测试正式化为评测而非轶事。（4）**证据/来源落地**把事实正确性与可验证检索绑定（78% 支持率），预示了检索增强智能体的引用忠实性和归因评测。（5）**分布偏差警示**是一条持久的评测教训：通过一组列举规则并不能认证公平性，因此基准必须另行探查分布伤害。这些贡献使该论文成为连接裁判器、验证器、RLHF 奖励设计和对抗安全评测的重要参照点。
+
+## 主题
+
+1 为什么需要评测 · 2 评测↔能力↔强化学习环境 · 8 裁判器/验证器 · 10 安全/对抗 · 9 智能体专属

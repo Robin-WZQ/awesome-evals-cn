@@ -1,9 +1,9 @@
 # 深度笔记中文翻译进度
 
-进度：`[███░░░░░░░░░░░░░░░░░] 17%（25/143）`
+进度：`[████░░░░░░░░░░░░░░░░] 20%（28/143）`
 
 - 文章：3/68
-- 论文：22/28
+- 论文：25/28
 - 演讲与播客：0/47
 
 ## 翻译规则
@@ -40,3 +40,6 @@
 23. `notes/papers/training-helpful-harmless-assistant-rlhf.md`
 24. `notes/papers/scalable-agent-alignment-via-reward-modeling.md`
 25. `notes/papers/how-not-to-evaluate-your-dialogue-system.md`
+26. `notes/papers/arcade-learning-environment-ale-2012.md`
+27. `notes/papers/red-teaming-language-models-with-language-models.md`
+28. `notes/papers/sparrow-targeted-human-judgements-2209-14375.md`

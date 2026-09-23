@@ -1,29 +1,34 @@
-# Notes — "The Arcade Learning Environment: An Evaluation Platform for General Agents"
+# 笔记——《Arcade Learning Environment：通用智能体的评测平台》
 
-**Authors:** Marc G. Bellemare, Yavar Naddaf, Joel Veness, Michael Bowling · **Venue/Year:** Journal of Artificial Intelligence Research (JAIR), Vol. 47, pp. 253–279, 2013 (arXiv preprint July 2012) · **URL:** https://arxiv.org/abs/1207.4708 · **Type:** paper · **Found:** true
+**作者：** Marc G. Bellemare、Yavar Naddaf、Joel Veness、Michael Bowling · **期刊/年份：** Journal of Artificial Intelligence Research（JAIR），第 47 卷，第 253–279 页，2013 年（arXiv 预印本于 2012 年 7 月发布）· **链接：** https://arxiv.org/abs/1207.4708 · **类型：** 论文 · **已找到：** 是
 
-## Summary
-This paper introduces the Arcade Learning Environment (ALE), a software platform and an accompanying evaluation methodology that wraps hundreds of Atari 2600 games behind a single, uniform agent interface (raw screen pixels + RAM + score as reward + a discrete action set). The central design move is to turn a large, pre-existing collection of human-designed games — each different and genuinely challenging — into a benchmark suite for *general, domain-independent* agents, so that an algorithm must perform across many tasks rather than being tuned to one. ALE became foundational because it gave the RL community a shared, hard, and reproducible testbed; two years later it was the substrate for DeepMind's DQN ("human-level control"), which catapulted both deep RL and ALE into ubiquity. The paper also carefully separates a small *training* set of games (for hyperparameter and feature tuning) from a held-out *testing* set, anticipating modern concerns about benchmark overfitting. Its lasting influence comes as much from the methodology — generality, a train/test game split, fixed evaluation protocols — as from the code itself.
+## 摘要
 
-## Key points
-- **What it introduces:** ALE, a built-on-Stella-emulator platform exposing an interface to *hundreds* of Atari 2600 environments through one common API (160×210 pixel frames or 128-byte RAM, 18 discrete joystick actions, game score as the reward signal).
-- **Core thesis — generality as the goal:** a single agent, with no game-specific engineering, should be evaluated across a diverse set of games; per-game tuning is treated as a form of cheating against the "general agent" objective.
-- **Train/test methodology:** games are split into a *training set* (used to pick algorithm/feature hyperparameters) and a separate *testing set* used only for final reporting — an explicit guard against overfitting the benchmark. Candidate games were drawn semi-randomly from those with a Wikipedia page, single-player mode, and ALE-emulability (123 qualifying games at the time).
-- **Episode protocol:** an episode runs from the frame after reset until the game's end-of-game condition or 5 minutes of real-time play (18,000 frames), whichever comes first — a fixed, reproducible stopping rule.
-- **Model-free baseline (SARSA(λ)):** linear function approximation over several domain-independent feature sets — Basic (14×16 grid of SECAM color presence), BASS, DISCO, LSH, and RAM features — none of which encode game-specific knowledge.
-- **Planning baselines (with a forward model):** because ALE can save/restore exact emulator state, the authors run search-based planners — breadth-first search and **UCT** (Monte Carlo tree search using UCB1 to balance exploration/exploitation) — exposing a contrast between *learning* and *planning* agents on identical tasks.
-- **Scale of evaluation:** empirical results reported on **over 55 games**, far larger than typical RL evaluations of the era, making cross-task generality measurable.
-- **Finding:** planning (UCT) substantially outperforms the learning baselines on most games, framing the gap between online learning and search-with-a-model as an open challenge for the field.
-- **Reproducibility:** all software, including the benchmark agents, is released publicly — a deliberate choice that made ALE a community standard.
-- **Framed challenges:** the authors pitch ALE as a testbed for RL, model learning, model-based planning, imitation learning, transfer learning, and intrinsic motivation — i.e., a multi-purpose general-AI evaluation harness.
+这篇论文提出了 Arcade Learning Environment（ALE）：一个软件平台及配套评测方法，它将数百款 Atari 2600 游戏包装在统一的智能体接口后面，提供原始屏幕像素、RAM、作为奖励的分数和离散动作集。其核心设计是，将一大批已有的、由人类设计且各不相同、确有挑战的游戏，转化为**通用、领域无关**智能体的基准套件，从而要求算法在多项任务上表现良好，而不是针对单一任务调优。ALE 为强化学习社区提供了共享、困难且可复现的试验场，因而具有奠基性。两年后，它成为 DeepMind DQN（“人类水平控制”）的基础载体，并将深度 RL 和 ALE 一同推向广泛应用。论文还谨慎地把小规模**训练**游戏集（用于超参数和特征调优）与留出**测试**游戏集分离，预示了现代对基准过拟合的关切。它的持久影响既来自代码，也来自方法论：通用性、训练/测试游戏划分和固定的评测协议。
 
-## Verified quotes
-- "In this article we introduce the Arcade Learning Environment (ALE): both a challenge problem and a platform and methodology for evaluating the development of general, domain-independent AI technology." — https://arxiv.org/abs/1207.4708
-- "ALE provides an interface to hundreds of Atari 2600 game environments, each one different, interesting, and designed to be a challenge for human players." — https://arxiv.org/abs/1207.4708
-- "We illustrate the promise of ALE by developing and benchmarking domain-independent agents designed using well-established AI techniques for both reinforcement learning and planning. In doing so, we also propose an evaluation methodology made possible by ALE, reporting empirical results on over 55 different games." — https://arxiv.org/abs/1207.4708
+## 要点
 
-## Why it matters for agent evals
-ALE is a canonical example of *RL-environment-as-benchmark*: it converts a fixed, externally-authored task distribution (human-designed games) into a standardized evaluation harness where the reward (game score) is an unambiguous, machine-checkable verifier — no LLM judge needed, the score *is* the ground truth. That property is exactly why it scales as a benchmark and why deep RL adopted it wholesale. Its methodological contributions are the durable lesson for agent evals: (1) **generality over specialization** — score an agent on its average across many tasks, and treat per-task tuning as benchmark gaming; (2) an explicit **train/test game split**, an early statement of the benchmark-vs-eval integrity problem (don't tune on what you report); and (3) a **fixed, reproducible protocol** (episode length, action set, public code) so results are comparable across labs. For modern agent work, ALE is the prototype of a held-out, verifier-grounded environment suite, and the learning-vs-planning baseline contrast it sets up (SARSA(λ) vs UCT) prefigures today's questions about whether agents should learn policies or search with a model.
+- **提出了什么：**ALE 建立在 Stella 模拟器上，通过单一通用 API 暴露**数百个** Atari 2600 环境（160×210 像素帧或 128 字节 RAM、18 种离散摇杆动作，以游戏得分作为奖励信号）。
+- **核心命题——以通用性为目标：**同一个智能体在没有游戏特定工程的情况下，应在多种游戏上接受评测；针对每款游戏调优，被视为违背“通用智能体”目标的一种作弊。
+- **训练/测试方法：**游戏被划分为用于选择算法/特征超参数的**训练集**，以及只用于最终报告的独立**测试集**；这是对过拟合基准的显式防护。候选游戏从具有维基百科页面、支持单人模式且可由 ALE 模拟的游戏中半随机选出；当时有 123 款合格游戏。
+- **局协议：**一局从复位后的下一帧开始，到游戏结束条件成立或实时游玩 5 分钟（18,000 帧）时结束，以先到者为准。这是固定且可复现的停止规则。
+- **无模型基线（SARSA(λ)）：**在多个领域无关特征集上进行线性函数逼近，包括 Basic（14×16 网格中 SECAM 颜色的出现情况）、BASS、DISCO、LSH 和 RAM 特征，其中都不编码游戏特定知识。
+- **规划基线（具有前向模型）：**由于 ALE 能保存/恢复精确模拟器状态，作者可运行基于搜索的规划器，包括广度优先搜索和 **UCT**（使用 UCB1 平衡探索/利用的蒙特卡洛树搜索），从而可在相同任务上对比**学习型**与**规划型**智能体。
+- **评测规模：**实验报告覆盖**超过 55 款游戏**，远大于当时典型 RL 评测，使跨任务通用性变得可测。
+- **发现：**在大多数游戏上，规划（UCT）的表现显著优于学习基线；这将在线学习与具模型搜索的性能差距，界定为领域的开放挑战。
+- **可复现性：**包括基准智能体在内的全部软件均公开发布；这一刻意选择使 ALE 成为社区标准。
+- **界定的挑战：**作者将 ALE 定位为 RL、模型学习、基于模型的规划、模仿学习、迁移学习和内在动机的试验场，即一个多用途的通用 AI 评测框架。
 
-## Themes
-2 eval⇄capability⇄RL-env · 6 benchmark-vs-eval/integrity · 7 RL environments · 8 judge/verifiers · 9 agent-specific
+## 已核验引述（中文翻译）
+
+- “本文提出 Arcade Learning Environment（ALE）：它既是一个挑战问题，也是用于评估通用、领域无关 AI 技术发展的平台与方法。”—— https://arxiv.org/abs/1207.4708
+- “ALE 提供了数百个 Atari 2600 游戏环境的接口；每个环境都不同、饶有趣味，并被设计成对人类玩家构成挑战。”—— https://arxiv.org/abs/1207.4708
+- “我们使用成熟的人工智能技术，为强化学习与规划开发并基准测试领域无关智能体，以说明 ALE 的前景。在此过程中，我们还提出了 ALE 支持的评测方法，并报告了 55 种以上不同游戏的实证结果。”—— https://arxiv.org/abs/1207.4708
+
+## 为什么它对智能体评测很重要
+
+ALE 是**将 RL 环境作为基准**的经典范例：它将固定的、由外部作者构建的任务分布（人类设计的游戏）转化为标准评测框架；其中奖励（游戏得分）是无歧义、机器可检验的验证器。这里不需要大模型裁判器，得分本身**就是**标准答案。这一性质正是它可扩展为基准、也被深度 RL 整体采用的原因。它在方法上的贡献，是智能体评测中更持久的教训：（1）**通用性高于专门化**：根据智能体在多项任务上的平均表现评分，并将按任务调优视为基准博弈；（2）显式的**训练/测试游戏划分**，是对基准与评测完整性问题的早期阐述——不要在用于报告的任务上调优；（3）固定且可复现的协议（局长、动作集、公开代码），使不同实验室的结果可比。对现代智能体研究，ALE 是留出、验证器支撑环境套件的原型；它建立的“学习与规划”基线对比（SARSA(λ) 与 UCT），也预示了今日智能体究竟应学习策略还是使用模型搜索的问题。
+
+## 主题
+
+2 评测↔能力↔强化学习环境 · 6 基准与评测/完整性 · 7 强化学习环境 · 8 裁判器/验证器 · 9 智能体专属

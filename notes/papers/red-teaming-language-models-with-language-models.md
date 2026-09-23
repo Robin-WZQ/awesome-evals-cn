@@ -1,33 +1,38 @@
-# Notes — "Red Teaming Language Models with Language Models"
+# 笔记——《用语言模型对语言模型进行红队测试》
 
-**Authors:** Ethan Perez, Saffron Huang, Francis Song, Trevor Cai, Roman Ring, John Aslanides, Amelia Glaese, Nat McAleese, Geoffrey Irving (DeepMind) · **Venue/Year:** arXiv preprint, Feb 2022 (later EMNLP 2022) · **URL:** https://arxiv.org/abs/2202.03286 · **Type:** paper · **Found:** true
+**作者：** Ethan Perez、Saffron Huang、Francis Song、Trevor Cai、Roman Ring、John Aslanides、Amelia Glaese、Nat McAleese、Geoffrey Irving（DeepMind）· **会议/年份：** arXiv 预印本，2022 年 2 月（后发表于 EMNLP 2022）· **链接：** https://arxiv.org/abs/2202.03286 · **类型：** 论文 · **已找到：** 是
 
-## Summary
-The paper introduces *automated red teaming*: instead of paying human annotators to hand-write adversarial test cases, it uses one language model (the "red LM") to generate test inputs that elicit harmful behavior from a target LM, and a learned classifier (the "red classifier") to judge whether each target reply is harmful. Applied to a 280B-parameter dialogue model, this pipeline surfaced tens of thousands of offensive replies plus a range of other harms (private data leakage, fabricated contact info, distributional bias, multi-turn conversational harms). It became foundational because it reframed safety evaluation as a *scalable generate-and-judge loop* — a red LM proposes attacks, an automated judge scores them, and the failure set grows far beyond what manual annotation can cover. The work is one of the canonical early demonstrations that you can use LMs to evaluate and stress-test LMs, seeding both the automated red-teaming literature and the broader "LM-as-evaluator / verifier" pattern that now underpins alignment pipelines. Its method ladder (zero-shot → few-shot → supervised → RL) also directly connects eval generation to RL optimization against a learned reward.
+## 摘要
 
-## Key points
-- **Core loop:** a *red LM* generates test cases (questions/prompts), the *target LM* responds, and a *red classifier* (trained offensive-content detector) labels responses as harmful — fully automating the "write test cases + judge outputs" cycle that humans previously did by hand.
-- **Method ladder of increasing power/diversity tradeoff:** zero-shot generation, few-shot (stochastic few-shot from prior successful attacks), supervised fine-tuning on found attacks, and reinforcement learning where the red LM is trained to maximize the classifier's harm score.
-- **RL as adversarial optimization:** training the red LM with RL against the classifier reward produces high attack success rates but at the cost of diversity (mode collapse onto a narrow set of effective prompts) — a concrete illustration of the reward-hacking / diversity tension in optimizing against a learned judge.
-- **Scale of findings:** uncovered *tens of thousands* of offensive replies from a 280B-parameter chatbot, far exceeding feasible manual annotation.
-- **Many harm categories from one framework, via prompt engineering on the red LM:**
-  - offensive / toxic generations,
-  - **data leakage** — recovering memorized training data,
-  - **generated contact info** — the bot emitting real personal and hospital phone numbers as its "own" contact details,
-  - **distributional bias** — automatically finding groups of people the bot discusses offensively,
-  - **dialogue/multi-turn harms** — harms that only emerge over the course of a conversation (red-teaming a full dialogue, not single turns).
-- **Generate-then-cluster analysis:** generated attacks were clustered/analyzed to characterize *what kinds* of inputs trigger failures, not just count them — turning raw failures into actionable failure taxonomies.
-- **Defense use:** found failure cases can be fed back to fix the target model (e.g., blacklisting phrases, fine-tuning to avoid topics), making red teaming part of a closed iterate-and-patch loop rather than a one-off audit.
-- **Key eval insight:** safety evaluation coverage need not be bounded by human labeling throughput — an LM evaluator + an LM judge can search the input space adversarially and far more cheaply.
+论文提出了**自动化红队测试**：不再付费请人类标注者手工撰写对抗测试用例，而是使用一个语言模型（“红队 LM”）生成能引发目标 LM 有害行为的测试输入，再用学习型分类器（“红队分类器”）判断各条目标回答是否有害。这一流水线应用于一个 2800 亿参数的对话模型后，发现了数万条冒犯性回答，以及多种其他伤害，包括私有数据泄漏、捏造联系方式、分布偏差和多轮对话伤害。该工作具有奠基性，因为它将安全评测重新定义为可扩展的**“生成—判断”闭环**：红队 LM 提出攻击，自动裁判器评分，失败集的规模因此远超人工标注的覆盖能力。它是早期“使用 LM 评估和压力测试 LM”的经典演示之一，同时启发了自动红队研究与更广泛的“LM 作为评估器/验证器”范式。其方法阶梯（零样本 → 少样本 → 有监督 → RL）也把评测生成直接与针对学习型奖励的 RL 优化连接起来。
 
-## Verified quotes
-- "In this work, we automatically find cases where a target LM behaves in a harmful way, by generating test cases (\"red teaming\") using another LM." — https://arxiv.org/abs/2202.03286
-- "We evaluate the target LM's replies to generated test questions using a classifier trained to detect offensive content, uncovering tens of thousands of offensive replies in a 280B parameter LM chatbot." — https://arxiv.org/abs/2202.03286
-- "We explore several methods, from zero-shot generation to reinforcement learning, for generating test cases with varying levels of diversity and difficulty." — https://arxiv.org/abs/2202.03286
-- "...automatically finding groups of people that the chatbot discusses in offensive ways, personal and hospital phone numbers generated as the chatbot's own contact info, leakage of private training data in generated text, and harms that occur over the course of a conversation." — https://arxiv.org/abs/2202.03286
+## 要点
 
-## Why it matters for agent evals
-This is one of the seminal "LM evaluates LM" papers and a template for several core agent-eval ideas. (1) **Automated judge/verifier:** the red classifier is an early instance of using a trained model as the scoring function for an eval — the same pattern that generalizes to LM-as-judge and learned verifiers used to grade agent trajectories. (2) **Eval generation as an RL environment:** the red LM trained against the classifier reward is literally an RL setup where the "environment" is the target model + judge, prefiguring how adversarial/test-case generation is now framed as RL with a reward model; it also surfaces the diversity-vs-success tradeoff that any eval-generating policy must manage. (3) **Adversarial / safety benchmarking:** it operationalizes red teaming as a *scalable, automatable* eval discipline rather than a manual audit — directly upstream of automated jailbreak/attack benchmarks and continuous safety evaluation for agents. (4) **Multi-turn and emergent harms:** by red-teaming whole dialogues it anticipates agent-specific evals where failures only manifest over a trajectory, not a single response. For agent systems, the takeaway is the closed loop: generate adversarial cases → judge automatically → cluster failures → patch → re-test.
+- **核心闭环：**红队 LM 生成测试用例（问题/提示），目标 LM 回答，再由红队分类器（经训练的冒犯内容检测器）将回答标记为有害或无害；由此完全自动化了原本由人工完成的“编写测试用例 + 判断输出”循环。
+- **能力逐步提升、成功率与多样性存在取舍的方法阶梯：**零样本生成、少样本（从已有成功攻击中随机采样）、在已发现攻击上做有监督微调，以及通过强化学习训练红队 LM 以最大化分类器伤害分数。
+- **RL 作为对抗优化：**用分类器奖励对红队 LM 进行 RL 训练，可取得高攻击成功率，但代价是多样性降低（模式崩溃到少量有效提示）。这具体展示了针对学习型裁判器优化时，奖励黑客与多样性之间的张力。
+- **发现规模：**从 2800 亿参数的对话机器人中发现了**数万条**冒犯性回答，远超可行的人工标注规模。
+- **通过对红队 LM 做提示工程，用一套框架发现多类伤害：**
+  - 冒犯性/有毒生成；
+  - **数据泄漏**——恢复被记忆的训练数据；
+  - **生成联系方式**——机器人把真实的个人和医院电话号码当作自己的联系方式；
+  - **分布偏差**——自动找出机器人会以冒犯方式讨论的人群；
+  - **对话/多轮伤害**——只有在对话过程中才会涌现的伤害，即对完整对话而非单轮做红队测试。
+- **先生成再聚类的分析：**对生成的攻击做聚类/分析，刻画**哪类**输入会触发失败，而不是只计数；这把原始失败转换为可采取行动的失败分类体系。
+- **用于防御：**可将发现的失败案例反馈给目标模型以修复问题，例如屏蔽短语、微调模型以回避某些话题。因而，红队测试成为“迭代—修补”闭环的一部分，而非一次性审计。
+- **关键评测洞见：**安全评测的覆盖面不必受人工标注吞吐量限制。LM 评估器 + LM 裁判器可以对输入空间进行对抗搜索，成本也低得多。
 
-## Themes
-1 why-evals · 2 eval⇄capability⇄RL-env · 7 RL environments · 8 judge/verifiers · 9 agent-specific · 10 safety/adversarial
+## 已核验引述（中文翻译）
+
+- “在这项工作中，我们使用另一个 LM 生成测试用例（‘红队测试’），从而自动发现目标 LM 产生有害行为的情形。”—— https://arxiv.org/abs/2202.03286
+- “我们使用一个经训练可检测冒犯性内容的分类器，评估目标 LM 对生成测试问题的回答；这在一个 2800 亿参数的 LM 对话机器人中发现了数万条冒犯性回答。”—— https://arxiv.org/abs/2202.03286
+- “我们探索了多种方法——从零样本生成到强化学习——以生成多样性和难度各不相同的测试用例。”—— https://arxiv.org/abs/2202.03286
+- “……自动发现对话机器人会以冒犯方式讨论的人群、被生成为机器人自身联系方式的个人和医院电话号码、生成文本中的私有训练数据泄漏，以及在对话过程中发生的伤害。”—— https://arxiv.org/abs/2202.03286
+
+## 为什么它对智能体评测很重要
+
+这是开创性的“LM 评估 LM”论文之一，也是多项智能体评测核心思想的模板。（1）**自动裁判器/验证器：**红队分类器是使用经训练模型作为评测评分函数的早期案例，同一模式可扩展到用于评分智能体轨迹的大模型裁判器和学习型验证器。（2）**将评测生成视为 RL 环境：**针对分类器奖励训练红队 LM，实质是以“目标模型 + 裁判器”为环境的 RL 设置。它预示了如今将对抗/测试用例生成建模为带奖励模型的 RL，也揭示了任何评测生成策略都必须管理的“多样性与成功率”取舍。（3）**对抗/安全基准：**它将红队测试落实为可扩展、可自动化的评测学科，而非人工审计；这直接处于自动越狱/攻击基准和智能体持续安全评测的上游。（4）**多轮与涌现伤害：**通过对完整对话进行红队测试，它预示了只有在轨迹中而非单次回答中才会显现的智能体失败。对智能体系统而言，其结论是形成闭环：生成对抗用例 → 自动判断 → 聚类失败 → 修补 → 重新测试。
+
+## 主题
+
+1 为什么需要评测 · 2 评测↔能力↔强化学习环境 · 7 强化学习环境 · 8 裁判器/验证器 · 9 智能体专属 · 10 安全/对抗
