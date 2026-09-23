@@ -1,9 +1,9 @@
 # 深度笔记中文翻译进度
 
-进度：`[█░░░░░░░░░░░░░░░░░░░] 7%（10/143）`
+进度：`[██░░░░░░░░░░░░░░░░░░] 9%（13/143）`
 
-- 文章：2/68
-- 论文：8/28
+- 文章：3/68
+- 论文：10/28
 - 演讲与播客：0/47
 
 ## 翻译规则
@@ -25,3 +25,6 @@
 8. `notes/papers/superglue-stickier-benchmark-2019.md`
 9. `notes/papers/annotation-artifacts-nli-data-2018.md`
 10. `notes/papers/training-verifiers-to-solve-math-word-problems.md`
+11. `notes/papers/async-methods-deep-rl-a3c-2016.md`
+12. `notes/papers/realm-retrieval-augmented-lm-pretraining.md`
+13. `notes/articles/montecarlo-ai-agent-evaluation-5-lessons.md`

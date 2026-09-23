@@ -1,26 +1,38 @@
-# Notes — "REALM: Retrieval-Augmented Language Model Pre-Training"
-**Authors:** Kelvin Guu, Kenton Lee, Zora Tung, Panupong Pasupat, Ming-Wei Chang (Google Research) · **Venue/Year:** ICML 2020 (arXiv preprint Feb 2020) · **URL:** https://arxiv.org/abs/2002.08909 · **Type:** paper · **Found:** true
+# 笔记——《REALM：检索增强语言模型预训练》
 
-## Summary
-REALM augments language model pre-training with a learned, latent *knowledge retriever* that pulls documents from a large corpus (Wikipedia) and attends over them during pre-training, fine-tuning, and inference. Its central methodological contribution is showing — for the first time — how to pre-train such a retriever in an unsupervised way using masked language modeling as the learning signal, backpropagating gradients *through* a retrieval step that ranges over millions of documents. To make this tractable, REALM treats the retrieved document as a latent variable, scores documents by dense inner-product (enabling Maximum Inner Product Search), and refreshes the document index asynchronously. Fine-tuned on Open-domain QA, it beat the prior state of the art (including the far larger T5-11B) by 4–16% absolute accuracy while adding interpretability and modularity. The paper is foundational because it established the retriever-reader-with-end-to-end-learning recipe that underpins modern RAG, and demonstrated that *retrieving* knowledge can outperform *memorizing* it in parameters.
+**作者：** Kelvin Guu、Kenton Lee、Zora Tung、Panupong Pasupat、Ming-Wei Chang（Google Research）· **发表信息：** ICML 2020；arXiv 2020 年 2 月 · **链接：** https://arxiv.org/abs/2002.08909 · **类型：** 论文 · **已核验：** 是
 
-## Key points
-- **Architecture:** two jointly-trained modules — a *neural knowledge retriever* (dense dual-encoder, inner-product scoring) that ranks corpus documents, and a *knowledge-augmented encoder* (reader) that conditions on input + retrieved document to predict the answer. The retrieved doc is a latent variable marginalized over the top-k.
-- **Unsupervised retriever pre-training:** masked language modeling is the only signal — a retrieval that lowers the LM's perplexity is rewarded; an uninformative one is penalized. No retrieval supervision (gold passages) needed.
-- **Backprop through retrieval over millions of docs:** the LM objective's gradient flows all the way into the retriever, which is the core computational challenge the paper solves.
-- **Async MIPS index refresh:** because retriever weights drift, the precomputed document embedding index goes stale; a background job re-embeds and re-indexes all documents every several hundred training steps so training never stalls on index rebuilds.
-- **Salient span masking:** instead of masking random tokens, REALM masks named entities and dates (via tagging/regex), concentrating the learning signal on knowledge-intensive predictions — a key driver of the gains.
-- **Results (Open-QA, exact-match accuracy):** Natural Questions 40.4, WebQuestions 40.7, CuratedTrec 46.8 (best corpus settings).
-- **Beats much larger implicit-knowledge models:** vs T5-11B (34.5 NQ / 37.4 WQ) and ORQA (33.3 / 36.4 / 30.1) and a BERT baseline (26.5 / 17.7 / 21.3) — outperforming all prior methods by 4–16% absolute despite a far smaller reader.
-- **Modularity & interpretability:** the retrieved document is inspectable, so one can see *which* evidence drove an answer — a property absent in parametric-only LMs.
+## 摘要
 
-## Verified quotes
-- "For the first time, we show how to pre-train such a knowledge retriever in an unsupervised manner, using masked language modeling as the learning signal and backpropagating through a retrieval step that considers millions of documents." — https://arxiv.org/abs/2002.08909
-- "we outperform all previous methods by a significant margin (4-16% absolute accuracy), while also providing qualitative benefits such as interpretability and modularity." — https://arxiv.org/abs/2002.08909
-- "this knowledge is stored implicitly in the parameters of a neural network, requiring ever-larger networks to cover more facts. To capture knowledge in a more modular and interpretable way, we augment language model pre-training with a latent knowledge retriever..." — https://arxiv.org/abs/2002.08909
+REALM 在语言模型预训练中加入一个学习得到的潜在**知识检索器**，从维基百科等大型语料库检索文档，并在预训练、微调和推理阶段对文档进行注意力建模。其核心方法贡献是首次证明：可以只用掩码语言建模作为学习信号，以无监督方式预训练检索器，并让梯度穿过覆盖数百万文档的检索步骤反向传播。
 
-## Why it matters for agent evals
-REALM is a load-bearing ancestor of retrieval-augmented agents and of how we *evaluate* knowledge-grounded systems. Three relevances: (1) **Benchmark seeding** — it cements Open-domain QA (NQ, WebQuestions, CuratedTrec) as the testbed for separating retrieval quality from reasoning quality, a decomposition agent evals still rely on. (2) **Verifier/evidence structure** — by making the retrieved document an explicit, inspectable latent, REALM prefigures evidence-grounded evaluation and attribution/citation checking: an eval (or a verifier/judge) can score not just the final answer but *whether the right evidence was retrieved*, which is exactly the kind of process-level signal modern agent evals want. (3) **Capability⇄RL-env framing** — treating retrieval as a latent variable trained by a downstream reward (lower LM loss = good retrieval) is structurally the same as an RL environment that rewards an agent's tool/search action by the quality of the answer it enables; REALM is an early instance of optimizing a tool-use policy end-to-end against task success, which is the template for evaluating and training retrieval/tool-using agents today.
+为使计算可行，REALM 将检索文档视为潜变量，使用稠密内积为文档评分，从而支持最大内积搜索，并异步刷新文档索引。它在开放域问答上微调后，比包括规模大得多的 T5-11B 在内的此前最佳方法高出 4—16 个绝对准确率百分点，同时具备可解释性和模块化优势。本文建立了现代 RAG 所依赖的“检索器—阅读器端到端学习”范式，并证明从外部检索知识可以优于把全部知识记忆在参数中。
 
-## Themes
-2 eval⇄capability⇄RL-env · 6 benchmark-vs-eval/integrity · 8 judge/verifiers · 9 agent-specific
+## 要点
+
+- **架构：** 两个联合训练模块——采用稠密双编码器和内积评分的神经知识检索器，以及以输入和检索文档为条件预测答案的知识增强编码器。检索文档作为潜变量，在前 k 项上边缘化。
+- **无监督检索器预训练：** 唯一信号是掩码语言建模；能降低语言模型困惑度的检索受到奖励，无信息检索受到惩罚，不需要标准段落监督。
+- **穿过数百万文档检索进行反向传播：** 语言模型目标的梯度一直传入检索器，是论文解决的核心计算难题。
+- **异步最大内积搜索索引刷新：** 检索器权重变化会让预计算文档嵌入过时；后台任务每数百步重嵌入并重建全部文档索引，使训练无需停下来等待。
+- **显著片段掩码：** 不随机遮蔽词元，而是通过标注和正则表达式遮蔽实体与日期，把学习信号集中到知识密集预测，是性能提升的重要原因。
+- 开放问答精确匹配结果：Natural Questions 40.4、WebQuestions 40.7、CuratedTrec 46.8。
+- 明显超过更大的隐式知识模型：优于 T5-11B、ORQA 和 BERT 基线，绝对准确率提升 4—16 点，但阅读器规模更小。
+- **模块化和可解释性：** 检索文档可以检查，因此能够看到答案由哪些证据驱动；纯参数模型不具备这一属性。
+
+## 已核验引述（中文翻译）
+
+- “我们首次展示如何以无监督方式预训练知识检索器：使用掩码语言建模作为学习信号，并穿过一个考虑数百万文档的检索步骤进行反向传播。”——https://arxiv.org/abs/2002.08909
+- “我们以显著幅度超过此前所有方法，绝对准确率提高 4—16%，并提供可解释性和模块化等定性优势。”——https://arxiv.org/abs/2002.08909
+- “这类知识隐式存储在神经网络参数中，需要不断扩大网络才能覆盖更多事实。为了以更模块化、可解释的方式获取知识，我们在语言模型预训练中加入潜在知识检索器。”——https://arxiv.org/abs/2002.08909
+
+## 对智能体评测的意义
+
+REALM 是检索增强智能体以及知识落地系统评测方法的重要前身。第一，它巩固了 Natural Questions、WebQuestions 和 CuratedTrec 等开放问答任务，便于分离检索质量和推理质量；现代智能体评测仍依赖这种能力分解。
+
+第二，显式且可检查的检索文档预示了基于证据的评测、归因与引用核验。评测器或验证器不仅可以检查最终答案，还能判断是否检索到正确证据，这正是现代智能体评测需要的过程信号。
+
+第三，把检索看作由下游奖励训练的潜变量，在结构上类似强化学习环境：智能体的搜索或工具动作，依据其能否支持高质量答案获得奖励。REALM 是依据任务成功端到端优化工具使用策略的早期实例，构成今天训练和评测检索型、工具型智能体的模板。
+
+## 主题
+
+2 评测—能力—强化学习环境 · 6 基准与评测/完整性 · 8 评审/验证器 · 9 智能体特有评测

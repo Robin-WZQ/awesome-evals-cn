@@ -1,31 +1,43 @@
-# Notes — "AI Agent Evaluation: 5 Lessons Learned The Hard Way"
+# 笔记——《AI 智能体评测：五个通过失败学到的经验》
 
-**Author:** Alik Peltinovich, Michael Segner, Elor Arieli, Lior Gavish (Monte Carlo) · **URL:** https://www.montecarlodata.com/blog-ai-agent-evaluation/ · **Type:** eng-blog · **Found:** true
+**作者：** Alik Peltinovich、Michael Segner、Elor Arieli、Lior Gavish（Monte Carlo）· **链接：** https://www.montecarlodata.com/blog-ai-agent-evaluation/ · **类型：** 工程博客 · **已核验：** 是
 
-## Summary (3-6 sentences)
-Monte Carlo's data-reliability team shares five hard-won lessons from building and evaluating their Troubleshooting Agent — a production system that uses hundreds of sub-agents to investigate data incidents and determine root causes. The piece is explicitly war-stories framing: each lesson is something that broke a naive eval setup in practice. The throughline is that LLM-as-judge evals are themselves unreliable artifacts that need their own engineering — thresholding, retries, mandatory rationales, and meta-validation. They also tackle the economics nobody discusses: evals can quietly cost more than running the agent, so they localize tests to individual LLM calls and gate them on relevant PRs. It's grounded in a real CI/CD eval pipeline rather than a vendor capabilities checklist.
+## 摘要
 
-## Key points (5-12 substantive bullets)
-- **Cosine similarity / semantic distance doesn't work for agent outputs.** They tried vector-based semantic-distance scoring and abandoned it because "the wording was similar, but the meaning was different" — surface similarity masks meaning divergence. This pushed them toward LLM-as-judge.
-- **Soft-failure banding instead of binary pass/fail.** Judge scores are bucketed: below 0.5 is a hard failure, above 0.8 is a pass, and 0.5–0.8 is a "soft failure." Soft failures are allowed to merge individually but aggregate into a hard failure when 33% of tests soft-fail OR more than 2 soft failures occur total. This is a concrete, copyable thresholding policy for a CI gate.
-- **Automatic retries to absorb judge flakiness.** Roughly one in ten tests produces a spurious result — the agent output is fine but the *evaluator* hallucinates. They auto re-run evaluations to catch these false negatives rather than blocking merges on judge noise.
-- **Mandatory explanations from every judge.** Every LLM judge must emit a rationale alongside its score, not just a number. This speeds debugging (you can see *why* a test failed) and builds trust in the eval suite — a numeric-only score is uninspectable.
-- **Evaluate the evaluators (meta-eval).** Tests themselves are validated by running them multiple times; flaky evaluations get revised or removed. The evals are treated as fallible code, not ground truth.
-- **Localized tests over full agent runs.** "We won't spin up the agent and do an entire run to test the outputs of one LLM call." They test individual components/LLM calls in isolation, which is cheaper and more diagnostic.
-- **Conservative triggers to control eval cost.** Tests only fire on PRs that modify the relevant component. This is driven by a real cost war story (below).
-- **The eval-cost war story.** They spoke with a data + AI team whose eval costs "crept up to 10x the cost of running the agent itself" — motivating the localized-tests + conservative-trigger discipline. Implicit target is closer to a 1:1 eval-to-operation cost ratio.
-- **A failure taxonomy across four axes:** Data (input drift, missing context), Systems (tool changes, orchestration), Code (prompts, formatting), and Model (version updates, model selection). This frames *where* agent regressions originate, useful for trace triage.
-- **Product grounding:** the Troubleshooting Agent reportedly delivered 80%+ acceleration in root-cause analysis — the eval discipline exists to protect that production system through ongoing changes.
+Monte Carlo 的数据可靠性团队分享了构建和评测故障排查智能体时得到的五项经验。该生产系统使用数百个子智能体调查数据事故并识别根因。文章以失败故事为主线：每项经验都来自朴素评测设置在真实实践中的崩溃。
 
-## Verified quotes (1-4 VERBATIM, with URL)
-From https://www.montecarlodata.com/blog-ai-agent-evaluation/ :
-1. "Anything less than a .5 is a hard failure, while anything above a .8 is a pass. Soft failures occur for scores between .5 to .8."
-2. "In our experience, about one in ten tests produces a spurious result where the output is fine but the tests are hallucinating."
-3. "We now ask every LLM judge to not just provide a score, but to explain it."
-4. "We spoke with one data + AI team that told us the cost of their evaluations crept up to 10x the cost of running the agent itself!"
+核心判断是，大语言模型评审本身也是不可靠的工程产物，需要阈值区间、重试、强制理由和元验证。文章还讨论常被忽视的经济问题：评测成本可能悄悄超过运行智能体本身，因此团队把测试局部化到单次模型调用，并只在相关拉取请求上触发。这是一套真实 CI/CD 评测流水线经验，而不是厂商功能清单。
 
-## What it adds / why it's good
-Most "agent eval" posts stop at "use LLM-as-judge." This one starts there and treats the judge as an unreliable subsystem that needs its own SLA: thresholding bands, a documented soft-fail aggregation rule (33% / >2), retry logic for the empirically-measured ~10% judge hallucination rate, and meta-evaluation of the tests themselves. Two things are rare and valuable here: (1) the explicit *economics* of evals — the 10x-cost war story and the localized-test response are something almost no capabilities-checklist source mentions; and (2) concrete, copyable numeric policies (0.5/0.8 bands, 33% rule) rather than hand-wavy principles. The four-axis Data/Systems/Code/Model failure taxonomy is also a usable lens for trace triage that maps cleanly onto a data-tooling team's mental model. Caveat: it's still partly a Monte Carlo product narrative, and the numbers (1-in-10, 10x, 80%) are anecdotal/self-reported, not benchmarked.
+## 要点
 
-## Themes
-1 why-evals · 4 observability · 5 eval infra · 8 judge/verifiers · 9 agent-specific
+- **余弦相似度或语义距离不适合智能体输出。** 团队曾尝试基于向量的语义距离评分，但发现“措辞相似，含义却不同”，表面相似会掩盖语义分歧，因此转向大语言模型评审。
+- **使用软失败区间，而非单纯通过/失败。** 低于 0.5 是硬失败，高于 0.8 是通过，0.5—0.8 是软失败。单个软失败允许合并，但当 33% 测试软失败，或总软失败超过 2 个时，聚合为硬失败。这是一套可直接复用的 CI 门禁策略。
+- **自动重试吸收评审波动。** 约十分之一测试会出现虚假结果：智能体输出正确，但评测器发生幻觉。团队自动重跑评测，避免因为评审噪声阻塞合并。
+- **每个评审必须给出解释。** 大语言模型评审不能只输出数字，还必须同时说明理由。这既加速调试，也增强对评测套件的信任；只有分数无法审查。
+- **评测评测器。** 多次运行测试本身，验证其稳定性；修改或删除波动评测。评测被视为可能出错的代码，而不是真实标准答案。
+- **优先局部测试，而非完整运行智能体。** 为测试一次模型调用的输出，不应启动智能体执行完整任务。隔离测试组件和单次调用，成本更低，诊断性更强。
+- **保守触发以控制成本。** 只有修改相关组件的拉取请求才运行对应测试。
+- **评测成本故事：** 某数据与 AI 团队的评测成本逐渐达到智能体运行成本的 **10 倍**，推动局部测试和保守触发；隐含目标更接近 1:1 的评测/运行成本比。
+- **四轴失败分类：** 数据（输入漂移、上下文缺失）、系统（工具变化、编排）、代码（提示、格式）和模型（版本更新、模型选择），可用于轨迹分诊。
+- **产品背景：** 据团队报告，故障排查智能体使根因分析速度提升 80% 以上；评测纪律用于在持续改动中保护该生产系统。
+
+## 已核验引述（中文翻译）
+
+以下内容来自 https://www.montecarlodata.com/blog-ai-agent-evaluation/ ：
+
+1. “低于 0.5 是硬失败，高于 0.8 是通过；0.5 到 0.8 之间为软失败。”
+2. “根据我们的经验，大约十分之一测试会产生虚假结果：输出没有问题，但测试发生了幻觉。”
+3. “现在，我们要求每个大语言模型评审不仅给出分数，还要解释分数。”
+4. “我们接触过一个数据与 AI 团队，他们告诉我们，评测成本逐渐增长到智能体运行成本的 10 倍。”
+
+## 新增价值与局限
+
+大多数智能体评测文章只建议“使用大语言模型评审”，本文则从这里继续，把评审当作需要独立服务质量保障的不可靠子系统：使用分数区间、明确的软失败聚合规则、针对约 10% 评审幻觉率的重试逻辑，并对测试本身开展元评测。
+
+两个方面尤其少见且有价值：一是明确讨论评测经济性，10 倍成本案例和局部测试应对方案在普通能力清单中几乎不会出现；二是给出 0.5/0.8、33% 等可直接复用的数值策略，而不是模糊原则。数据/系统/代码/模型四轴分类也很适合轨迹分诊。
+
+局限是，这仍带有 Monte Carlo 产品叙事色彩，十分之一、10 倍和 80% 等数字来自轶事或自我报告，而非标准基准实验。
+
+## 主题
+
+1 为什么需要评测 · 4 可观测性 · 5 评测基础设施 · 8 评审/验证器 · 9 智能体特有评测

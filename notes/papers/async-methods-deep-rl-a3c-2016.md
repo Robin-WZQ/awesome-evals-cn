@@ -1,28 +1,38 @@
-# Notes — "Asynchronous Methods for Deep Reinforcement Learning"
-**Authors:** Volodymyr Mnih, Adrià Puigdomènech Badia, Mehdi Mirza, Alex Graves, Timothy P. Lillicrap, Tim Harley, David Silver, Koray Kavukcuoglu · **Venue/Year:** ICML 2016 · **URL:** https://arxiv.org/abs/1602.01783 · **Type:** paper · **Found:** true
+# 笔记——《深度强化学习的异步方法》
 
-## Summary
-This paper introduces a lightweight, general framework for deep RL in which multiple actor-learners run asynchronously in parallel on a single multi-core CPU, each interacting with its own copy of the environment and applying gradient updates to a shared model. The central insight is that the diversity of experience across parallel workers decorrelates updates and stabilizes training — playing the role that experience replay played in DQN, but without its memory cost and while remaining compatible with on-policy methods. The best variant, A3C (Asynchronous Advantage Actor-Critic), surpassed the prior Atari state-of-the-art while training in half the time on CPU instead of GPU, and generalized to continuous control (MuJoCo) and 3D visual maze navigation. A3C became one of the most heavily-cited deep-RL baselines of its era, seeding the actor-critic + parallel-rollout architecture that underlies much subsequent policy-gradient and RL-from-environment work. Its enduring influence comes from making strong RL cheap, reproducible, and broadly applicable across discrete, continuous, and partially-observed visual domains.
+**作者：** Volodymyr Mnih、Adrià Puigdomènech Badia、Mehdi Mirza、Alex Graves、Timothy P. Lillicrap、Tim Harley、David Silver、Koray Kavukcuoglu · **发表信息：** ICML 2016 · **链接：** https://arxiv.org/abs/1602.01783 · **类型：** 论文 · **已核验：** 是
 
-## Key points
-- Presents asynchronous variants of four standard RL algorithms: one-step Q-learning, one-step SARSA, n-step Q-learning, and advantage actor-critic (A3C); A3C is the headline performer.
-- Core mechanism: many actor-learner threads (e.g., 16 on one machine) run in parallel on separate environment instances and asynchronously update shared parameters — parallelism itself decorrelates data and stabilizes training, replacing the experience-replay buffer used by DQN.
-- Because it does not rely on replay, the framework works with on-policy methods (actor-critic, SARSA), not just off-policy Q-learning — a key generality win over DQN.
-- A3C surpassed the then state-of-the-art on the Atari 2600 (ALE) benchmark while training for roughly half the time on a single 16-core CPU, with no GPU required.
-- Demonstrated near-linear speedups in training as the number of parallel actor-learners increased, and in some cases super-linear sample efficiency for the one-step methods.
-- A3C uses an advantage estimate (n-step returns) and adds an entropy bonus to the policy objective to encourage exploration and discourage premature convergence to suboptimal deterministic policies.
-- Generalized beyond discrete-action Atari to a wide range of continuous motor-control problems (MuJoCo physics tasks) using a Gaussian-policy actor-critic.
-- Introduced/validated on a new 3D maze navigation task (Labyrinth) from raw visual input, showing the method handles partially-observed, high-dimensional pixel inputs with CNN+LSTM controllers.
-- Dramatically lowered the hardware barrier for deep-RL research: strong results on commodity multi-core CPUs made the eval pipeline far more reproducible and accessible than GPU-DQN.
+## 摘要
 
-## Verified quotes
-- "We propose a conceptually simple and lightweight framework for deep reinforcement learning that uses asynchronous gradient descent for optimization of deep neural network controllers." — https://arxiv.org/abs/1602.01783
-- "We present asynchronous variants of four standard reinforcement learning algorithms and show that parallel actor-learners have a stabilizing effect on training allowing all four methods to successfully train neural network controllers." — https://arxiv.org/abs/1602.01783
-- "The best performing method, an asynchronous variant of actor-critic, surpasses the current state-of-the-art on the Atari domain while training for half the time on a single multi-core CPU instead of a GPU." — https://arxiv.org/abs/1602.01783
-- "Furthermore, we show that asynchronous actor-critic succeeds on a wide variety of continuous motor control problems as well as on a new task of navigating random 3D mazes using a visual input." — https://arxiv.org/abs/1602.01783
+本文提出一个轻量、通用的深度强化学习框架：多个行动者—学习者在一台多核 CPU 上异步并行运行，各自与独立环境副本交互，并向共享模型写入梯度更新。核心洞见是，并行工作线程产生的多样经验可以降低更新相关性并稳定训练，作用类似 DQN 的经验回放，但没有回放内存成本，而且兼容在策略方法。
 
-## Why it matters for agent evals
-A3C is a load-bearing piece of the RL-environment lineage that agent evals now sit on top of. It cemented the Atari/ALE suite as a shared, comparable benchmark and pushed the field toward parallel actor-learner harnesses where many agent instances roll out concurrently against independent environment copies — the exact architecture modern RL-env evaluation and RLHF/agentic-training infrastructure use to gather decorrelated trajectories at scale. By removing the GPU/replay-buffer barrier, it made RL evals cheaper and more reproducible, a precondition for the kind of large-scale, many-seed benchmarking that credible agent evaluation demands. Its advantage-actor-critic + entropy-regularized-exploration template is the direct ancestor of PPO and the policy-optimization methods used to train and evaluate today's tool-using and reasoning agents, and its 3D-maze-from-pixels task foreshadowed embodied/partially-observed agent benchmarks where the environment is the verifier of success.
+表现最好的 A3C，即异步优势行动者—评论家，在只使用 CPU 的情况下，以约一半训练时间超过当时 Atari 最佳方法，并扩展到 MuJoCo 连续控制和三维视觉迷宫导航。A3C 成为当时引用最多的深度强化学习基线之一，并推动了后来广泛使用的行动者—评论家与并行轨迹架构。它的重要影响在于，让强强化学习方法变得更便宜、可复现，并能适用于离散、连续及部分可观测视觉环境。
 
-## Themes
-2 eval⇄capability⇄RL-env · 7 RL environments · 9 agent-specific
+## 要点
+
+- 提出一步 Q 学习、一步 SARSA、n 步 Q 学习和优势行动者—评论家四种算法的异步版本，其中 A3C 表现最好。
+- 多个行动者—学习者线程在不同环境实例中并行运行，并异步更新共享参数；并行性本身实现数据去相关并稳定训练，替代 DQN 的经验回放缓冲区。
+- 不依赖回放，因此既支持 Q 学习等离策略方法，也支持行动者—评论家和 SARSA 等在策略方法，通用性优于 DQN。
+- A3C 在 Atari 2600/ALE 上超过当时最佳方法，只需一台 16 核 CPU、约一半训练时间且无需 GPU。
+- 随并行行动者数量增加，训练速度近似线性提升；部分一步方法甚至获得超线性样本效率。
+- A3C 使用基于 n 步回报的优势估计，并在策略目标中加入熵奖励，以鼓励探索并避免过早收敛到次优确定策略。
+- 使用高斯策略行动者—评论家，将方法从离散动作 Atari 扩展到多种 MuJoCo 连续运动控制任务。
+- 在原始视觉输入的三维迷宫导航 Labyrinth 上验证，表明 CNN 与 LSTM 控制器可处理部分可观测、高维像素输入。
+- 显著降低深度强化学习研究的硬件门槛，使大规模多随机种子评测更容易复现和普及。
+
+## 已核验引述（中文翻译）
+
+- “我们提出一个概念简单、轻量的深度强化学习框架，使用异步梯度下降优化深度神经网络控制器。”——https://arxiv.org/abs/1602.01783
+- “我们给出四种标准强化学习算法的异步版本，并证明并行行动者—学习者能够稳定训练，使四种方法都能成功训练神经网络控制器。”——https://arxiv.org/abs/1602.01783
+- “表现最好的异步行动者—评论家方法超过 Atari 领域当时最佳结果，并在单台多核 CPU 上用约一半时间完成训练，而不需要 GPU。”——https://arxiv.org/abs/1602.01783
+- “异步行动者—评论家还成功解决多种连续运动控制问题，以及一个使用视觉输入导航随机三维迷宫的新任务。”——https://arxiv.org/abs/1602.01783
+
+## 对智能体评测的意义
+
+A3C 是智能体评测所依托的强化学习环境技术谱系中的关键组成。它巩固了 Atari/ALE 作为共享可比基准的地位，也推动了并行行动者—学习者执行框架：多个智能体实例并发地在独立环境副本中生成轨迹。现代强化学习环境评测、RLHF 和智能体训练基础设施仍采用类似架构，以规模化收集低相关轨迹。
+
+通过消除 GPU 和回放缓冲区门槛，A3C 降低了强化学习评测成本并提高可复现性，为可信智能体评测要求的大规模、多随机种子实验创造条件。其优势行动者—评论家与熵正则探索范式也是 PPO 及今天工具型和推理型智能体策略优化方法的直接前身。三维像素迷宫任务则预示了具身、部分可观测智能体基准，在这类任务中，环境本身就是成功验证器。
+
+## 主题
+
+2 评测—能力—强化学习环境 · 7 强化学习环境 · 9 智能体特有评测
