@@ -1,9 +1,9 @@
 # 深度笔记中文翻译进度
 
-进度：`[██░░░░░░░░░░░░░░░░░░] 11%（16/143）`
+进度：`[███░░░░░░░░░░░░░░░░░] 13%（19/143）`
 
 - 文章：3/68
-- 论文：13/28
+- 论文：16/28
 - 演讲与播客：0/47
 
 ## 翻译规则
@@ -31,3 +31,6 @@
 14. `notes/papers/realtoxicityprompts-neural-toxic-degeneration.md`
 15. `notes/papers/adversarial-examples-evaluating-reading-comprehension-systems-ji.md`
 16. `notes/papers/dense-passage-retrieval-open-domain-qa.md`
+17. `notes/papers/snli-large-annotated-corpus-nli-bowman-2015.md`
+18. `notes/papers/direct-preference-optimization-dpo.md`
+19. `notes/papers/deep-rl-from-human-preferences-2017.md`

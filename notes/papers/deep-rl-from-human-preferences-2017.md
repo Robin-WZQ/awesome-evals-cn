@@ -1,29 +1,38 @@
-# Notes — "Deep Reinforcement Learning from Human Preferences"
+# 笔记——《基于人类偏好的深度强化学习》
 
-**Authors:** Paul Christiano, Jan Leike, Tom B. Brown, Miljan Martic, Shane Legg, Dario Amodei · **Venue/Year:** NeurIPS 2017 (arXiv 2017) · **URL:** https://arxiv.org/abs/1706.03741 · **Type:** paper · **Found:** true
+**作者：** Paul Christiano、Jan Leike、Tom B. Brown、Miljan Martic、Shane Legg、Dario Amodei · **发表信息：** NeurIPS 2017 · **链接：** https://arxiv.org/abs/1706.03741 · **类型：** 论文 · **已核验：** 是
 
-## Summary
-This paper introduced the now-canonical recipe for learning a reward function from human comparisons of agent behavior, rather than from a hand-specified reward. A human is shown pairs of short trajectory-segment clips and simply picks which one is better; these binary preferences train a reward-predictor network, and a standard deep RL algorithm optimizes against that learned reward. The headline result is extreme label-efficiency: complex Atari and simulated-locomotion tasks are solved with feedback on less than 1% of the agent's interactions, and entirely novel behaviors (e.g. a Hopper backflip) can be elicited with about an hour of human time. It became foundational because it is the direct technical ancestor of RLHF as later applied to language models (InstructGPT, ChatGPT, Claude): the "train a reward model from pairwise human preferences, then optimize a policy against it" loop originates here. The work also frames preference learning as a scalable solution to the reward-specification and human-oversight problem, tying it to AI safety/alignment.
+## 摘要
 
-## Key points
-- **Core method:** learn a reward function r̂ from human preferences over pairs of trajectory segments, then train a policy with deep RL on r̂. The reward predictor, RL training, and human queries run as three asynchronous processes in a loop.
-- **Preference model:** a Bradley-Terry / Luce-Shephard style model — the probability a human prefers a segment depends exponentially (softmax) on the sum of predicted latent reward over the clip; the predictor is fit by cross-entropy to human labels. An ensemble of 3 predictors is used.
-- **Human interface:** raters watch 1–2 second video clips of pairs of segments and click which is better (or "equal" / "incomparable"); contractors reported ~3–5 seconds per comparison.
-- **RL backends:** A2C (Advantage Actor-Critic) for Atari, TRPO (Trust Region Policy Optimization) for MuJoCo robotics.
-- **Label efficiency — MuJoCo:** ~700 human comparisons were enough to nearly match RL trained on the true reward on several continuous-control tasks (Hopper, Walker, Swimmer, Cheetah, Ant, Reacher, Pendulum, etc.).
-- **Label efficiency — Atari:** ~5,500 queries on games like Beamrider, Breakout, Enduro, Pong, Qbert, SpaceInvaders, Seaquest; competitive with real-reward RL on some, weaker on others.
-- **Headline efficiency claim:** feedback on **less than 1%** of the agent's environment interactions suffices, making human oversight cheap enough for state-of-the-art RL.
-- **Novel behaviors:** trained a Hopper backflip and other behaviors with no programmed reward — about 900 queries / under an hour of human time — demonstrating goals that would be hard to specify by hand.
-- **Synthetic vs. real feedback:** experiments used both a synthetic oracle (the true reward acting as a "human") and real human contractors; real feedback performed comparably, sometimes with fewer labels, though with some cross-rater inconsistency.
-- **What it introduced:** the modern reward-model-from-pairwise-preferences pipeline (the "RM" stage of RLHF), and the argument that preference comparison is an easier, more scalable supervision signal than demonstrations or hand-coded rewards.
+本文提出后来成为标准的方法：从人类对智能体行为的比较中学习奖励函数，而不是手工指定奖励。人类观看两段短轨迹视频，只需选择更好的一段；这些二元偏好用于训练奖励预测网络，再由标准深度强化学习算法优化学习到的奖励。
 
-## Verified quotes
-- "In this work, we explore goals defined in terms of (non-expert) human preferences between pairs of trajectory segments." — https://arxiv.org/abs/1706.03741
-- "We show that this approach can effectively solve complex RL tasks without access to the reward function, including Atari games and simulated robot locomotion, while providing feedback on less than one percent of our agent's interactions with the environment." — https://arxiv.org/abs/1706.03741
-- "To demonstrate the flexibility of our approach, we show that we can successfully train complex novel behaviors with about an hour of human time." — https://arxiv.org/abs/1706.03741
+关键结果是极高的标签效率：只对智能体不到 1% 的交互提供反馈，就能解决复杂 Atari 和模拟运动任务；约一小时人类时间即可诱导全新行为，如 Hopper 后空翻。本文是后来语言模型 RLHF 的直接技术前身，“从成对人类偏好训练奖励模型，再用它优化策略”的循环源于此。它也将偏好学习视为奖励定义和人类监督问题的可扩展解决方案，与 AI 安全和对齐直接相关。
 
-## Why it matters for agent evals
-This is the origin of the learned-reward-model paradigm that underpins both how modern agents are trained and how they are judged. The reward predictor here is the direct ancestor of (a) the reward models in RLHF used to fine-tune LLM agents, and (b) the family of **LLM-as-judge / preference-based evaluators** that score outputs by learned human preference rather than ground-truth correctness. It establishes the central eval insight that **pairwise comparison is a more reliable, cheaper, and more scalable elicitation format than absolute scoring or hand-specified metrics** — the foundation of arena-style and preference-based benchmarks. It also seeds the **RL-environment ⇄ eval** coupling: the same preference signal that defines the task is the signal you evaluate against, which raises the integrity question (reward hacking / overfitting to an imperfect learned proxy) that recurs throughout agent evaluation. Finally, it is an explicitly safety-motivated paper: scalable human oversight and value learning from preferences are framed as alignment tools, making it a load-bearing citation for verifier/judge reliability and reward-model gaming in agent-safety evals.
+## 要点
 
-## Themes
-2 eval⇄capability⇄RL-env · 7 RL environments · 8 judge/verifiers · 10 safety/adversarial
+- **核心方法：** 根据人类对成对轨迹片段的偏好学习奖励函数 `r̂`，再用深度强化学习在 `r̂` 上训练策略；奖励预测、强化学习训练和人工查询三个进程异步循环。
+- **偏好模型：** 使用 Bradley–Terry/Luce–Shephard 式模型；人类偏好某段轨迹的概率由片段内预测潜在奖励之和经过 softmax 决定，并用交叉熵拟合标签；使用三个预测器组成集成。
+- **人工界面：** 标注者观看两段 1—2 秒视频，点击较好的一段，也可选择相同或不可比较；每次比较约需 3—5 秒。
+- Atari 使用 A2C，MuJoCo 机器人任务使用 TRPO。
+- **MuJoCo 标签效率：** 约 700 次人类比较，就能在 Hopper、Walker、Swimmer、Cheetah、Ant、Reacher、Pendulum 等任务上接近真实奖励训练结果。
+- **Atari 标签效率：** 在 Beamrider、Breakout、Enduro、Pong、Qbert、SpaceInvaders 和 Seaquest 等游戏中使用约 5,500 次查询，部分任务达到真实奖励强化学习水平。
+- 对**不到 1%** 环境交互提供反馈即可，使先进强化学习所需的人类监督足够便宜。
+- 无需程序化奖励，以约 900 次查询、不到一小时人工时间训练 Hopper 后空翻等新行为。
+- 同时使用真实奖励模拟的合成“人类”和真实承包商反馈；真实反馈表现相当，有时需要更少标签，但存在标注者差异。
+- 建立现代“从成对偏好学习奖励模型”流水线，并说明偏好比较比示范或手工奖励更容易、更可扩展。
+
+## 已核验引述（中文翻译）
+
+- “本研究探索由非专家人类对成对轨迹片段的偏好所定义的目标。”——https://arxiv.org/abs/1706.03741
+- “该方法无需访问奖励函数即可解决复杂强化学习任务，包括 Atari 和模拟机器人运动，同时只需对智能体不到百分之一的环境交互提供反馈。”——https://arxiv.org/abs/1706.03741
+- “为证明方法灵活性，我们展示了如何用大约一小时人类时间成功训练复杂的新行为。”——https://arxiv.org/abs/1706.03741
+
+## 对智能体评测的意义
+
+本文开创学习式奖励模型范式，同时支撑现代智能体训练和评判。这里的奖励预测器是两类系统的直接祖先：用于微调语言智能体的 RLHF 奖励模型，以及依据学习到的人类偏好而非客观正确性给输出评分的大语言模型评审或偏好评测器。
+
+它确立了重要评测洞见：**成对比较通常比绝对评分或手工指标更可靠、便宜且可扩展**，构成 Arena 式和偏好式基准的基础。它也建立强化学习环境与评测之间的耦合：定义任务的偏好信号，同时就是评价策略的信号。这会引出奖励黑客和对不完美代理过拟合等完整性问题。本文以可扩展人类监督和偏好价值学习为安全动机，是研究验证器可靠性、奖励模型操纵和智能体安全评测的重要文献。
+
+## 主题
+
+2 评测—能力—强化学习环境 · 7 强化学习环境 · 8 评审/验证器 · 10 安全/对抗

@@ -1,28 +1,38 @@
-# Notes — "A large annotated corpus for learning natural language inference"
+# 笔记——《用于学习自然语言推断的大型标注语料库》
 
-**Authors:** Samuel R. Bowman, Gabor Angeli, Christopher Potts, Christopher D. Manning · **Venue/Year:** EMNLP 2015 (arXiv Aug 2015) · **URL:** https://arxiv.org/abs/1508.05326 · **Type:** paper · **Found:** true
+**作者：** Samuel R. Bowman、Gabor Angeli、Christopher Potts、Christopher D. Manning · **发表信息：** EMNLP 2015；arXiv 2015 年 8 月 · **链接：** https://arxiv.org/abs/1508.05326 · **类型：** 论文 · **已核验：** 是
 
-## Summary
-This paper introduces the Stanford Natural Language Inference (SNLI) corpus, 570K human-written English sentence pairs each labeled entailment, contradiction, or neutral. NLI (a.k.a. recognizing textual entailment) is framed as a clean testbed for whether a system understands meaning: given a premise, decide whether a hypothesis is true, false, or undetermined. Prior NLI resources were tiny (hundreds to thousands of examples) and full of annotation artifacts; SNLI is roughly two orders of magnitude larger, which for the first time made it feasible to train data-hungry neural sentence-encoders on the task. The collection trick was to ground annotation in image captioning: Flickr30k captions served as premises, and crowd workers wrote a new hypothesis for each of the three labels, yielding naturalistic, balanced data. SNLI became foundational because it turned NLI into a standard supervised benchmark, seeded a long leaderboard of sentence-representation models, and established the data-collection and validation template later reused by MultiNLI and many other benchmarks.
+## 摘要
 
-## Key points
-- **Task framing:** three-way classification over (premise, hypothesis) pairs into *entailment*, *contradiction*, *neutral* — a label set the paper argues is a tractable proxy for semantic understanding.
-- **Scale:** 570,152 sentence pairs (about 550K train + 10K dev + 10K test), ~2 orders of magnitude larger than prior entailment corpora.
-- **Grounded elicitation method:** premises are existing Flickr30k image captions; Mechanical Turk workers write one entailed, one neutral, and one contradicting hypothesis per premise — producing balanced labels and reducing degenerate premise reuse.
-- **Validation / agreement:** a subset was relabeled by 5 annotators; overall inter-annotator **Fleiss kappa = 0.70**, with a 3-of-5 majority "gold" label on ~98% of validated pairs and **unanimous agreement on 58.3%**. Pairs lacking a majority label are marked `-` and typically excluded.
-- **Baselines:** a feature-rich **lexicalized classifier reaches 78.2%** test accuracy; an unlexicalized/edit-distance style baseline is much weaker — showing the task is learnable but not trivially solved by surface overlap.
-- **Neural result:** a 100D **LSTM RNN sentence-encoding model reaches 77.6%**, competitive with the lexicalized classifier — the paper's headline that neural nets can perform "competitively on natural language inference benchmarks for the first time."
-- **Architecture pattern introduced:** independently encode premise and hypothesis into fixed vectors, then classify their combination — the canonical "sentence-embedding" evaluation that SNLI subsequently popularized.
-- **Resource:** released freely, becoming a default benchmark and a standard pretraining/transfer signal for general-purpose sentence representations.
+本文提出斯坦福自然语言推断语料库 SNLI，包含 57 万个人工编写的英语句子对，并标注为蕴含、矛盾或中立。自然语言推断也称文本蕴含识别：给定前提，判断假设为真、为假还是无法确定，被视为测试系统是否理解语义的清晰任务。此前资源只有数百到数千样本，SNLI 规模大约提高两个数量级，首次使数据密集的神经句子编码器能够在该任务上训练。
 
-## Verified quotes
-- "we introduce the Stanford Natural Language Inference corpus, a new, freely available collection of labeled sentence pairs, written by humans doing a novel grounded task based on image captioning." — https://arxiv.org/abs/1508.05326
-- "At 570K pairs, it is two orders of magnitude larger than all other resources of its type." — https://arxiv.org/abs/1508.05326
-- "This increase in scale ... allows a neural network-based model to perform competitively on natural language inference benchmarks for the first time." — https://arxiv.org/abs/1508.05326
-- Reported metrics (from the EMNLP 2015 paper body, via ar5iv): overall validation **Fleiss kappa = 0.70**; lexicalized classifier **78.2%** and LSTM **77.6%** test accuracy. — https://arxiv.org/abs/1508.05326
+数据收集以图像描述为锚点：把 Flickr30k 描述作为前提，众包人员分别为三个标签编写假设，从而获得自然且标签平衡的数据。SNLI 将自然语言推断变成标准监督基准，推动大量句子表示模型，也确立了后来被 MultiNLI 等基准复用的数据收集与验证模板。
 
-## Why it matters for agent evals
-SNLI is a template-setting artifact for how the field builds and validates discriminative benchmarks. Three ideas recur in modern agent/LLM evaluation: (1) **multi-annotator gold labels with an explicit agreement floor** (Fleiss kappa 0.70, 3-of-5 majority, abstain when no consensus) — the same human-agreement-as-ground-truth discipline that underpins judge/verifier calibration and the practice of discarding low-agreement items rather than forcing a label; (2) **scalable grounded elicitation** — bootstrapping a balanced, naturalistic dataset by anchoring crowd writing to an external stimulus (image captions), a precursor to synthetic-but-grounded data pipelines used to build RL/eval environments; and (3) **a fixed train/dev/test split with a public leaderboard**, which made NLI a reusable verifier for sentence-level semantic competence. NLI-style entailment checks are now reused directly as automatic *verifiers* — e.g. faithfulness/hallucination and contradiction detection where an entailment model scores whether a model's claim is entailed by its evidence, exactly the judge role in RAG and agent grounding checks. SNLI also surfaced the integrity lesson that drives later eval design: large crowd corpora carry annotation artifacts that let models pass via shortcuts, motivating partial-input and adversarial baselines now standard when validating any benchmark.
+## 要点
 
-## Themes
-6 benchmark-vs-eval/integrity · 8 judge/verifiers · 1 why-evals · 2 eval⇄capability⇄RL-env
+- **任务形式：** 将前提—假设对三分类为蕴含、矛盾和中立，作为语义理解的可操作代理。
+- **规模：** 570,152 个句子对，约 55 万训练、1 万验证和 1 万测试，比此前蕴含语料大约两个数量级。
+- **有根据的诱导：** 前提来自 Flickr30k 图像描述；众包人员为每个前提分别编写一个蕴含、中立和矛盾假设，平衡标签并减少退化式前提复用。
+- **验证与一致性：** 子集由 5 名标注者重新标注，整体 Fleiss κ 为 0.70；约 98% 样本获得至少 3/5 多数标签，58.3% 全体一致。无多数标签样本标记为 `-`，通常被排除。
+- **基线：** 特征丰富的词汇化分类器达到 78.2% 测试准确率；非词汇化或编辑距离基线明显更弱，说明任务可学但不能只靠表面重合轻易解决。
+- **神经结果：** 100 维 LSTM 句子编码模型达到 77.6%，与词汇化分类器相当，首次显示神经网络可在自然语言推断基准上具有竞争力。
+- 推广了分别编码前提和假设为固定向量，再组合分类的经典句子嵌入评测架构。
+- 数据免费发布，成为通用句子表示的默认基准和常用预训练/迁移信号。
+
+## 已核验引述（中文翻译）
+
+- “我们提出斯坦福自然语言推断语料库：一个免费提供、由人类在基于图像描述的新型有根据任务中编写的标注句子对集合。”——https://arxiv.org/abs/1508.05326
+- “其 57 万个句子对的规模比所有同类资源大两个数量级。”——https://arxiv.org/abs/1508.05326
+- “规模增长首次使神经网络模型能够在自然语言推断基准上取得有竞争力的表现。”——https://arxiv.org/abs/1508.05326
+
+论文报告：整体 Fleiss κ=0.70；词汇化分类器测试准确率 78.2%，LSTM 为 77.6%。
+
+## 对智能体评测的意义
+
+SNLI 为判别式基准的构建和验证建立了模板。三个思想仍反复出现在现代智能体与大语言模型评测中：使用多标注者真实标签并设明确一致性下限，无法达成共识时弃权而不是强制标签；将众包写作锚定到外部刺激，规模化构建平衡、自然的数据；使用固定训练/验证/测试划分和公开排行榜，使任务成为可复用语义能力验证器。
+
+自然语言推断模型如今也直接充当自动验证器，例如在事实一致性、幻觉和矛盾检测中判断声明是否由证据蕴含。SNLI 同时带来完整性教训：大型众包语料会包含让模型走捷径的标注伪影，因此验证任何基准时都要加入部分输入和对抗基线。
+
+## 主题
+
+6 基准与评测/完整性 · 8 评审/验证器 · 1 为什么需要评测 · 2 评测—能力—强化学习环境
