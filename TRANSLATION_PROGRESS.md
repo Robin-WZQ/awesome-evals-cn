@@ -1,9 +1,9 @@
 # 深度笔记中文翻译进度
 
-进度：`[███░░░░░░░░░░░░░░░░░] 15%（22/143）`
+进度：`[███░░░░░░░░░░░░░░░░░] 17%（25/143）`
 
 - 文章：3/68
-- 论文：19/28
+- 论文：22/28
 - 演讲与播客：0/47
 
 ## 翻译规则
@@ -37,3 +37,6 @@
 20. `notes/papers/adversarial-nli-anli-benchmark.md`
 21. `notes/papers/glue-multi-task-benchmark-nlu.md`
 22. `notes/papers/general-language-assistant-laboratory-for-alignment.md`
+23. `notes/papers/training-helpful-harmless-assistant-rlhf.md`
+24. `notes/papers/scalable-agent-alignment-via-reward-modeling.md`
+25. `notes/papers/how-not-to-evaluate-your-dialogue-system.md`

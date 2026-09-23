@@ -1,28 +1,33 @@
-# Notes — "How NOT To Evaluate Your Dialogue System: An Empirical Study of Unsupervised Evaluation Metrics for Dialogue Response Generation"
+# 笔记——《如何不评估你的对话系统：对话回答生成的无监督评测指标实证研究》
 
-**Authors:** Chia-Wei Liu, Ryan Lowe, Iulian V. Serban, Michael Noseworthy, Laurent Charlin, Joelle Pineau · **Venue/Year:** EMNLP 2016 · **URL:** https://arxiv.org/abs/1603.08023 · **Type:** paper · **Found:** true
+**作者：** Chia-Wei Liu、Ryan Lowe、Iulian V. Serban、Michael Noseworthy、Laurent Charlin、Joelle Pineau · **会议/年份：** EMNLP 2016 · **链接：** https://arxiv.org/abs/1603.08023 · **类型：** 论文 · **已找到：** 是
 
-## Summary
-This paper is the canonical empirical takedown of borrowing machine-translation/summarization metrics (BLEU, METEOR, ROUGE) and word-embedding metrics to evaluate open-domain dialogue response generation. The authors run a human survey across two contrasting corpora — chit-chat Twitter and technical Ubuntu — and show that all of these automatic metrics correlate very weakly with human judgements on Twitter and essentially not at all on Ubuntu. The core diagnosis is that dialogue has high response diversity: many valid responses to a context share no words (and little surface similarity) with the single ground-truth reference, so reference-overlap metrics break down. It became foundational because it gave the community a rigorous, quantitative reason to distrust automatic single-reference metrics for generation and to demand human evaluation or learned, human-correlated metrics — a warning that propagated far beyond dialogue into NLG, summarization, and later LLM evaluation. The provocative "how NOT to" framing and clean correlation tables made it a standard citation whenever someone justifies why they did (or did not) use BLEU.
+## 摘要
 
-## Key points
-- Evaluates two metric families against humans: word-overlap metrics (BLEU-1..4, METEOR, ROUGE-L) and embedding-based metrics (Embedding Average, Vector Extrema, Greedy Matching using Word2Vec).
-- Two datasets chosen for contrast: non-technical **Twitter** chit-chat and technical **Ubuntu Dialogue Corpus**; responses come from a diverse range of retrieval (TF-IDF, Dual Encoder) and generative (LSTM, HRED) models plus human-written responses.
-- Human survey: 25 CS-department volunteers rated 1–5 on adequacy, 100 questions each (20 contexts × 5 responses); 23/25 had Cohen's κ > 0.2 (median κ ≈ 0.55, moderate-to-strong agreement); 2 low-agreement raters excluded.
-- Headline result: on **Twitter**, best metrics show only small positive correlation (e.g. BLEU-2 Spearman 0.3576 / Pearson 0.3874; embedding Greedy Spearman 0.2119); on **Ubuntu**, no metric significantly correlates (e.g. BLEU-2 Spearman 0.038 p=0.71; Average Pearson −0.16) — vs. human-vs-human Spearman ≈ 0.95.
-- BLEU-3/BLEU-4 are near-zero for most response pairs (only 4 examples scored > 10⁻⁹ for BLEU-4); any apparent correlation comes from the smoothing constant making them a noisy scaled BLEU-2 — they recommend N=2 over N=3/4 if forced to use BLEU.
-- Diversity-of-valid-responses is the root cause (Table 1's example response gets a BLEU score of 0 despite being perfectly reasonable); metrics also proved sensitive to response length and to semantics-irrelevant surface factors.
-- Embedding metrics fail in characteristic ways: scoring a paraphrase low because they cannot weight salient words, and scoring an off-topic response high due to frequent tokens like "i" and embedding-space proximity of words like "happy"/"welcome".
-- Constructive recommendations: use metrics that incorporate context; consider richer sentence representations (e.g. skip-thought vectors); collect multiple ground-truth references; or train a learned **evaluation model** (discriminative human-vs-model, or a regressor on human ratings) — while cautioning that learning such a model may be as hard as the generation problem itself.
+这篇论文是对“借用机器翻译/摘要指标（BLEU、METEOR、ROUGE）和词嵌入指标评估开放域对话回答生成”的经典实证否定。作者在两个差异鲜明的语料库——闲聊 Twitter 和技术性 Ubuntu——上开展人类调查，发现这些自动指标在 Twitter 上与人类判断的相关性都很弱，在 Ubuntu 上则基本毫无相关性。核心诊断是对话回答高度多样：对同一上下文，许多有效回答可能与唯一的标准答案没有共同词语，也缺少表层相似性，因此基于参考答案重叠度的指标会失效。这项工作具有奠基性，是因为它为质疑生成任务的自动单参考指标提供了严谨的定量依据，并促使领域要求人工评估或与人类判断相关的学习型指标。这一警告从对话领域扩散到更广泛的自然语言生成、摘要和后来的大模型评测。挑衅性的“如何不评估”框架和清晰的相关性表格，使其成为人们论证为何使用（或不使用）BLEU 时的标准引文。
 
-## Verified quotes
-- "We show that these metrics correlate very weakly with human judgements in the non-technical Twitter domain, and not at all in the technical Ubuntu domain." (https://arxiv.org/abs/1603.08023)
-- "Our results indicate that a shift must be made in the research community away from these metrics, and highlight the need for a new metric that correlates more strongly with human judgement." (https://arxiv.org/abs/1603.08023)
-- "This demonstrates that metrics that have not been specifically correlated with human judgements on a new task should not be used to evaluate that task." (https://arxiv.org/abs/1603.08023)
-- "These metrics assume that valid responses have significant word overlap with the ground truth responses. This is a strong assumption for dialogue systems, where there is significant diversity in the space of valid responses to a given context." (https://arxiv.org/abs/1603.08023)
+## 要点
 
-## Why it matters for agent evals
-This is a foundational "why-evals" cautionary paper: it empirically establishes that an automatic metric is only trustworthy on a task if it has been validated against human judgement on that task, and that single-reference overlap metrics silently fail on open-ended, high-diversity outputs. That insight is directly load-bearing for modern agent evaluation, where free-form agent outputs (plans, tool rationales, conversational turns, code explanations) likewise admit many valid forms that share no surface tokens with any reference — naive reference-matching scoring will under-credit correct behavior and reward shortcut tokens. The paper's proposed remedy — a learned "evaluation model" that scores responses in a human-correlated way, including a discriminative model distinguishing human from machine responses — directly prefigures LLM-as-judge and learned reward-model verifiers used today, and its meta-rule (always re-validate your judge/metric against humans on the target distribution) is a core integrity check for benchmark and judge design. Its correlation-with-humans methodology (Pearson/Spearman vs. inter-rater agreement as a ceiling) remains the standard template for validating automated judges and verifiers in RL-from-feedback and benchmark pipelines.
+- 用人类判断检验两类指标：词语重叠指标（BLEU-1…4、METEOR、ROUGE-L）和基于嵌入的指标（使用 Word2Vec 的嵌入平均、向量极值、贪心匹配）。
+- 选择两个对比数据集：非技术性的 **Twitter** 闲聊和技术性的 **Ubuntu 对话语料库**。回答来自多种检索模型（TF-IDF、双编码器）、生成模型（LSTM、HRED）和人类撰写回答。
+- **人类调查：**25 名计算机系志愿者按 1–5 分评价充分性，每人回答 100 题（20 个上下文 × 5 个回答）；25 人中有 23 人的 Cohen's κ > 0.2（中位数 κ ≈ 0.55，一致性中等至较强），另 2 名低一致性评分者被剔除。
+- **标志性结果：**在 **Twitter** 上，表现最好的指标也只有较小正相关，例如 BLEU-2 的 Spearman 为 0.3576、Pearson 为 0.3874，嵌入贪心匹配的 Spearman 为 0.2119。在 **Ubuntu** 上，没有任何指标显著相关，例如 BLEU-2 的 Spearman 为 0.038（p=0.71），嵌入平均的 Pearson 为 −0.16；而人类之间的 Spearman 约为 0.95。
+- 对大多数回答对，BLEU-3/BLEU-4 接近零（BLEU-4 仅有 4 个样本得分 > 10⁻⁹）。任何表面相关性都来自平滑常数，使它们变成带噪声的缩放 BLEU-2；因此，如果被迫使用 BLEU，作者建议用 N=2 而非 N=3/4。
+- **有效回答的多样性**是根本原因。表 1 中的示例回答完全合理，BLEU 分数却为 0；这些指标也对回答长度和与语义无关的表层因素敏感。
+- 嵌入指标以特有方式失效：由于无法为关键词赋予适当权重，会给复述句低分；又会因“I”等高频词，以及“happy”/“welcome”等词在嵌入空间中接近，给离题回答高分。
+- **建设性建议：**使用能够结合上下文的指标；考虑更丰富的句子表示（如 skip-thought 向量）；收集多个标准参考回答；或训练一个学习型**评测模型**（用于区分人类回答与模型回答的判别器，或对人类评分做回归的模型）。同时要注意，学习这种模型可能和生成问题本身一样困难。
 
-## Themes
-1 why-evals · 6 benchmark-vs-eval/integrity · 8 judge/verifiers
+## 已核验引述（中文翻译）
+
+- “我们表明，这些指标在非技术性 Twitter 领域与人类判断的相关性非常弱，而在技术性 Ubuntu 领域则完全不相关。”（https://arxiv.org/abs/1603.08023）
+- “我们的结果表明，研究社区必须转离这些指标，并凸显了开发与人类判断具有更强相关性的新指标之必要。”（https://arxiv.org/abs/1603.08023）
+- “这说明，尚未在新任务上专门检验其与人类判断相关性的指标，不应被用来评估该任务。”（https://arxiv.org/abs/1603.08023）
+- “这些指标假设有效回答与标准答案存在显著的词语重叠。对于对话系统而言，这是一个很强的假设，因为针对给定上下文的有效回答空间非常多样。”（https://arxiv.org/abs/1603.08023）
+
+## 为什么它对智能体评测很重要
+
+这是一篇奠基性的“为什么需要评测”警示论文。它用实证证明：只有在目标任务上验证过自动指标与人类判断的一致性，才能信任该指标；在开放式、高多样性输出上，单参考重叠指标会悄然失效。这一洞见是现代智能体评测的支柱性前提：自由形式的智能体输出（计划、工具调用理由、对话轮次、代码解释）同样有许多有效形式，与任何参考答案都可能没有表层词元重叠。朴素参考匹配会低估正确行为，并奖励利用关键词的捷径。论文建议用与人类判断相关的学习型“评测模型”给回答评分，其中包括区分人类与机器回答的判别模型。这直接预示了今日的大模型裁判器和学习型奖励模型验证器。它的元规则——始终在目标分布上用人类重新验证裁判器/指标——是基准和裁判设计的核心完整性检查。以 Pearson/Spearman 相关性对比人类评分，并以评分者间一致性作为上限的方法，仍是在基于反馈的强化学习和基准流水线中验证自动裁判器与验证器的标准模板。
+
+## 主题
+
+1 为什么需要评测 · 6 基准与评测/完整性 · 8 裁判器/验证器

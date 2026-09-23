@@ -1,30 +1,36 @@
-# Notes — "Scalable agent alignment via reward modeling: a research direction"
-**Authors:** Jan Leike, David Krueger, Tom Everitt, Miljan Martic, Vishal Maini, Shane Legg (DeepMind) · **Venue/Year:** arXiv preprint, 2018 · **URL:** https://arxiv.org/abs/1811.07871 · **Type:** paper · **Found:** true
+# 笔记——《通过奖励建模实现可扩展的智能体对齐：一个研究方向》
 
-## Summary
-This is a DeepMind research-agenda paper that frames the *agent alignment problem* — how to build agents that act in accordance with the user's intentions — and proposes **reward modeling** as the central scalable solution. The core recipe is a two-part loop: learn a reward function from user interaction (feedback, comparisons, demonstrations), then optimize that learned reward with RL. To scale beyond tasks a human can directly evaluate, the paper introduces **recursive reward modeling**, where agents trained by reward modeling are themselves used to assist the human in evaluating harder tasks, bootstrapping oversight to increasingly complex domains. It became foundational because it crystallized the "learn-a-reward-then-optimize" paradigm that underpins RLHF, articulated the scalable-oversight problem, and catalogued the concrete failure modes (reward gaming, feedback quality, reward tampering) that the later eval/safety literature spends its time attacking. It also lays out an agenda for *establishing trust* in trained agents via testing, interpretability, formal verification, and theory.
+**作者：** Jan Leike、David Krueger、Tom Everitt、Miljan Martic、Vishal Maini、Shane Legg（DeepMind）· **会议/年份：** arXiv 预印本，2018 年 · **链接：** https://arxiv.org/abs/1811.07871 · **类型：** 论文 · **已找到：** 是
 
-## Key points
-- **Problem framing:** real-world RL is bottlenecked by the lack of suitable reward functions; users only have an *implicit* understanding of the task, which gives rise to the agent alignment problem.
-- **Reward modeling = separation of concerns:** decouple *learning what to do* (the reward model, trained from human feedback) from *learning how to do it* (the RL policy optimizing that reward). This is the conceptual skeleton later called RLHF.
-- **Evaluation is easier than behavior:** the key leverage assumption — judging whether a behavior is good is cheaper than producing it — which makes learned-reward supervision tractable and motivates judge/verifier-style oversight.
-- **Recursive reward modeling:** apply reward modeling recursively, using trained assistant-agents to help the user evaluate outcomes they couldn't evaluate unaided, enabling a bootstrap from simpler to more general/complex tasks. Positioned alongside iterated amplification and debate as scalable-oversight approaches.
-- **Catalog of challenges:** amount/quality of feedback, reward gaming (the optimizer exploiting flaws in the learned reward), unacceptable outcomes, reward–result gap, and reward tampering — these become the standard taxonomy of eval/alignment failure modes.
-- **Mitigations proposed:** online feedback, leveraging existing data, hierarchical/model-based feedback, off-policy evaluation, adversarial/unsupervised checks, and combining feedback modalities.
-- **Establishing trust:** the paper argues alignment must be backed by evidence — design choices, testing, interpretability, formal verification, and theory — i.e., evaluation is part of the safety case, not an afterthought.
-- **Agenda, not results:** it is explicitly a *research direction* paper (no single benchmark/number), but it grounds claims in prior empirical reward-modeling work (e.g., learning from human preferences on Atari and simulated robotics).
+## 摘要
 
-## Verified quotes
-- "This gives rise to the agent alignment problem: how do we create agents that behave in accordance with the user's intentions?" — https://arxiv.org/abs/1811.07871
-- "We outline a high-level research direction to solve the agent alignment problem centered around reward modeling: learning a reward function from interaction with the user and optimizing the learned reward function with reinforcement learning." — https://arxiv.org/abs/1811.07871
-- "We discuss the key challenges we expect to face when scaling reward modeling to complex and general domains, concrete approaches to mitigate these challenges, and ways to establish trust in the resulting agents." — https://arxiv.org/abs/1811.07871
+这是 DeepMind 的一篇研究议程论文。它界定了**智能体对齐问题**——如何构建按用户意图行事的智能体——并将**奖励建模**提议为中心的可扩展解决方案。核心方法是一个两段闭环：先从用户交互（反馈、比较、演示）中学习奖励函数，再通过 RL 优化学得的奖励。为扩展到人类无法直接评估的任务，论文引入了**递归奖励建模**：由奖励建模训练得到的智能体，反过来帮助人类评估更难的任务，从而将监督自举扩展到日益复杂的领域。这项工作具有奠基性，因为它凝练了支撑 RLHF 的“先学奖励、再优化”范式，阐明了可扩展监督问题，并系统列举了后来评测/安全文献持续研究的具体失败模式，包括奖励博弈、反馈质量和奖励篡改。论文还为通过测试、可解释性、形式化验证与理论来**建立对已训练智能体的信任**制定了议程。
 
-## Why it matters for agent evals
-This paper is the conceptual root of **learned-evaluator / judge-and-verifier** thinking in agent evals. Its central thesis — that you train a *model of the reward* (an automated judge) from human feedback and then optimize against it — is exactly the structure of modern LLM-as-judge pipelines, reward models, and RLHF training environments. Two ideas seed downstream eval methodology: (1) **scalable oversight via recursion** — using AI assistants to evaluate tasks humans can't directly grade, which is the lineage behind recursive reward modeling, debate, and amplification used to construct hard evals; and (2) **reward gaming / specification gaming** as a first-class failure mode, which is precisely the benchmark-integrity and reward-hacking problem that adversarial evals and verifier robustness work now target. For RL environments, it makes explicit that the *quality of the reward/evaluation signal* is the binding constraint, not the optimizer — a framing that motivates investing in verifiers, graders, and process-based evaluation rather than just outcome rewards. Its "establish trust" agenda (testing, interpretability, verification) directly prefigures safety-oriented evaluation as evidence-gathering.
+## 要点
 
-## Themes
-- 1 why-evals (evaluation as the binding constraint and the safety case)
-- 2 eval⇄capability⇄RL-env (learned reward as the bridge between human feedback and RL optimization)
-- 7 RL environments (reward functions, reward gaming, optimizing learned rewards)
-- 8 judge/verifiers (reward modeling = learned automated judge; recursive evaluation)
-- 10 safety/adversarial (alignment, reward hacking/tampering, establishing trust)
+- **问题框架：**现实世界 RL 的瓶颈是缺乏合适的奖励函数；用户对任务只有**隐式**理解，因此产生了智能体对齐问题。
+- **奖励建模即关注点分离：**将**学什么**（从人类反馈中训练的奖励模型）与**如何实现**（优化该奖励的 RL 策略）解耦。这是后来被称为 RLHF 的概念骨架。
+- **评估比产生行为更容易：**关键的杠杆假设是，判断一种行为是否良好，比亲自产生该行为更便宜。这使学习型奖励监督变得可行，并为裁判器/验证器式监督提供动机。
+- **递归奖励建模：**递归应用奖励建模，使用经训练的助手智能体帮助用户评估他们无法独立评估的结果，从而从简单任务自举扩展到更通用/更复杂的任务。它与迭代放大和辩论一同被定位为可扩展监督方法。
+- **挑战清单：**反馈的数量/质量、奖励博弈（优化器利用学习型奖励的缺陷）、不可接受的结果、奖励—结果差距和奖励篡改。它们后来成为评测/对齐失败模式的标准分类体系。
+- **建议的缓解方法：**在线反馈、利用已有数据、分层/基于模型的反馈、离策略评估、对抗式/无监督检查，以及组合多种反馈模态。
+- **建立信任：**论文主张，对齐必须有证据支持，包括设计决策、测试、可解释性、形式化验证和理论。换言之，评测是安全论证的一部分，而不是事后补充。
+- **议程而非结果：**这明确是一篇**研究方向**论文，没有单一基准/数字，但其观点以早期奖励建模实证工作为基础，例如从人类偏好中学习 Atari 和模拟机器人技能。
+
+## 已核验引述（中文翻译）
+
+- “这就引出了智能体对齐问题：我们如何创建按用户意图行事的智能体？”—— https://arxiv.org/abs/1811.07871
+- “我们概述了一个解决智能体对齐问题的高层研究方向，其核心是奖励建模：从与用户的交互中学习奖励函数，并通过强化学习优化该奖励函数。”—— https://arxiv.org/abs/1811.07871
+- “我们讨论了在将奖励建模扩展到复杂和通用领域时预计遇到的主要挑战、缓解这些挑战的具体方法，以及建立对最终智能体信任的途径。”—— https://arxiv.org/abs/1811.07871
+
+## 为什么它对智能体评测很重要
+
+这篇论文是智能体评测中**学习型评估器/裁判器与验证器**思想的概念源头。其中心命题——从人类反馈中训练一个**奖励模型**（自动裁判器），再对它进行优化——与现代大模型裁判流水线、奖励模型和 RLHF 训练环境的结构完全相同。它提出的两个思想奠定了后续评测方法。（1）**通过递归实现可扩展监督**：用 AI 助手评估人类无法直接评分的任务，这是递归奖励建模、辩论和放大法构建困难评测的思想血脉。（2）将**奖励博弈/规格博弈**视为一等失败模式；这正是今日对抗评测和验证器鲁棒性研究所针对的基准完整性与奖励黑客问题。对 RL 环境而言，它明确指出，真正的约束是**奖励/评测信号的质量**，而不是优化器。这一框架驱动人们投资于验证器、评分器和过程评测，而不是只看结果奖励。其“建立信任”议程（测试、可解释性、验证）也直接预示了将安全评测视为证据收集过程的思路。
+
+## 主题
+
+- 1 为什么需要评测（评测是核心约束和安全论证）
+- 2 评测↔能力↔强化学习环境（学习型奖励连接人类反馈与 RL 优化）
+- 7 强化学习环境（奖励函数、奖励博弈、优化学习型奖励）
+- 8 裁判器/验证器（奖励建模即学习型自动裁判；递归评估）
+- 10 安全/对抗（对齐、奖励黑客/篡改、建立信任）
