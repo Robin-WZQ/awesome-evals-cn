@@ -1,28 +1,39 @@
-# Notes — "DROP: A Reading Comprehension Benchmark Requiring Discrete Reasoning Over Paragraphs"
+# 笔记——《DROP：需要对段落进行离散推理的阅读理解基准》
 
-**Authors:** Dheeru Dua, Yizhong Wang, Pradeep Dasigi, Gabriel Stanovsky, Sameer Singh, Matt Gardner · **Venue/Year:** ACL/NAACL-HLT 2019 (arXiv preprint, March 2019) · **URL:** https://arxiv.org/abs/1903.00161 · **Type:** paper · **Found:** true
+**作者：** Dheeru Dua、Yizhong Wang、Pradeep Dasigi、Gabriel Stanovsky、Sameer Singh、Matt Gardner · **发表信息：** ACL/NAACL-HLT 2019；arXiv 预印本，2019 年 3 月 · **链接：** https://arxiv.org/abs/1903.00161 · **类型：** 论文 · **已核验：** 是
 
-## Summary
-DROP is a 96k-question English reading-comprehension benchmark built specifically to force *discrete reasoning* — addition, subtraction, counting, sorting, comparison, and multi-span reference resolution — over the content of a paragraph, rather than the span-extraction lookup that SQuAD-style datasets reward. The questions were crowdsourced under an adversarial collection protocol that filtered out items existing systems could already answer, deliberately raising the difficulty floor. When the authors ran state-of-the-art reading-comprehension and semantic-parsing systems on DROP, the best scored only 32.7% F1 against 96.0% expert human F1, exposing a large reasoning gap that prior benchmarks had hidden. The paper's own model, NAQANet (a numerically-augmented QANet that can emit counts and arithmetic results, not just spans), reached 47.0% F1, demonstrating that closing the gap required architectural support for computation. DROP became foundational because it reframed reading comprehension as a *reasoning* task with a machine-checkable, numeric-aware answer space, and it remains a standard probe for the multi-step and numerical reasoning abilities of LLMs.
+## 摘要
 
-## Key points
-- Introduces **DROP** (Discrete Reasoning Over Paragraphs): ~96,000 questions over Wikipedia paragraphs (drawn largely from sports summaries and history, which are number-dense).
-- Answers go beyond extractive spans: they include **numbers, dates, and multi-span sets**, requiring operations like addition, subtraction, counting, sorting, comparison, and coreference across multiple positions.
-- Uses an **adversarial / model-in-the-loop crowdsourcing** pipeline: a BiDAF baseline runs during collection and questions it answers correctly are discouraged, pushing annotators toward harder reasoning.
-- Defines a **generalized (numbers-aware) F1 metric** plus exact match, so numeric and set-valued answers can be scored automatically — a verifier-friendly answer space.
-- Headline gap: best off-the-shelf systems **32.7% F1** vs **96.0% expert human F1** — one of the starkest human-machine gaps published at the time.
-- Proposes **NAQANet** (Numerically-Augmented QANet): augments a QANet reader with output heads that can predict counts and perform arithmetic (add/subtract over extracted numbers), reaching **47.0% F1**.
-- Establishes that strong span-extraction performance does *not* imply reasoning ability — separating "comprehension" from "computation" as distinct capabilities.
-- Seeded a large follow-up line (NumNet, NABERT, MTMSN, NeRd, GenBERT, QDGAT) on numerical/symbolic reasoning in reading comprehension.
+DROP 是一个包含约 9.6 万个问题的英语阅读理解基准，专门要求模型针对段落内容进行**离散推理**，包括加法、减法、计数、排序、比较和跨多个文本片段的指代消解，而不是像 SQuAD 类数据集那样奖励直接查找答案片段。数据集采用对抗式收集协议进行众包，并过滤掉现有系统已经能够回答的问题，从而有意提高任务的最低难度。
 
-## Verified quotes
-- "We introduce a new English reading comprehension benchmark, DROP, which requires Discrete Reasoning Over the content of Paragraphs." — https://arxiv.org/abs/1903.00161
-- "In this crowdsourced, adversarially-created, 96k-question benchmark, a system must resolve references in a question, perhaps to multiple input positions, and perform discrete operations over them (such as addition, counting, or sorting)." — https://arxiv.org/abs/1903.00161
-- "The best systems only achieve 32.7% F1 on our generalized accuracy metric, while expert human performance is 96.0%." — https://arxiv.org/abs/1903.00161
-- "We additionally present a new model that combines reading comprehension methods with simple numerical reasoning to achieve 47.0% F1." — https://arxiv.org/abs/1903.00161
+作者在 DROP 上测试当时最先进的阅读理解和语义解析系统时，最佳系统的 F1 仅为 32.7%，而专家人类的 F1 达到 96.0%。这一结果揭示了先前基准所掩盖的巨大推理能力差距。论文提出的 NAQANet 是一种具有数值能力的 QANet，它不仅能输出文本片段，还能输出计数和算术结果，最终达到 47.0% F1。这说明，要缩小差距，模型架构必须显式支持计算。DROP 的奠基地位来自它将阅读理解重新定义为一种具有机器可检查、数值感知答案空间的**推理任务**；它至今仍是测试大语言模型多步推理和数值推理能力的标准探针。
 
-## Why it matters for agent evals
-DROP is a template for **reasoning-gated, auto-verifiable benchmarks**: because answers are numbers, dates, or span-sets scored by a generalized-F1/EM verifier, it gives a deterministic, cheap correctness signal with no LLM judge required — exactly the property that makes a task usable as an **RL-environment reward** or a programmatic verifier. Its adversarial, model-in-the-loop collection method is an early instance of **dynamic/adversarial benchmark construction** (later formalized by Dynabench), directly relevant to keeping agent evals from saturating and to integrity concerns about benchmarks that capability has outgrown. For modern agent and LLM evaluation, DROP persists as a **multi-step numerical-reasoning probe** in suites like the HELM/Eleuther harnesses and chain-of-thought evaluations, isolating the "can the model actually compute over retrieved evidence" axis from retrieval/extraction — a distinction that matters when judging tool-using and retrieval agents whose failures are reasoning failures, not lookup failures.
+## 要点
 
-## Themes
-6 benchmark-vs-eval/integrity · 8 judge/verifiers · 1 why-evals · 2 eval⇄capability⇄RL-env · 10 safety/adversarial
+- 提出 **DROP**，即“段落上的离散推理”。数据集包含约 96,000 个基于维基百科段落的问题，内容主要来自数字密集的体育赛事摘要和历史材料。
+- 答案不局限于可抽取文本片段，还包括**数字、日期和多个片段组成的集合**，要求执行加减法、计数、排序、比较以及跨位置共指消解等操作。
+- 使用**对抗式、模型在回路中的众包流程**：收集问题时运行 BiDAF 基线，并抑制那些已能被该基线正确回答的问题，促使标注者提出更困难的推理问题。
+- 除精确匹配外，还定义了一种**面向数字的广义 F1 指标**，因此数值答案和集合答案都能自动评分，形成对验证器友好的答案空间。
+- 最突出的能力差距是：现成最佳系统仅达到 **32.7% F1**，而专家人类达到 **96.0% F1**。这是当时公开结果中最显著的人机差距之一。
+- 提出 **NAQANet**，即数值增强的 QANet：在阅读器上增加可预测计数以及对抽取数字执行加减法的输出头，达到 **47.0% F1**。
+- 证明文本片段抽取性能强并不意味着具有推理能力，从而将“理解”和“计算”区分为不同能力。
+- 推动了 NumNet、NABERT、MTMSN、NeRd、GenBERT 和 QDGAT 等数值及符号阅读推理研究。
+
+## 已核验引述（中文翻译）
+
+- “我们提出一个新的英语阅读理解基准 DROP，它要求对段落内容进行离散推理。”——https://arxiv.org/abs/1903.00161
+- “在这个通过众包和对抗方式构造、包含 9.6 万个问题的基准中，系统必须解析问题中的指代关系，这些指代可能对应输入中的多个位置，并对其执行加法、计数或排序等离散操作。”——https://arxiv.org/abs/1903.00161
+- “在我们的广义准确性指标上，最佳系统仅达到 32.7% F1，而专家人类的表现为 96.0%。”——https://arxiv.org/abs/1903.00161
+- “此外，我们提出一个将阅读理解方法与简单数值推理相结合的新模型，达到 47.0% F1。”——https://arxiv.org/abs/1903.00161
+
+## 对智能体评测的意义
+
+DROP 为**以推理为门槛、可自动验证的基准**提供了一个模板。由于答案是数字、日期或片段集合，并由广义 F1 和精确匹配验证器评分，因此它可以提供确定、低成本的正确性信号，无需大语言模型评审。这种属性正是任务能够被用作**强化学习环境奖励**或程序化验证器的关键。
+
+其对抗式、模型在回路中的数据收集方法，也是**动态和对抗式基准构建**的早期实例，后来 Dynabench 对这一思路进行了更系统的形式化。该方法与防止智能体评测快速饱和直接相关，也有助于解决模型能力已经超过基准后仍继续使用该基准所带来的完整性问题。
+
+在现代智能体和大语言模型评测中，DROP 仍被 HELM、Eleuther 等评测框架和思维链实验用作**多步数值推理探针**。它可以将“模型能否根据检索证据真正完成计算”与单纯的检索或抽取能力区分开来。这一区分对于工具型智能体和检索型智能体尤其重要，因为它们的失败可能发生在推理环节，而不是查找环节。
+
+## 主题
+
+6 基准与评测/完整性 · 8 评审/验证器 · 1 为什么需要评测 · 2 评测—能力—强化学习环境 · 10 安全/对抗

@@ -1,32 +1,48 @@
-# Notes — "BERTScore: Evaluating Text Generation with BERT"
-**Authors:** Tianyi Zhang, Varsha Kishore, Felix Wu, Kilian Q. Weinberger, Yoav Artzi · **Venue/Year:** ICLR 2020 (arXiv April 2019) · **URL:** https://arxiv.org/abs/1904.09675 · **Type:** paper · **Found:** true
+# 笔记——《BERTScore：使用 BERT 评测文本生成》
 
-## Summary
-BERTScore is an automatic, reference-based evaluation metric for text generation that replaces n-gram surface matching (BLEU, METEOR, ROUGE) with token-level similarity over contextual BERT embeddings. Rather than requiring exact lexical overlap, it greedily matches each candidate token to its most similar reference token (and vice versa) by cosine similarity, then aggregates into precision, recall, and F1. Across the outputs of 363 machine-translation and image-captioning systems, it correlates better with human judgments and yields stronger model-selection performance than prior metrics, and it is more robust on an adversarial paraphrase-detection task (PAWS). It became foundational because it offered a simple, training-free, embedding-based metric that captures meaning-preserving paraphrase and synonymy — a recurring failure mode of n-gram metrics — and is trivially reusable as a drop-in semantic-similarity scorer. It is one of the most-cited "model-based metric" papers and a direct precursor to the broader shift toward learned/neural evaluators and eventually LLM-as-judge.
+**作者：** Tianyi Zhang、Varsha Kishore、Felix Wu、Kilian Q. Weinberger、Yoav Artzi · **发表信息：** ICLR 2020；arXiv 2019 年 4 月 · **链接：** https://arxiv.org/abs/1904.09675 · **类型：** 论文 · **已核验：** 是
 
-## Key points
-- Core idea: compute token-token similarity with contextual embeddings instead of exact n-gram matches, so semantically equivalent but lexically different outputs score highly.
-- Matching: greedy matching (not optimal assignment) — each candidate token pairs with its highest-cosine reference token; recall does the reverse.
-- Aggregation: token cosine similarities are summed into Precision (candidate→reference), Recall (reference→candidate), and their harmonic mean F1 (BERTScore-F1 is the headline number).
-- Optional IDF importance weighting: rarer, more informative tokens get higher weight; common tokens are downweighted.
-- Baseline rescaling: empirically rescales raw scores against a random-candidate baseline to make values more human-readable/interpretable (does not change ranking).
-- Empirical scope: evaluated on outputs of 363 MT and image-captioning systems; compared against BLEU, METEOR, and other established metrics.
-- Result: higher correlation with human judgments and better model selection than existing metrics across these systems.
-- Robustness: on the adversarial PAWS paraphrase-detection task, BERTScore is more robust to challenging examples that fool n-gram metrics.
-- Training-free: no metric-specific supervised training required — it reuses pretrained BERT (and variants), making it cheap to adopt.
-- Practical legacy: shipped as an easy-to-use library and became a standard reported metric for summarization, MT, captioning, and dialogue generation.
+## 摘要
 
-## Verified quotes
-- "We propose BERTScore, an automatic evaluation metric for text generation." — https://arxiv.org/abs/1904.09675
-- "However, instead of exact matches, we compute token similarity using contextual embeddings." — https://arxiv.org/abs/1904.09675
-- "BERTScore correlates better with human judgments and provides stronger model selection performance than existing metrics." — https://arxiv.org/abs/1904.09675
-- "Finally, we use an adversarial paraphrase detection task to show that BERTScore is more robust to challenging examples when compared to existing metrics." — https://arxiv.org/abs/1904.09675
+BERTScore 是一种基于参考答案的自动文本生成评测指标。它不再像 BLEU、METEOR 和 ROUGE 那样进行 n 元语法的表面匹配，而是在上下文化 BERT 嵌入上计算词元级相似度。该方法不要求候选文本与参考文本在词汇上完全重合，而是通过余弦相似度，将每个候选词元贪心匹配到与其最相似的参考词元，并在相反方向上重复这一过程，最后汇总为精确率、召回率和 F1。
 
-## Why it matters for agent evals
-BERTScore is a canonical example of a model-based, reference-grounded verifier: it operationalizes "does the output mean the same thing as a gold answer?" rather than "does it overlap lexically?", which is precisely the gap that breaks n-gram metrics when scoring free-form agent or model outputs. For agent evals it seeds several patterns: (1) embedding-similarity scorers as cheap, deterministic graders for open-ended responses where exact-match is too brittle but a full LLM judge is too expensive or noisy; (2) the precision/recall/F1 decomposition over semantic content, useful for verifiers that care about coverage vs. hallucination separately; (3) the explicit adversarial-robustness evaluation (PAWS), an early signal that metrics must be stress-tested against paraphrase/spurious-overlap attacks — directly relevant to reward-hacking and judge-gaming concerns in RL environments. It is a key historical waypoint on the path from surface metrics → learned metrics (BLEURT, COMET) → LLM-as-judge, and is still used as a reference-based reward/verification signal when ground-truth references exist.
+在 363 个机器翻译和图像描述系统的输出上，BERTScore 与人类判断的相关性更高，模型选择能力也优于已有指标；在对抗性释义检测任务 PAWS 上，它同样表现出更强的稳健性。本文具有奠基意义，是因为它提供了一种简单、无需专门训练、基于嵌入的指标，可以识别保持语义不变的改写和同义表达，而这正是 n 元语法指标反复失效的地方。BERTScore 可以直接用作语义相似度评分器，也是引用量最高的“基于模型的指标”研究之一，并直接推动了评测方法从表面匹配转向学习式神经评测器，进而发展到大语言模型评审。
 
-## Themes
-- 1 why-evals
-- 6 benchmark-vs-eval/integrity
-- 8 judge/verifiers
-- 10 safety/adversarial
+## 要点
+
+- 核心思想：使用上下文化嵌入计算词元之间的相似度，而不是要求 n 元语法精确匹配，因此语义等价但措辞不同的输出仍可获得高分。
+- 匹配方式：采用贪心匹配而非全局最优分配。每个候选词元与余弦相似度最高的参考词元配对；计算召回率时则反向匹配。
+- 聚合方式：将词元余弦相似度汇总为精确率（候选到参考）、召回率（参考到候选）及二者的调和平均 F1；BERTScore-F1 是最常报告的结果。
+- 可选的 IDF 重要性加权：稀有且信息量更高的词元权重更大，常见词元权重更低。
+- 基线重缩放：根据随机候选基线对原始分数进行经验性缩放，使数值更易读、更容易解释；该操作不会改变排序。
+- 实验范围：在 363 个机器翻译和图像描述系统的输出上进行评测，并与 BLEU、METEOR 等成熟指标比较。
+- 主要结果：在这些系统上，BERTScore 与人类判断的相关性更高，模型选择性能优于已有指标。
+- 稳健性：在对抗性 PAWS 释义检测任务上，它对那些能够欺骗 n 元语法指标的困难样本更稳健。
+- 无需专门训练：不需要针对指标收集监督数据，而是直接复用预训练 BERT 及其变体，因此部署成本较低。
+- 实践影响：作者提供了易用的工具库，BERTScore 随后成为摘要、机器翻译、图像描述和对话生成中常见的报告指标。
+
+## 已核验引述（中文翻译）
+
+- “我们提出 BERTScore，一种面向文本生成的自动评测指标。”——https://arxiv.org/abs/1904.09675
+- “但是，我们不进行精确匹配，而是使用上下文化嵌入计算词元相似度。”——https://arxiv.org/abs/1904.09675
+- “与已有指标相比，BERTScore 与人类判断的相关性更高，并能提供更强的模型选择性能。”——https://arxiv.org/abs/1904.09675
+- “最后，我们使用一个对抗性释义检测任务证明，与已有指标相比，BERTScore 面对困难样本时更加稳健。”——https://arxiv.org/abs/1904.09675
+
+## 对智能体评测的意义
+
+BERTScore 是“基于模型、以参考答案为依据的验证器”的典型代表。它衡量的是“输出是否与标准答案表达相同含义”，而不是“输出与标准答案在词面上重合多少”。当评测自由形式的智能体或模型输出时，n 元语法指标往往正是在这里失效。
+
+它为智能体评测奠定了几种重要模式：
+
+1. 当精确匹配过于脆弱，而完整的大语言模型评审又过于昂贵或噪声较大时，可使用嵌入相似度评分器作为低成本、相对确定的开放式回答评分方法；
+2. 将语义内容分解为精确率、召回率和 F1，有助于验证器分别关注内容覆盖不足与幻觉增加；
+3. PAWS 实验体现了显式对抗稳健性评测的重要性：指标本身必须接受释义攻击和虚假词面重合攻击的压力测试，这与强化学习环境中的奖励黑客和评审操纵直接相关。
+
+从历史上看，BERTScore 是评测技术从表面指标，经过 BLEURT、COMET 等学习式指标，再走向大语言模型评审过程中的关键节点。当任务存在可靠参考答案时，它至今仍可作为一种基于参考的奖励或验证信号。
+
+## 主题
+
+- 1 为什么需要评测
+- 6 基准与评测/完整性
+- 8 评审/验证器
+- 10 安全/对抗

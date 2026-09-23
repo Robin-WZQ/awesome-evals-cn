@@ -1,29 +1,38 @@
-# Notes — "Large Language Models are not Fair Evaluators"
+# 笔记——《大语言模型不是公平的评测者》
 
-**Authors:** Peiyi Wang, Lei Li, Liang Chen, Zefan Cai, Dawei Zhu, Binghuai Lin, Yunbo Cao, Qi Liu, Tianyu Liu, Zhifang Sui · **Venue/Year:** ACL 2024 (Long Papers); arXiv May 2023 · **URL:** https://arxiv.org/abs/2305.17926 · **Type:** paper · **Found:** true
+**作者：** Peiyi Wang、Lei Li、Liang Chen、Zefan Cai、Dawei Zhu、Binghuai Lin、Yunbo Cao、Qi Liu、Tianyu Liu、Zhifang Sui · **发表信息：** ACL 2024 长文；arXiv 2023 年 5 月 · **链接：** https://arxiv.org/abs/2305.17926 · **类型：** 论文 · **已核验：** 是
 
-## Summary
-This paper exposes a systematic and easily exploitable bias in the now-ubiquitous "LLM-as-a-judge" paradigm: when an LLM (e.g., GPT-4, ChatGPT) is asked to score or compare two candidate responses, its verdict depends heavily on the *order* in which the two responses are presented. The authors show this positional bias is severe enough to be adversarially weaponized — by simply swapping the order, they made a clearly weaker model (Vicuna-13B) "beat" a stronger one (ChatGPT) on the majority of queries. To fix it they propose a lightweight calibration framework of three strategies — Multiple Evidence Calibration, Balanced Position Calibration, and Human-in-the-Loop Calibration — that markedly improves agreement with human judgments. It became foundational because it was one of the earliest, cleanest demonstrations that automated LLM judges are not neutral measuring instruments but biased systems with reproducible failure modes, motivating a large downstream literature on judge bias, calibration, and meta-evaluation.
+## 摘要
 
-## Key points
-- Identifies **positional bias** as a systematic failure of pairwise LLM-as-judge evaluation: the same two responses can swap ranking purely by reordering them in the prompt.
-- Headline adversarial result: **Vicuna-13B could beat ChatGPT on 66 of 80 tested queries** with ChatGPT as the evaluator, just by manipulating response order — showing the bias is large enough to fully invert conclusions.
-- Proposes a three-part **calibration framework**:
-  - **Multiple Evidence Calibration (MEC):** require the judge to *generate evaluation evidence/rationale before assigning scores*, stabilizing ratings (a chain-of-thought-before-score pattern).
-  - **Balanced Position Calibration (BPC):** run each candidate in *both positions* and average the two scores, canceling order effects.
-  - **Human-in-the-Loop Calibration (HITLC):** introduces a **balanced position diversity entropy** metric to flag hard/ambiguous examples and route only those to human reviewers.
-- Reports the combined framework improves alignment with human assessment by **up to ~14.3%**.
-- Bias is not isolated to one model — demonstrated across LLM judges including GPT-4 and ChatGPT.
-- The diversity-entropy idea provides a principled *uncertainty signal* for deciding when an automated judge cannot be trusted and human review is warranted.
-- Authors released code and human annotations (ChatGPT vs. Vicuna-13B on the Vicuna Benchmark prompts) to support reproducible meta-evaluation.
+本文揭示了如今广泛采用的“大语言模型充当评审”范式中一种系统性且容易被利用的偏差：当大语言模型（如 GPT-4、ChatGPT）对两个候选回答评分或进行比较时，其判决会在很大程度上受到两个回答呈现顺序的影响。作者证明，这种位置偏差严重到足以被对抗性利用——仅仅交换两个回答的顺序，就能让明显较弱的模型 Vicuna-13B 在大多数问题上“击败”更强的 ChatGPT。为缓解这一问题，作者提出一个轻量级校准框架，包括多证据校准、平衡位置校准和人在回路校准三种策略，可显著提高模型判决与人类判断的一致性。本文之所以具有奠基意义，是因为它较早且清晰地证明：自动化大语言模型评审并非中立的测量工具，而是具有可复现失效模式的有偏系统。此后，大量研究开始关注评审偏差、校准和元评测问题。
 
-## Verified quotes
-- "We find that the quality ranking of candidate responses can be easily hacked by simply altering their order of appearance in the context." — https://arxiv.org/abs/2305.17926
-- "Vicuna-13B could beat ChatGPT on 66 over 80 tested queries with ChatGPT as an evaluator." — https://arxiv.org/abs/2305.17926
-- "we propose a calibration framework with three simple yet effective strategies: 1) Multiple Evidence Calibration ... 2) Balanced Position Calibration ... 3) Human-in-the-Loop Calibration, which introduces a balanced position diversity entropy to measure the difficulty of each example and seeks human assistance when needed." — https://arxiv.org/abs/2305.17926
+## 要点
 
-## Why it matters for agent evals
-LLM-as-judge is the workhorse of modern agent and model evaluation — it scores open-ended outputs, ranks agent trajectories, and supplies reward signals for RLHF/RLAIF where no programmatic verifier exists. This paper is a core reference for why such judges must be treated as *measurement instruments with characterizable bias*, not ground truth. Its concrete mitigations are now standard practice: BPC (swap-and-average over both orderings) is the canonical positional-debiasing trick used in MT-Bench, AlpacaEval, Arena-style pairwise eval, and reward-model pipelines; MEC (rationale-before-score) is the basis for rationale-first judge prompting. The balanced-position-diversity-entropy idea seeds the broader pattern of *judge uncertainty/abstention* and selective human-in-the-loop escalation. For agent evals specifically, it warns that any leaderboard or RL environment built on a naive single-pass pairwise judge is vulnerable to order-induced artifacts and to adversarial gaming — directly relevant to benchmark integrity and reward hacking.
+- 将**位置偏差**识别为成对大语言模型评审中的一种系统性失效：相同的两个回答仅因在提示中的顺序互换，就可能得到相反的排序。
+- 最突出的对抗性结果是：以 ChatGPT 作为评审时，仅通过操纵回答顺序，**Vicuna-13B 就能在 80 个测试问题中的 66 个问题上击败 ChatGPT**。这说明该偏差足以彻底颠倒实验结论。
+- 提出由三部分组成的**校准框架**：
+  - **多证据校准（MEC）：** 要求评审在给出分数之前先生成评测证据或理由，从而稳定评分；其本质是“先推理、后评分”。
+  - **平衡位置校准（BPC）：** 让每个候选回答分别出现在两个位置，并对两次得分取平均，以抵消顺序效应。
+  - **人在回路校准（HITLC）：** 引入**平衡位置多样性熵**指标，用于识别困难或含混样本，并且只将这些样本交给人工复核。
+- 三种策略组合后，与人类评测的一致性最高提升约 **14.3%**。
+- 这种偏差并非某一个模型特有；作者在包括 GPT-4 和 ChatGPT 在内的多个大语言模型评审上都观察到了该现象。
+- 多样性熵提供了一种有原则的**不确定性信号**，可用于判断自动评审何时不再可信、何时应升级到人工复核。
+- 作者发布了代码和人工标注，包括在 Vicuna Benchmark 提示上对 ChatGPT 与 Vicuna-13B 的比较，以支持可复现的元评测。
 
-## Themes
-1 why-evals · 6 benchmark-vs-eval/integrity · 8 judge/verifiers · 10 safety/adversarial
+## 已核验引述（中文翻译）
+
+- “我们发现，只需改变候选回答在上下文中的出现顺序，就能轻易操纵其质量排序。”——https://arxiv.org/abs/2305.17926
+- “以 ChatGPT 作为评测者时，Vicuna-13B 在 80 个测试问题中的 66 个问题上能够击败 ChatGPT。”——https://arxiv.org/abs/2305.17926
+- “我们提出了一个包含三种简单而有效策略的校准框架：一是多证据校准，二是平衡位置校准，三是人在回路校准。第三种策略引入平衡位置多样性熵来衡量每个样本的难度，并在必要时寻求人工帮助。”——https://arxiv.org/abs/2305.17926
+
+## 对智能体评测的意义
+
+大语言模型评审是现代智能体和模型评测中的常用手段：当无法编写程序化验证器时，它负责评价开放式输出、排列智能体轨迹，甚至为 RLHF 或 RLAIF 提供奖励信号。本文是说明“为什么必须把此类评审视为带有可刻画偏差的测量仪器，而不能将其视为真实标准答案”的核心文献。
+
+文中提出的具体缓解方法如今已成为常见实践。BPC，即交换两个候选回答的顺序并对结果取平均，是 MT-Bench、AlpacaEval、Arena 式成对评测以及奖励模型流水线中典型的位置去偏方法；MEC 的“先给理由、后给分数”则构成了理由优先型评审提示的基础。平衡位置多样性熵进一步启发了“评审不确定性与弃权”的一般模式，使系统可以选择性地升级到人工复核。
+
+对于智能体评测，本文尤其提醒我们：凡是依赖朴素、单次成对评审的排行榜或强化学习环境，都容易受到顺序伪影和对抗性操纵的影响。这与基准完整性和奖励黑客问题直接相关。
+
+## 主题
+
+1 为什么需要评测 · 6 基准与评测/完整性 · 8 评审/验证器 · 10 安全/对抗
