@@ -1,30 +1,41 @@
-# Notes — "SuperGLUE: A Stickier Benchmark for General-Purpose Language Understanding Systems"
+# 笔记——《SuperGLUE：更经久耐用的通用语言理解基准》
 
-**Authors:** Alex Wang, Yada Pruksachatkun, Nikita Nangia, Amanpreet Singh, Julian Michael, Felix Hill, Omer Levy, Samuel R. Bowman · **Venue/Year:** NeurIPS 2019 · **URL:** https://arxiv.org/abs/1905.00537 · **Type:** paper · **Found:** true
+**作者：** Alex Wang、Yada Pruksachatkun、Nikita Nangia、Amanpreet Singh、Julian Michael、Felix Hill、Omer Levy、Samuel R. Bowman · **发表信息：** NeurIPS 2019 · **链接：** https://arxiv.org/abs/1905.00537 · **类型：** 论文 · **已核验：** 是
 
-## Summary
-SuperGLUE is the direct successor to GLUE, built because within a year of GLUE's release pretraining (notably BERT) pushed model performance past the non-expert human baseline, leaving little headroom. The authors assembled a harder, more diverse suite of eight English language-understanding tasks, retained GLUE's single-number leaderboard format, and shipped a software toolkit plus a public leaderboard at super.gluebenchmark.com. They establish a strong BERT-based baseline (~69) that still trails a measured human baseline (~89.8) by nearly 20 points, restoring meaningful research headroom. SuperGLUE became foundational because it codified a reusable recipe for building "stickier" benchmarks — explicit selection criteria, human baselines as a saturation tripwire, and format diversity beyond simple sentence-pair classification — and served as the standard NLU yardstick during the GPT-3 / T5 era. Its rapid eventual saturation also became a canonical cautionary tale about benchmark lifespan in the LLM era.
+## 摘要
 
-## Key points
-- Motivation: GLUE saturated fast — "performance on the benchmark has recently surpassed the level of non-expert humans, suggesting limited headroom for further research."
-- Composition: eight tasks — BoolQ (yes/no QA), CB (3-class NLI), COPA (2-choice causal reasoning), MultiRC (multi-answer reading comprehension), ReCoRD (cloze-style coreference QA), RTE (2-class entailment), WiC (word-sense disambiguation), WSC (Winograd pronoun coreference).
-- Retains the two hardest GLUE tasks (RTE, WSC); the rest came from an open public call for task proposals, then filtered by criteria.
-- Six explicit selection criteria: task substance (reasoning over English), difficulty (beyond SOTA but solvable by college-educated speakers), evaluability (automatic metric ~ human judgment), public data with usable licenses, simple unified formats, and format diversity (longer contexts, not just sentence/sentence-pair classification).
-- Introduces format diversity deliberately to discourage task-specific architectural hacks and push toward general-purpose models.
-- Headline numbers: best BERT-based baseline (BERT++) ≈ 69.0 overall vs. human baseline ≈ 89.8 — a ~20-point gap by design.
-- Ships not just data but a software toolkit (built on jiant) and a public leaderboard with a single summary score, lowering the cost of standardized evaluation.
-- Human baselines are collected per-task and aggregated, making "distance to human" a first-class, comparable metric across heterogeneous tasks.
-- Includes diagnostic/analysis sets (e.g., a broad-coverage diagnostic and Winogender for gender-bias measurement) alongside the core scored tasks.
-- Established the template later inherited by harder successors and informed the broader "benchmarks keep saturating" critique that motivated dynamic and adversarial evaluation.
+SuperGLUE 是 GLUE 的直接继任者。GLUE 发布后不到一年，以 BERT 为代表的预训练方法就使模型表现超过非专家人类基线，剩余提升空间已经很小。作者构建了一个更困难、更多样的英语语言理解套件，包含八项任务；它保留 GLUE 的单一汇总分数排行榜形式，并同时发布软件工具包和公开排行榜。
 
-## Verified quotes
-- "performance on the benchmark has recently surpassed the level of non-expert humans, suggesting limited headroom for further research." — https://arxiv.org/abs/1905.00537
-- "In this paper we present SuperGLUE, a new benchmark styled after GLUE with a new set of more difficult language understanding tasks, a software toolkit, and a public leaderboard." — https://arxiv.org/abs/1905.00537
-- "Tasks should be beyond the scope of current state-of-the-art systems, but solvable by most college-educated English speakers." — https://arxiv.org/abs/1905.00537 (ar5iv full text)
-- "On average, there is a nearly 20 point gap between BERT++ and human performance." — https://arxiv.org/abs/1905.00537 (ar5iv full text)
+作者建立的强 BERT 基线约为 69 分，而实测人类基线约为 89.8 分，仍相差近 20 分，从而重新提供有意义的研究空间。SuperGLUE 的奠基地位在于，它形成了一套构建“更耐用”基准的可复用方法：明确任务筛选标准，将人类基线作为饱和预警线，并引入超越简单句子对分类的格式多样性。它在 GPT-3 和 T5 时期成为标准的自然语言理解标尺；而它后来同样迅速饱和，又成为大语言模型时代基准寿命过短的经典警示。
 
-## Why it matters for agent evals
-SuperGLUE encodes two ideas that remain central to evaluating capable agents. First, the human baseline as a saturation tripwire: it operationalizes "is this benchmark still measuring anything?" by anchoring scores to measured human performance and tracking the gap — the same diagnostic now applied to agent benchmarks that risk ceiling-out. Second, the explicit design-criteria recipe (difficulty calibrated above SOTA but human-solvable, format diversity to resist architecture-specific gaming, automatic metrics validated against human judgment) is a reusable spec for constructing trustworthy eval suites, including the verifiable-task and RL-environment design that agent training depends on. Its single-number aggregate leaderboard plus open toolkit prefigured standardized harnesses (lm-eval-harness, HELM). Equally instructive for eval integrity: SuperGLUE was itself saturated within roughly a year of release by large models, making it the canonical example of why static, contamination-prone benchmarks have short shelf lives and why agent evals trend toward dynamic, adversarial, and held-out-verifier designs.
+## 要点
 
-## Themes
-1 why-evals · 6 benchmark-vs-eval/integrity · 5 eval infra
+- 动机：GLUE 很快饱和——基准表现已经超过非专家人类，意味着后续研究提升空间有限。
+- 八项任务包括：BoolQ（是非问答）、CB（三分类自然语言推断）、COPA（二选一因果推理）、MultiRC（多答案阅读理解）、ReCoRD（完形填空式共指问答）、RTE（二分类蕴含）、WiC（词义消歧）和 WSC（Winograd 代词共指）。
+- 保留 GLUE 中最难的两项任务 RTE 和 WSC；其余任务来自公开征集，再依据标准筛选。
+- 六项明确筛选标准：任务实质性，即需要对英语进行推理；难度超过当时最佳系统但受过大学教育者可解；自动指标与人类判断近似；数据公开且许可证可用；格式简单统一；格式具有多样性，包括更长上下文而非只有句子或句子对分类。
+- 有意引入格式多样性，以减少针对单一任务的架构投机，并推动通用模型研究。
+- 代表性数字：最佳 BERT 基线 BERT++ 总分约 **69.0**，人类基线约 **89.8**；设计上保留约 20 分差距。
+- 不仅发布数据，还提供基于 jiant 的工具包和单一汇总分数公开排行榜，降低标准化评测成本。
+- 针对每项任务收集人类基线后进行汇总，使“距离人类还有多远”成为跨异构任务可比较的一等指标。
+- 核心任务之外还提供诊断分析集，包括广覆盖诊断集和用于性别偏见测量的 Winogender。
+- 它为后续更困难的基准建立模板，也推动了“基准不断饱和”的批评，进而促进动态和对抗式评测。
+
+## 已核验引述（中文翻译）
+
+- “该基准上的表现最近已经超过非专家人类水平，说明进一步研究的提升空间有限。”——https://arxiv.org/abs/1905.00537
+- “本文提出 SuperGLUE：一个仿照 GLUE 构建、包含一组更困难语言理解任务、软件工具包和公开排行榜的新基准。”——https://arxiv.org/abs/1905.00537
+- “任务应当超出当前最先进系统的能力范围，但大多数受过大学教育的英语使用者应能解决。”——https://arxiv.org/abs/1905.00537
+- “平均而言，BERT++ 与人类表现之间存在近 20 分差距。”——https://arxiv.org/abs/1905.00537
+
+## 对智能体评测的意义
+
+SuperGLUE 包含两个对高能力智能体评测仍然关键的思想。第一，人类基线可以作为饱和预警线：通过锚定实测人类表现并跟踪差距，把“这个基准是否仍在测量有意义的能力”转化为可操作问题。如今面临天花板效应的智能体基准同样需要这种诊断。
+
+第二，它的显式设计标准——难度高于当前最佳系统但人类可解、通过格式多样性抵抗架构投机、使用经过人工判断验证的自动指标——可以复用于可信评测套件，包括智能体训练所依赖的可验证任务和强化学习环境。单一汇总排行榜加开放工具包的形式，也预示了后来的 lm-eval-harness 和 HELM 等标准化框架。
+
+对评测完整性同样具有启示的是，SuperGLUE 自身也在发布后大约一年内被大型模型迅速攻克。这使它成为静态且容易污染的基准寿命短暂的典型案例，也解释了智能体评测为什么逐渐转向动态、对抗和采用隐藏验证器的设计。
+
+## 主题
+
+1 为什么需要评测 · 6 基准与评测/完整性 · 5 评测基础设施
