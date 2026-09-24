@@ -1,41 +1,41 @@
-# Notes — "#5 Designing Evals"
-**Speaker/Guest:** Vaibhav Gupta & Dex (AI That Works) · **Venue:** AI That Works · **Type:** podcast · **URL:** https://www.youtube.com/watch?v=-N6MajRfqYw
+# 笔记——“#5 设计评测”
+**讲者/嘉宾：** Vaibhav Gupta 与 Dex（AI That Works） · **出处：** AI That Works · **类型：** 播客 · **链接：** https://www.youtube.com/watch?v=-N6MajRfqYw
 
-## Summary (3-6 sentences — what it argues, why it matters for agent evals)
-Vaibhav (BAML/BoundaryML, ex-HoloLens) and Dex (HumanLayer) argue that evals are not a magic button you buy or build over six months, but an incremental engineering journey: go from no evals, to "vibe evals" (just hitting play and looking at the output), to a few hardcoded test cases, to systematic golden datasets fed by production data. Their central, repeated thesis is to stop using numeric scores (1-10, confidence) — they are arbitrary — and instead decompose problems into structured outputs you can assert against deterministically or classify with categorical enums. They distinguish structured-data evals (passport fields, financial JSON — checkable with pure code/math) from semi-structured ones (lesson plans, summaries — where you assert on extracted sub-fields rather than the free text). The deepest insight: evals live in a hybrid of code AND data, and are fundamentally a diffing mechanism — you capture every input/output pair, spot-check prod, and compare runs. They map the software testing pyramid onto agents: test the smallest granular steps (intent detection) via probes or mocks, not just slow brittle end-to-end integration tests.
+## 摘要（3—6 句：核心主张及其对智能体评测的意义）
+Vaibhav（BAML/BoundaryML，曾任职 HoloLens）和 Dex（HumanLayer）认为，评测不是购买一个工具或花六个月建设后即可按下的魔法按钮，而是一段渐进式工程旅程：从没有评测，到“凭感觉评测”（点击运行并查看输出），再到少量硬编码测试用例，最终形成由生产数据持续补充的系统化黄金数据集。他们反复强调，应停止使用 1—10 分或置信度等任意数值，转而把问题拆成可用确定性断言验证的结构化输出，或使用类别枚举做分类。他们区分结构化数据评测（护照字段、金融 JSON，可用纯代码或数学检查）和半结构化评测（教案、摘要，应对抽取出的子字段做断言，而非让 LLM 判断整段自由文本）。最深刻的观点是：评测同时存在于代码与数据之中，本质上是一种差异比较机制——捕获每组输入/输出，抽查生产数据，并比较不同运行结果。他们还把软件测试金字塔映射到智能体：通过探针或模拟对象测试意图检测等最小粒度步骤，而不是只依赖缓慢、脆弱的端到端集成测试。
 
-## Key points (6-14 substantive bullets: the actual techniques, numbers, frameworks, war-stories — not generic advice)
-- **There is no ground truth / golden dataset for most real problems.** On HoloLens, building a 3D world-model eval required simulating camera hardware (impossible); they had 1.5 full-time people for over 2 years and still only got "a pseudo approximation," never a real metric. Windows and mirrors didn't get captured by any sensor — analogous to LLM hallucinations.
-- **Stop using numbers.** "Please stop using numbers to evaluate your systems. Do not ask an LLM on a scale of 1 to 10... stop asking it confidence scores." Use categorical enums (e.g. pacing = slow/medium/fast) — nobody knows the difference between a 7 and an 8.
-- **Vibe evals are step zero and legitimately ship-worthy.** "I ship things with five evals and that's okay." The act of hand-writing a golden dataset / thinking up test cases surfaces inconsistencies in your data model and builds intuition no tool gives you.
-- **Structured vs semi-structured data is the key fork.** Passport extraction → assert exact JSON fields. Lesson plans/summaries → don't LLM-judge the blob; extract assertable sub-fields. Even summaries are partly deterministic: sentence count, word count, required keywords present.
-- **Table tests / partial-credit answer keys.** Output has multiple fields (intent, subclass); not matching perfectly ≠ fail. Run `output.intent == expected` and `output.subclass == expected` independently. You choose strictness per field (e.g. warn if asset_name mismatches, require symbol/quantity/price/market_value exact).
-- **Deterministic runtime evals on production data via data-model invariants.** Financial extraction: `quantity * current_price == market_value` (row-wise), and column sums must equal totals. Caught NVIDIA Corp priced at 113.063 vs correct ~113.06 — off by 27 cents (0.003 × 90). It's statistically near-impossible for wrong quantity + wrong price to still sum correctly — "law of probabilities."
-- **Self-correction loop:** when an invariant fails, hand just the failing item (e.g. only NVIDIA) back to an LLM, tell it "I get a delta of 27 cents," and it auto-corrects far more reliably because it's focused on one part. Production users hit 99%+ accuracy on 100+ page PDFs this way.
-- **Probes vs mocks for testing intermediate steps.** Either instrument the pipeline to bubble out intermediate state (a "probe" — e.g. detected intent) and assert on it, or mock `get_products`/`chat_response` and assert what intent flows through. Both let you skip judging the non-deterministic final chat string.
-- **Evals live in code + data, not just code; they are a diffing mechanism.** New engineer edits a prompt → on the PR, get a link showing how all outputs changed between run N and N+1; eyeball a "huge block of red." You can even score the *size of the diff* (lines of diff) as a metric.
-- **The hard part is the golden dataset, not the harness.** "Almost nobody is stressed out about building the test harness... everybody agrees the hardest thing is getting the golden dataset and the answer key correct." With v0/Cursor, building a bespoke JSON diff visualizer takes ~an hour; worth it above ~100 input/output pairs, otherwise just eyeball ~10 manually.
-- **You cannot claim "98% accurate" from a golden dataset alone** — you risk overfitting to it. You must spot-check production at some cadence and continuously grow the golden set. Capture *every* input/output pair; "there's no shortcut around this at all."
-- **Use different models per sub-step and for the judge.** Intent detection → GPT-4o-mini/Llama 8B; SQL → 70B; cipher query over warehouse → o3. Skeptical of LLM-as-judge: "if the model couldn't get it right the first time, is the same model going to get it right the second time?" though sampling a small model 50× can approach a big model (cites Llama 70B×50 ≈ 405B).
-- **War story — ship mediocre, then iterate on real failures.** Ran a mediocre prompt in prod for 12 weeks; a customer reported one weird case (GPT-4o-mini regurgitating training data); added it + nearby cases to the suite. Compared to the "fake door test" — ship to learn if people even want it; spending 6 months on evals pre-ship is "really dangerous."
-- **Testing-pyramid analogy + "delta test."** Cites JB Rainsberger's "Integrated Tests Are A Scam" — only having integration tests explodes into 700 slow tests where failures don't localize. At a hedge fund, unit tests took ~30 hours; Vaibhav wrote an AST-graph algorithm mapping a git diff to exactly the tests needed (~5 min for 90% of commits) via one command, `delta test`. Wants the same for LLM pipelines.
+## 要点（6—14 条实质性内容）
+- **多数现实问题不存在真值或黄金数据集。** 在 HoloLens 项目中，评估三维世界模型需要模拟相机硬件，实际上不可行；1.5 个全职人力投入两年多，仍只能得到“近似的代理指标”。窗户和镜子无法被任何传感器捕捉，这类似于 LLM 幻觉。
+- **停止使用数字。** “请不要再用数字评估系统。不要让 LLM 按 1 到 10 分评价答案……也别再问置信度。”应使用类别枚举（如节奏 = 慢/中/快）；没人知道 7 分和 8 分到底差在哪里。
+- **感觉评测是第零阶段，也足以支持发布。** “我会带着五个评测就发布，这没问题。”亲手编写黄金数据集和思考测试用例，会暴露数据模型的不一致，并建立工具无法提供的直觉。
+- **结构化与半结构化数据是关键分岔。** 护照抽取可对 JSON 字段做精确断言；教案和摘要则不要让 LLM 判断整段文本，而要抽取可断言的子字段。摘要也有部分确定性属性，如句数、词数和必需关键词。
+- **表格测试与部分得分答案键。** 输出含多个字段（意图、子类）时，不能完全匹配不等于整体失败；应分别运行 `output.intent == expected` 与 `output.subclass == expected`。每个字段可有不同严格度，例如资产名不匹配仅警告，而代码、数量、价格、市值必须精确。
+- **利用数据模型不变量在生产数据上做确定性运行时评测。** 金融抽取可检查每行 `quantity * current_price == market_value`，并检查列总和是否等于合计值。该方法发现 NVIDIA Corp 的价格被写为 113.063 而非约 113.06，造成 27 美分误差（0.003 × 90）。错误数量与错误价格仍恰好相乘匹配在统计上几乎不可能，这就是“概率定律”。
+- **自我纠正循环：**不变量失败时，只把失败项（如 NVIDIA）交回 LLM，并告知“相差 27 美分”。由于注意力集中在一个局部，它能更可靠地自动修正。生产用户由此在 100 多页 PDF 上达到 99% 以上准确率。
+- **用探针或模拟对象测试中间步骤。** 可以为流水线加仪表，把检测到的意图等中间状态作为“探针”向外暴露并断言；也可以模拟 `get_products`/`chat_response`，检查流经其中的意图。两者都无需判断非确定性的最终聊天文本。
+- **评测存在于代码与数据中，本质是差异比较机制。** 新工程师修改提示词后，PR 应提供链接，展示第 N 次与 N+1 次运行中所有输出如何变化，让人检查“一大块红色差异”。甚至可以把差异行数本身作为指标。
+- **困难的是黄金数据集，而非执行框架。** “几乎没人为构建测试框架发愁……大家都认同最难的是把黄金数据集和答案键做对。”借助 v0/Cursor，约一小时即可构建定制 JSON 差异查看器；输入/输出超过约 100 对时值得建设，否则手工查看约 10 个即可。
+- **仅凭黄金数据集不能声称‘98% 准确’，**否则可能只是过拟合。必须定期抽查生产数据并持续扩充黄金集，捕获**每一组**输入/输出；“这件事没有捷径”。
+- **不同子步骤和裁判可用不同模型。** 意图检测用 GPT-4o-mini/Llama 8B，SQL 用 70B，查询数据仓库的密码式问题用 o3。对 LLM 裁判应保持怀疑：“模型第一次没答对，同一个模型第二次就能判对吗？”不过对小模型采样 50 次可能接近大模型（引述 Llama 70B×50 ≈ 405B）。
+- **实战经验：先发布尚可版本，再用真实失败迭代。** 一个普通提示词在生产运行 12 周后，客户报告 GPT-4o-mini 复述训练数据的异常案例；团队把它及相邻案例加入测试套件。这类似“假门测试”：先发布以确认用户是否需要；发布前花六个月做评测“非常危险”。
+- **测试金字塔与 `delta test`。** JB Rainsberger 的“集成测试是一场骗局”指出，只有集成测试会膨胀成 700 个缓慢且无法定位故障的测试。Vaibhav 曾在对冲基金面对约 30 小时的单元测试，编写 AST 图算法，将 git 差异映射到恰好需要的测试；90% 的提交约 5 分钟即可完成，命令名为 `delta test`。他希望 LLM 流水线也能如此。
 
-## Verified quotes (3-6 VERBATIM lines lifted from the transcript, EACH with its [mm:ss] timestamp)
-- "The number one sneak peek that I'll give everyone before we get too into it is please stop using numbers to evaluate your systems. Do not ask an LLM on a scale of 1 to 10, how good is the answer. stop asking it confidence scores." [07:14]
-- "There is no EVOS truth. There is no golden data set ever for most real problems." [04:13] *(ASR garble: "EVOS truth" appears to be "evals truth" / "ground truth"; kept as captioned.)*
-- "the first time you handw write a golden data set, you are actually going to find inconsistencies in your data model that make it look wrong. It's going to make you think about the problem in a way that very few things ever will." [22:29] *("handw write" = "hand-write," ASR error kept.)*
-- "It's not even living in your code. It's living in a hybrid of your code and your data. And that is the part that most people miss. Evals are not purely living in your code because eval are purely a diffing mechanism." [47:00]
-- "categorical systems are generally way better than numerical systems because no one knows the difference between score seven and eight." [69:34]
-- "I ship things with five evals and that's okay... 5 eval. that's good enough. Ship it to prod, collect prod data, use prod data to build golden data sets, and then build diffing and all this other tooling." [82:15]
+## 已核验引述（中文翻译）
+- [07:14] “在深入讨论前，我能给大家的第一条预告是：请停止用数字评估系统。不要让 LLM 按 1 到 10 分评价答案有多好，也不要再向它询问置信度。”
+- [04:13] “不存在所谓的评测真值。对大多数现实问题而言，根本不存在黄金数据集。”（字幕中的 `EVOS truth` 疑为 `evals truth` 或 `ground truth`。）
+- [22:29] “第一次亲手编写黄金数据集时，你会发现数据模型中的不一致，让结果看起来不对。它会迫使你以一种极少有其他事情能做到的方式思考问题。”（修正自动语音识别中的 `handw write`。）
+- [47:00] “它甚至不只存在于代码中，而是存在于代码与数据的混合体中。这正是多数人遗漏的部分。评测并非纯粹存在于代码里，因为评测本质上就是一种差异比较机制。”
+- [69:34] “类别系统通常远胜于数值系统，因为没人知道 7 分和 8 分之间究竟有什么区别。”
+- [82:15] “我会带着五个评测就发布，这没问题……五个评测已经够了。发布到生产，收集生产数据，用生产数据建立黄金数据集，然后再构建差异比较和其他工具。”
 
-## What it adds (the non-obvious, talk-specific value vs the canonical written sources)
-- A concrete **maturity ladder** (vibe eval → 5 hardcoded cases → prod-fed golden set → diffing tooling) with explicit permission to ship at the "5 evals" stage — counter to the canonical "build a rigorous eval set first" advice.
-- The **data-model-invariant trick** for runtime evals: deriving deterministic checks (`qty × price == market_value`, column sums) from the schema itself, turning extraction QA into pure-code math with no LLM and no labeled answer key — plus the probabilistic argument for why it works.
-- **"Evals are a diffing mechanism that lives in code + data"** and the idea of scoring the *lines of diff* between runs — a framing rarely stated this bluntly in written guides.
-- Hard-won **HoloLens grounding** (1.5 people × 2 years, still only a proxy metric) as visceral evidence that "no ground truth" is the normal case, not an edge case.
-- Practical **probes-vs-mocks** guidance for unit-testing agent sub-steps, and the explicit mapping of the software testing pyramid (+ JB Rainsberger reference) onto LLM pipelines.
-- The **bespoke-UI-is-now-cheap** point: post-v0/Cursor, hand-building a per-schema diff visualizer in ~an hour beats off-the-shelf eval tools, justified by the Jupyter-notebook analogy (visuals + code = fast feedback).
-- The **`delta test`** idea (git-diff → minimal test set via AST graph analysis) as a future direction for making eval runs frictionless for engineers editing prompts.
+## 独特增量（相较于规范书面资料，本演讲提供的非显然价值）
+- 给出具体的**成熟度阶梯**：感觉评测 → 5 个硬编码用例 → 生产数据驱动的黄金集 → 差异比较工具，并明确允许在“5 个评测”阶段发布，有别于“先建严格评测集”的常见建议。
+- 提出运行时评测的**数据模型不变量技巧**：从模式本身推导确定性检查（`数量 × 价格 == 市值`、列合计），无需 LLM 和标注答案即可把抽取质量保证转化为纯代码数学检查，并说明其概率依据。
+- 明确提出**“评测是存在于代码 + 数据中的差异比较机制”**，乃至以运行间的差异行数评分；书面指南很少如此直白。
+- HoloLens 的艰难经验（1.5 人 × 2 年仍只有代理指标）直观证明，“没有真值”是常态而非边缘情况。
+- 提供智能体子步骤单元测试的**探针与模拟对象**实践，并把软件测试金字塔（含 JB Rainsberger 的论述）明确映射到 LLM 流水线。
+- 指出**定制界面如今很便宜**：在 v0/Cursor 时代，约一小时即可为特定模式构建差异查看器；基于“可视化 + 代码 = 快速反馈”的 Jupyter notebook 类比，它可能胜过通用评测工具。
+- `delta test`（由 git 差异经 AST 图得到最小测试集）为降低工程师修改提示词后的评测摩擦提供了未来方向。
 
-## Themes
-1 why-evals · 3 model/harness/skill · 4 observability · 5 eval infra · 6 benchmark-vs-eval · 8 judge/verifiers · 9 agent-specific
+## 主题
+1 为何评测 · 3 模型/执行框架/技能 · 4 可观测性 · 5 评测基础设施 · 6 基准与评测 · 8 裁判/验证器 · 9 智能体特有

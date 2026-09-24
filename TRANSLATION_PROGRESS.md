@@ -1,10 +1,10 @@
 # 深度笔记中文翻译进度
 
-进度：`[██████████████░░░░░░] 71%（101/143）`
+进度：`[███████████████░░░░░] 76%（108/143）`
 
-- 文章：37/68
+- 文章：40/68
 - 论文：28/28
-- 演讲与播客：36/47
+- 演讲与播客：40/47
 
 ## 翻译规则
 
@@ -116,3 +116,10 @@
 99. `notes/talks/talk-mann-measuring-capabilities-rsp.md`
 100. `notes/talks/talk-pod-aitw16-compare-models.md`
 101. `notes/talks/talk-smith-strategies-for-llm-evals.md`
+102. `notes/articles/hf-agents-course-bonus-unit2-observability-evaluation.md`
+103. `notes/articles/vercel-agents-md-outperforms-skills.md`
+104. `notes/articles/zenml-1200-production-deployments-llmops-2025.md`
+105. `notes/talks/talk-pod-aitw5-designing-evals.md`
+106. `notes/talks/talk-pod-gd-gonzalez-chatbot-arena.md`
+107. `notes/talks/talk-song-safe-secure-agentic.md`
+108. `notes/talks/talk-tang-fuzzing-genai.md`

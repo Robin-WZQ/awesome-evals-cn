@@ -1,34 +1,34 @@
-# Notes — "AGENTS.md outperforms skills in our agent evals"
+# 笔记——《在我们的智能体评测中，AGENTS.md 胜过 Skills》
 
-**Author:** Jude Gao (Vercel) · **URL:** https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals · **Type:** eng-blog · **Found:** true
+**作者：** Jude Gao（Vercel）· **网址：** https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals · **类型：** 工程博客 · **已找到：** 是
 
-## Summary (3-6 sentences)
-Vercel ran a controlled eval pitting two ways of giving a coding agent knowledge of brand-new Next.js 16 APIs (e.g. `'use cache'`, `connection()`, `forbidden()`, `cacheLife()`/`cacheTag()`) that postdate the model's training cutoff: a passively-injected `AGENTS.md` docs index versus an explicitly-invoked Skill. The headline result is that `AGENTS.md` hit a 100% pass rate across build/lint/test while a Skill topped out at 79% even when prompted with explicit instructions to use it, and only 53% (baseline-equivalent) when left to default behavior. The root cause of the Skill's underperformance was a *retrieval* failure, not a *content* failure: in 56% of eval cases the Skill was never invoked at all. The core thesis is that passive, always-present context wins because it removes the agent's decision point — there is no moment where the agent has to choose to look something up. The post also shows that the injected docs compress aggressively (~40KB down to ~8KB, an index pointing to retrievable files) without losing the 100% score, and concedes Skills still win for explicitly-triggered, action-shaped workflows like version upgrades or migrations.
+## 摘要（3–6 句）
+Vercel 进行了一项受控评测，比较向编程智能体提供训练截止日期之后的 Next.js 16 新 API 知识的两种方式：被动注入的 `AGENTS.md` 文档索引，以及需要显式调用的 Skill。结果是，`AGENTS.md` 在构建、代码检查和测试上达到 100% 通过率；Skill 即使在提示词中明确要求使用，最高也只有 79%，默认行为下则只有与基线相同的 53%。Skill 表现不佳源于检索失败而非内容失败：56% 的评测样例中它根本没有被调用。核心结论是，始终存在的被动上下文移除了智能体是否查询知识的决策点，因此效果更好。文章还表明注入文档可以从约 40KB 激进压缩到约 8KB 的可检索文件索引，而仍保持 100%；同时承认 Skills 更适合版本升级或迁移等由用户明确触发、以操作流程为中心的任务。
 
-## Key points (5-12 substantive bullets)
-- **The eval is deliberately out-of-distribution.** They test Next.js 16 APIs that "weren't in model training data" — `'use cache'`, `cacheLife()`/`cacheTag()`, `connection()`, `forbidden()`/`unauthorized()`, async `cookies()`/`headers()`, `proxy.ts`, `after()`, `updateTag()`, `refresh()`. This is the right way to measure whether injected knowledge actually helps vs. the model just knowing the answer.
-- **Headline numbers (overall pass rate):** Baseline (no docs) 53% → Skill default 53% (+0pp) → Skill with explicit instructions 79% (+26pp) → AGENTS.md docs index 100% (+47pp).
-- **Per-axis breakdown shows AGENTS.md is uniformly clean:** AGENTS.md scored 100% on Build / 100% Lint / 100% Test. The best Skill config (explicit instructions) was 95% / 100% / 84%. Baseline was 84% / 95% / 63%. Test is the hardest axis and where the gap is widest.
-- **The failure mode is retrieval, not content.** "In 56% of eval cases, the skill was never invoked." When the Skill *did* fire, the content was fine — the agent simply often didn't decide to call it. Same knowledge, different delivery, 21-point gap.
-- **Instruction wording is fragile.** Two phrasings of "use the skill" gave very different results: "invoke first" missed required config changes, while "explore project first, then invoke skill" did better. This is a sharp, reproducible example of prompt brittleness in tool-gated knowledge.
-- **Concrete war story — the `'use cache'` case:** the "invoke first" ordering wrote a correct `page.tsx` but completely missed the required `next.config.ts` changes; the explore-then-invoke ordering got both files right. A partial answer that builds but is wrong is exactly what a build-only metric would miss — hence the value of the test axis.
-- **The mechanism (their core claim):** "No decision point. With AGENTS.md, there's no moment where the agent must decide 'should I look this up?' The information is already present." Passive context beats active retrieval because retrieval has a failure probability per decision.
-- **Compression result:** initial docs injection ~40KB compressed to ~8KB (≈80% reduction) while holding 100% — and the compressed form is an *index pointing to retrievable files*, not full docs. So the win isn't "stuff everything in context"; it's "always-present pointer + on-demand fetch."
-- **They don't claim Skills are useless.** "Skills work better for vertical, action-specific workflows that users explicitly trigger, like 'upgrade my Next.js version,' 'migrate to the App Router.'" The dividing line is passive reference knowledge (AGENTS.md) vs. user-triggered procedural workflows (Skills).
-- **Actionable framework-author guidance:** don't wait for tool-use to improve ("results matter now"), compress aggressively to an index, and build evals that target APIs *outside* training data. Ships a codemod: `npx @next/codemod@canary agents-md`.
-- **Methodology caveat for the knowledge base:** the post does not disclose exact task count or which Claude/agent versions were used, and the suite was "hardened" across iterations. Treat the numbers as a directional, internally-consistent A/B rather than a published benchmark.
+## 要点
+- **评测刻意采用分布外知识。** 测试训练数据中没有的 Next.js 16 API，包括 `'use cache'`、`cacheLife()`/`cacheTag()`、`connection()`、`forbidden()`/`unauthorized()`、异步 `cookies()`/`headers()`、`proxy.ts`、`after()`、`updateTag()` 和 `refresh()`，从而确保测到的是注入知识的价值，而非模型记忆。
+- **总体通过率：** 无文档基线 53%；默认 Skill 53%（+0 个百分点）；显式指示使用 Skill 79%（+26 个百分点）；`AGENTS.md` 文档索引 100%（+47 个百分点）。
+- **分项结果同样一致：** `AGENTS.md` 的构建／代码检查／测试均为 100%；最佳 Skill 配置分别为 95%／100%／84%；基线为 84%／95%／63%。测试是最难、差距最大的维度。
+- **失败在检索而非内容。** 56% 的样例中 Skill 从未被调用；一旦被调用，内容本身没有问题。同样的知识只因传递方式不同，就产生 21 个百分点差距。
+- **指令措辞很脆弱。** “先调用 Skill”会漏掉必要配置修改；“先探索项目，再调用 Skill”表现更好，说明工具门控知识对提示词顺序敏感。
+- **`'use cache'` 实例：** “先调用”能写出正确 `page.tsx`，却完全漏掉 `next.config.ts`；先探索再调用则两个文件都正确。只检查构建会漏掉这种能编译却不正确的部分答案，因此测试维度不可缺少。
+- **核心机制：** `AGENTS.md` 不存在“是否需要查询”的决策点，信息已经在场；主动检索的每个决策都会附加失败概率。
+- **压缩结果：** 初始约 40KB 的注入内容压缩为约 8KB，减少约 80%，同时维持 100%。压缩结果不是完整文档，而是指向可检索文件的索引，因此结论不是把所有内容塞进上下文，而是常驻索引加按需读取。
+- **Skills 并非无用。** 它更适合由用户明确触发的垂直操作流程，如升级 Next.js 或迁移到 App Router。区分原则是：被动参考知识用 `AGENTS.md`，用户触发的程序化流程用 Skills。
+- **可执行建议：** 不要等待工具使用能力自然提高；积极压缩为索引；用训练数据之外的 API 构建评测。文章还提供 `npx @next/codemod@canary agents-md`。
+- **方法局限：** 未披露确切任务数和 Claude／智能体版本，测试套件也在迭代中被“加固”。这些数字适合作为内部一致的方向性 A/B 结果，而非公开可复现基准。
 
-## Verified quotes (verbatim, from the URL)
-- "In 56% of eval cases, the skill was never invoked." — https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals
-- "No decision point. With AGENTS.md, there's no moment where the agent must decide 'should I look this up?' The information is already present." — same URL
-- "Skills work better for vertical, action-specific workflows that users explicitly trigger, like 'upgrade my Next.js version,' 'migrate to the App Router.'" — same URL
-- "a markdown file in your project root that provides persistent context to coding agents" (definition of AGENTS.md) — same URL
+## 已核验引述（中文翻译）
+- “在 56% 的评测样例中，Skill 从未被调用。”——https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals
+- “没有决策点。使用 AGENTS.md 时，智能体不需要在某一刻决定‘我是否应该查询？’，因为信息已经存在。”——同上
+- “Skills 更适合由用户明确触发的垂直、操作专属流程，例如‘升级我的 Next.js 版本’或‘迁移到 App Router’。”——同上
+- “项目根目录中的一个 Markdown 文件，为编程智能体提供持久上下文。”（`AGENTS.md` 定义）——同上
 
-## What it adds / why it's good
-Most "context engineering" content is opinion; this is a real A/B with a sound experimental design and a counterintuitive, well-isolated finding. The key practitioner insight is that **the bottleneck for tool/skill-based knowledge is the invocation decision, not the knowledge itself** — quantified as a 56% non-invocation rate that turns into a 21-point eval gap even after explicit prompting. That reframes a lot of agent-design debate: adding a retrieval step adds a per-decision failure probability, and passive context removes it entirely. The OOD eval choice (post-cutoff Next.js 16 APIs) is methodologically important — it guarantees the docs, not memorized training data, are doing the work, which is exactly the trap most "does our doc help?" evals fall into. The compression result (40KB→8KB index, still 100%) is a useful, non-obvious second finding: passive ≠ bloated, an always-present index plus lazy fetch is sufficient. The honest "Skills still win for triggered procedural workflows" caveat keeps it from being a hit piece and gives a clean decision rule. Caveat for citation: no disclosed N or model versions, so it's a strong internal experiment, not a reproducible public benchmark.
+## 它带来了什么／为什么值得读
+多数上下文工程内容只是观点，本文则是一项实验设计合理、结论反直觉且隔离清晰的 A/B。关键实践见解是，工具或 Skill 承载知识的瓶颈不是知识本身，而是调用决策；56% 的未调用率即使在显式提示后仍造成 21 个百分点差距。它重构了智能体设计讨论：检索步骤为每次决策引入失败概率，而被动上下文彻底移除该概率。选择训练截止日期后的 Next.js 16 API 也很重要，因为它确保起作用的是文档而非训练记忆。40KB 压缩为 8KB 索引后仍保持 100%，进一步说明被动并不等于臃肿，常驻索引加延迟读取即可。文章也坦率保留了 Skills 对触发式程序流程的优势，给出清晰决策规则。引用时应注意其未披露样本量和模型版本，因此它是强内部实验，而非可复现公开基准。
 
-## Themes
-- **3 model/harness/skill** (primary — directly compares AGENTS.md passive context vs. Skill harness invocation)
-- **1 why-evals** (uses an eval to settle a design question; argues "results matter now")
-- **9 agent-specific** (coding-agent behavior, invocation decisions, context delivery)
-- **2 eval⇄capability⇄RL-env** (OOD post-cutoff APIs as the capability probe; eval design tied to what the model can't already do)
+## 主题
+- **3 模型／工具框架／Skill**（主要）：直接比较 `AGENTS.md` 被动上下文与 Skill 调用机制。
+- **1 为什么要评测：** 用评测解决设计争议，并强调结果必须现在就有效。
+- **9 智能体专项：** 编程智能体行为、调用决策与上下文传递。
+- **2 评测⇄能力⇄强化学习环境：** 用训练截止日期后的 API 探测能力，把评测设计绑定到模型未知知识。

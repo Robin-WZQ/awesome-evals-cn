@@ -1,31 +1,31 @@
-# Notes — "What 1,200 Production Deployments Reveal About LLMOps in 2025 (+ the LLMOps Database)"
+# 笔记——《1,200 次生产部署揭示的 2025 年 LLMOps 图景（附 LLMOps 数据库）》
 
-**Author:** Alex Strick van Linschoten (ZenML) · **URL:** https://www.zenml.io/blog/what-1200-production-deployments-reveal-about-llmops-in-2025 · **Type:** eng-blog · **Found:** true
+**作者：** Alex Strick van Linschoten（ZenML）· **网址：** https://www.zenml.io/blog/what-1200-production-deployments-reveal-about-llmops-in-2025 · **类型：** 工程博客 · **已找到：** 是
 
-## Summary
-This is a meta-analysis written off ZenML's open LLMOps Database, which crossed 1,200+ curated production case studies (with ~400 new deployments added since the prior summary). Rather than one team's anecdote, van Linschoten mines hundreds of real systems handling real traffic to surface the cross-cutting patterns in how teams actually do evals, guardrails, cost control, and agent architecture in 2025. The strongest recurring thesis is that "evals are the new unit tests" — quality is now an engineering discipline (golden datasets, regression suites from real failures, shadow mode, LLM-as-judge) rather than vibe-checking. On safety, the headline argument is that effective guardrails move from prompts into infrastructure: identity tainting, dual-layer permissions, DAG "rails," and circuit breakers, because models cannot be trusted to reason about causality or injection on their own. The piece is dense with named-company war stories and hard numbers, including spectacular failure modes (a multi-agent loop that ran 11 days and cost $47,000).
+## 摘要
+本文基于 ZenML 开放的 LLMOps Database 展开元分析；该库已收录超过 1,200 个经整理的生产案例，较上次总结新增约 400 个部署。作者并非复述单个团队经验，而是从数百个承载真实流量的系统中提炼 2025 年团队在评测、防护栏、成本控制和智能体架构方面的共同模式。最突出的主张是“评测是新的单元测试”：质量已经成为一门工程学，需要黄金数据集、由真实失败形成的回归套件、影子模式和大模型裁判，而不能依赖主观感觉。安全方面，文章认为有效防护应从提示词迁移到基础设施，采用身份污染标记、双层权限、DAG 轨道和熔断器，因为不能指望模型独自正确推断因果关系或识别注入。全文包含大量具名公司的实际事故和硬数据，其中包括一个多智能体无限循环持续 11 天、耗费 47,000 美元的惊人案例。
 
-## Key points
-- **"Evals are the new unit tests" is the organizing mantra.** Ramp is the canonical demo: a "crawl, walk, run" eval strategy, independently-reviewed "golden datasets," turning every user-reported failure into a regression test, "shadow mode" to test agents on real transactions before live actions, and a separate "LLM Judge" comparing agent predictions to human decisions.
-- **LLM-as-judge is used selectively, not everywhere.** Amazon Prime Video only invokes judges "when pass/fail metrics alone are insufficient for improvement decisions"; Cox Automotive generates test conversations and judges them on relevancy, completeness, and tone. GitHub runs comprehensive offline evals against Copilot models (latency, accuracy, contextual relevance) to catch regressions pre-prod.
-- **Novel eval pattern — incident.io's "time travel evaluation":** replay historical incidents with known root causes to test whether the agent correctly identifies causality.
-- **Guardrails belong in infrastructure, not prompts.** Oso's "Three-Component Identity" (user, agent, session) uses session "tainting": once an agent reads untrusted content and touches sensitive data, it is auto-blocked from external comms for the rest of the session. Wakam uses dual-layer permissions (human visibility vs. agent access). Stripe keeps agents on DAG "rails" so "damage is contained to a single task."
-- **Models can't be trusted on causality.** Zalando sees ~10% attribution errors even with Claude Sonnet and concludes you cannot rely on model reasoning about causality without architectural guardrails. Toyota trains models to emit three separate streams so the app layer injects immutable legal text the LLM can't alter.
-- **Circuit breakers / cost controls are now standard.** Cox Automotive auto-stops at P95 cost thresholds or ~20 turns and hands off to a human.
-- **Spectacular failure war story:** GetOnStack's multi-agent market-research system escalated from $127/week to $47,000 over four weeks via an infinite inter-agent conversation loop that ran undetected for 11 days; they then spent six weeks building message queues, circuit breakers, cost controls, and monitoring.
-- **Agent architecture realities:** Manus reports context rot beginning at 50k–150k tokens and refactored its architecture five times since March; Shopify hit a "tool complexity problem" scaling 20→50+ tools and notes tool outputs consume ~100x more tokens than user messages; Cubic and Shopify both found removing tools and forcing explicit reasoning logs improved performance.
-- **The "last 20%" tax is real:** LinkedIn reached 80% quality quickly but spent the majority of dev time getting from 80% to 95%. Stripe calls believing in end-to-end automation a "fairytale."
-- **RL / fine-tuning wins:** Cursor's online RL pipeline drove a 28% increase in code acceptance (and dropping reasoning traces caused 30% degradation); Robinhood cut P90 latency from up to 55s to under 1s via prompt optimization → trajectory tuning → LoRA, with a fine-tuned 8B matching frontier quality; OpenPipe's RL-trained Qwen-14B beat OpenAI o3 on a specific task, trained for ~$80 on a single H100 in under a day.
-- **Headline ROI numbers:** Stripe's fraud-detection accuracy went 59%→97% for largest merchants; Ramp's policy agent handles 65%+ of expense approvals autonomously; nib logged ~$22M documented savings and 60% chat deflection; PGA Tour cut article cost 95% to $0.25/article.
+## 要点
+- **“评测是新的单元测试”是组织主线。** Ramp 展示了“爬、走、跑”式评测策略、独立审核的黄金数据集、把每个用户报告的失败转成回归测试、在真实操作前用影子模式测试智能体，以及用独立大模型裁判比较智能体预测和人工决策。
+- **大模型裁判被选择性使用。** Amazon Prime Video 只在通过／失败指标不足以支持改进决策时调用裁判；Cox Automotive 生成测试对话，并从相关性、完整性和语调进行评判。GitHub 在上线前对 Copilot 模型做延迟、准确率和上下文相关性的全面离线评测，以捕捉回归。
+- **新颖模式——incident.io 的“时间旅行评测”：** 重放根因已知的历史事故，测试智能体能否正确识别因果关系。
+- **防护栏属于基础设施，而非提示词。** Oso 的“三组件身份”（用户、智能体、会话）使用会话污染标记：智能体一旦读取不可信内容并接触敏感数据，本次会话余下时间就自动禁止外部通信。Wakam 使用人类可见性与智能体访问权的双层权限；Stripe 让智能体沿 DAG 轨道运行，把损害限制在单项任务内。
+- **不能信任模型的因果推理。** Zalando 即使使用 Claude Sonnet 仍观察到约 10% 归因错误，因此结论是必须使用架构级防护。Toyota 训练模型输出三个独立流，由应用层注入大模型无法修改的固定法律文本。
+- **熔断器与成本控制已成标配。** Cox Automotive 在达到 P95 成本阈值或约 20 轮时自动停止，并转交人工。
+- **典型失控事故：** GetOnStack 的多智能体市场研究系统因智能体间无限对话循环，从每周 127 美元升级到四周 47,000 美元；循环 11 天未被发现。团队随后用六周构建消息队列、熔断器、成本控制和监控。
+- **智能体架构现实：** Manus 发现 5 万至 15 万 token 开始出现上下文腐化，自 3 月以来已重构五次；Shopify 从 20 个扩到 50 多个工具后遇到工具复杂度问题，并指出工具输出所占 token 约为用户消息的 100 倍；Cubic 和 Shopify 都发现减少工具并强制记录显式推理可改善表现。
+- **最后 20% 的成本真实存在：** LinkedIn 很快达到 80% 质量，但从 80% 提升到 95% 却占去大多数开发时间。Stripe 把相信端到端自动化称作“童话”。
+- **强化学习／微调收益：** Cursor 的在线强化学习流水线使代码接受率提高 28%，去掉推理轨迹则退化 30%；Robinhood 通过提示优化、轨迹调优与 LoRA，把 P90 延迟从最高 55 秒降到 1 秒内，并让微调的 8B 模型达到前沿模型质量；OpenPipe 用强化学习训练的 Qwen-14B 在特定任务上胜过 OpenAI o3，在单张 H100 上不到一天、约 80 美元完成训练。
+- **代表性投资回报：** Stripe 对最大商户的欺诈检测准确率从 59% 提至 97%；Ramp 政策智能体自主处理超过 65% 的费用审批；nib 记录约 2,200 万美元节省和 60% 聊天转移率；PGA Tour 把文章成本降低 95% 至每篇 0.25 美元。
 
-## Verified quotes
-- "The phrase 'evals are the new unit tests' has become something of a mantra, and Ramp's expense automation platform provides a compelling demonstration of why." — https://www.zenml.io/blog/what-1200-production-deployments-reveal-about-llmops-in-2025
-- "what 1997 was for SQL injection, 2025 is for prompt injection." — https://www.zenml.io/blog/what-1200-production-deployments-reveal-about-llmops-in-2025
-- "These are real systems handling real traffic, built by teams navigating the gap between 'it works in a notebook' and 'it works at 2am when the on-call engineer is asleep.'" — https://www.zenml.io/blog/what-1200-production-deployments-reveal-about-llmops-in-2025
-- "Their multi-agent system for market data research escalated from $127 in weekly costs to $47,000 over four weeks due to an infinite conversation loop between agents running undetected for 11 days." — https://www.zenml.io/blog/what-1200-production-deployments-reveal-about-llmops-in-2025
+## 已核验引述（中文翻译）
+- “‘评测是新的单元测试’这句话已成为某种口号，而 Ramp 的费用自动化平台令人信服地展示了原因。”——https://www.zenml.io/blog/what-1200-production-deployments-reveal-about-llmops-in-2025
+- “1997 年之于 SQL 注入，就如同 2025 年之于提示注入。”——同上
+- “这些是处理真实流量的真实系统，由各团队在‘它能在 notebook 里运行’与‘凌晨两点值班工程师熟睡时它仍能运行’之间的鸿沟中构建。”——同上
+- “他们用于市场数据研究的多智能体系统因智能体之间持续 11 天未被发现的无限对话循环，使每周成本从 127 美元升级到四周 47,000 美元。”——同上
 
-## What it adds / why it's good
-The non-BS value here is aggregation: most eval/guardrail advice on the internet is one team's post-mortem or a vendor's pitch, easy to dismiss as N=1. This piece is a curated read across 1,200+ real production systems, so when it says "evals are the new unit tests" or "guardrails belong in infrastructure," it backs the claim with a spread of independently-named companies (Ramp, Stripe, incident.io, Oso, Zalando, GetOnStack) converging on the same patterns — and crucially includes the failure modes and dollar figures (the $47k/11-day runaway loop, the 80%→95% time tax, the 10% attribution error rate) that single success-story blogs omit. The underlying LLMOps Database is itself a reusable artifact for anyone building an eval/guardrail knowledge base. Specific transferable techniques worth stealing: shadow mode before live actions, regression-test-from-every-real-failure, time-travel evaluation, session tainting, dual-layer permissions, and turn/cost circuit breakers.
+## 它带来了什么／为什么值得读
+本文的扎实价值在于聚合。互联网中的评测或防护建议往往只是单个团队复盘或厂商宣传，容易被视作样本量为 1；本文整理 1,200 多个真实生产系统，因此当它提出“评测是新的单元测试”或“防护栏属于基础设施”时，可以用 Ramp、Stripe、incident.io、Oso、Zalando 和 GetOnStack 等互不依赖的公司展现共同趋势。更重要的是，它纳入了成功故事通常省略的失败模式和金额：47,000 美元／11 天的失控循环、从 80% 到 95% 的时间成本，以及 10% 归因错误率。底层 LLMOps Database 本身也是构建评测和防护知识库时可复用的资料。最值得迁移的技术包括上线前影子模式、把每次真实失败转成回归测试、时间旅行评测、会话污染标记、双层权限，以及按轮次或成本触发的熔断器。
 
-## Themes
-1 why-evals · 8 judge/verifiers · 9 agent-specific · 10 safety · 4 observability · 2 eval⇄capability⇄RL-env · 7 RL environments
+## 主题
+1 为什么要评测 · 8 裁判／验证器 · 9 智能体专项 · 10 安全 · 4 可观测性 · 2 评测⇄能力⇄强化学习环境 · 7 强化学习环境

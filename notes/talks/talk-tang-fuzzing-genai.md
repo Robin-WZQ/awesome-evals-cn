@@ -1,38 +1,38 @@
-# Notes — "Fuzzing in the GenAI Era"
-**Speaker/Guest:** Leonard Tang (Haize Labs) · **Venue:** AI Engineer 2025 · **Type:** talk · **URL:** https://www.youtube.com/watch?v=OMGPvW8TBHc
+# 笔记——《生成式 AI 时代的模糊测试》
+**讲者/嘉宾：** Leonard Tang（Haize Labs）· **场合：** AI Engineer 2025 · **类型：** 演讲 · **链接：** https://www.youtube.com/watch?v=OMGPvW8TBHc
 
-## Summary
-Tang argues that the standard eval recipe — a finite static golden dataset of inputs and ground-truth outputs, scored by some similarity metric — is fundamentally insufficient in the GenAI era, for two reasons: it has poor input-space *coverage*, and it lacks a trustworthy *measure* of output quality. The deeper problem isn't non-determinism (largely tamed by temperature zero) but *brittleness* — formally "Lipschitz discontinuity" — where near-identical inputs yield wildly different outputs. Haize Labs' answer is "hazing": treat eval as large-scale optimization/simulation/search over the natural-language input space, generating adversarial and in-distribution stimuli, scoring outputs with a hardened judge, and using that score as the optimization signal to iteratively hunt for breaking inputs. The talk's two technical pillars are (1) building trustworthy judges via "scaling judge-time compute" — either agentic judge pipelines (their `verdict` library) or small RL-trained reward models — and (2) framing input generation as discrete optimization to prune an otherwise impossibly large search space. This matters for agent evals because it reframes eval from a static report card into an active, adversarial, search-driven pressure test run before deployment.
+## 摘要
+Tang 认为，有限静态黄金数据集加输入/标准输出相似度指标的传统评测范式，在生成式 AI 时代根本不够：它既缺乏输入空间**覆盖率**，也没有可信的输出质量**度量**。深层问题不是非确定性，而是**脆弱性**，形式上可称“Lipschitz 不连续”：几乎相同的输入会产生截然不同的输出。Haize Labs 的答案是“hazing”：把评测视为对自然语言输入空间的大规模优化、仿真与搜索，生成对抗性及分布内刺激，用加固评审器评分，再把分数作为信号迭代寻找破坏性输入。两大技术支柱是通过智能体评审流程或小型 RL 奖励模型“扩展评审时计算”，以及将输入生成建模为离散优化以剪枝巨大搜索空间。对智能体而言，评测由静态成绩单转变为部署前主动、对抗、搜索驱动的压力测试。
 
-## Key points
-- **The real problem is brittleness, not non-determinism.** Non-determinism is "fine if you set the temperature to zero." What bites you is sending two ostensibly similar inputs and getting wildly different outputs — what he calls brittleness / "Lipschitz discontinuity" — and he claims this is *the* core property that makes building with GenAI hard.
-- **Static evals fail on two axes:** (1) *coverage* — passing 100% on a golden dataset tells you nothing about the inputs "around the corner"; (2) *measure* — translating a subject-matter expert's taste into a reliable quantitative metric is unsolved (it's the reward-modeling problem of the last 5-7 years). Existing tools (exact match, classifiers, LLM-as-judge, semantic similarity) all have quirks.
-- **"Hazing" = fuzz/property-based testing for AI.** Simulate large-scale stimuli → get responses → judge/score outputs → use the score to guide the next round of search → iterate until you find bugs/corner cases. If you exhaust your search budget without finding breakers, you're production-ready.
-- **LLM-as-judge failure modes (enumerated):** prone to hallucination; unstable (good criteria don't always operationalize into the model); *uncalibrated* (a "1" or "5" means something different to an LLM vs a human); positional/order bias (flipping response order changes results); sensitive to rubric/context changes. An off-the-shelf LLM call "is oftentimes not going to solve your reliability issues."
-- **Core reframing: "how do you QA the judge itself?" / "judge the judge."** You need a gold-standard metric before you can iterate your app against it.
-- **"Scaling judge-time compute"** — applying inference-time scaling to the judging stage, on a spectrum: one end is pure RL-from-scratch reasoning judges (no inductive bias); the other is structured agentic judges over off-the-shelf LLMs (strong inductive prior).
-- **`verdict` library** bakes in primitives from the *scalable oversight* subfield of AI safety (weaker models auditing/steering stronger ones): LLM **debate**, **self-verification** (critique the response, then critique your own reasoning), and **ensembling**.
-- **Verdict performance claim:** a GPT-4o-mini backbone, stacked aggressively in a self-verified debate-ensemble architecture, beats o1, o3-mini, GPT-4, and Claude 3.5 Sonnet on expert-QA verification — at less than a third of the cost *and* less than a third of the latency of o1.
-- **RL-trained judges** solve two specific LLM-judge gaps: lack of coherent rationale for a score, and lack of fine-grained task-tailored criteria. Fixed via GRPO tuning. References DeepSeek's **SPCT (Self-Principled Critique Tuning)**: have the LLM propose data-point-specific criteria (like instance-specific unit tests / rubric), then critique the data point against each.
-- **Their RL result:** GRPO-trained 600M and 1.7B param models reach RewardBench accuracy competitive with frontier models — **J1-micro (1.7B) hits 80.7%**, vs Claude 3 Opus ~80%, GPT-4o-mini ~80%, Llama 3 70B ~77%. Smaller model + more compute beats bigger models.
-- **Input generation = discrete optimization over natural language.** Brute-forcing the input space is impossible (a Llama 3 tokenizer has ~128k tokens per input; scale to 100M tokens and it's unscannable), so search must be clever/guided/pruned. The objective to minimize is the judge's output score — find inputs that make the app score low. Methods: gradient-based backprop from judge loss to input tokens, tree search / MCTS, searching the latent/embedding space then mapping back to text, and DSPy.
-- **Two input modes:** general *fuzzing* (in-distribution variants of customer happy paths) and *adversarial testing* (emulating prompt injection / jailbreak attempts, pursued more aggressively).
-- **War story — largest bank in Hungary:** a customer-facing loan-calculation app had to obey an 18-line "code of conduct"; hazing surfaced numerous prompt injections, jailbreaks, and unexpected corner cases not covered by that code, which they patched to unblock production.
-- **War story — Fortune 500 bank voice agent (outbound debt collection):** testing extends beyond text into the *audio signal* — adding background noise, static, frequency changes — still framed as optimization. Work that took the internal ops team ~3 months took the platform ~5 minutes (their words).
-- **War story — voice agent company eval scaling:** using verdict's **"rubric fanout"** architecture (propose per-data-point unit tests/criteria → critique → self-verify the critique → aggregate) gave a **38% increase in agreement with ground-truth human annotators** vs their internal ops teams.
-- **Q&A:** hazing inputs are both single-shot and multi-shot — single-turn, multi-turn, and persistent conversations (for voice), across modalities.
+## 要点
+- **真正问题是脆弱性，而非非确定性。** 温度设为零基本可处理非确定性；更棘手的是语法、语义或外观仅稍有变化，输出便天差地别，即“Lipschitz 不连续”。
+- **静态评测在两方面失败：** 一是覆盖率，黄金集满分不能说明邻近输入；二是度量，如何把领域专家品味转成可靠数值仍未解决。精确匹配、分类器、LLM 评审和语义相似度各有缺陷。
+- **“Hazing”即 AI 的模糊/性质测试：** 大规模生成刺激→获得响应→评审评分→用分数指导下一轮搜索，迭代直至发现缺陷；若耗尽搜索预算仍无破坏样例，才可认为适合生产。
+- **LLM 评审器失效模式：** 幻觉、不稳定、未校准、位置/顺序偏差以及对量规和上下文敏感；直接调用现成 LLM 通常解决不了可靠性。
+- **核心问题是“如何对评审器本身做 QA”，即评审评审器。** 没有黄金指标，就无法可靠迭代应用。
+- **扩展评审时计算：** 把推理时扩展应用到评分阶段；一端是从头用 RL 训练推理评审器，另一端是基于现成 LLM、具有强归纳偏置的结构化智能体评审器。
+- **`verdict` 库**引入可扩展监督中的 LLM 辩论、自验证（先批评回答，再批评自身推理）和集成。
+- **性能主张：** 以 GPT-4o-mini 为骨干，堆叠自验证、辩论和集成后，在专家问答验证上胜过 o1、o3-mini、GPT-4 与 Claude 3.5 Sonnet，成本和延迟均低于 o1 的三分之一。
+- **RL 评审器**针对两项缺口：分数缺乏连贯理由，以及缺乏细粒度任务标准。通过 GRPO 微调，并借鉴 DeepSeek 的 SPCT：让 LLM 为每个样本提出类似实例级单元测试的标准，再逐项批判。
+- **RL 结果：** GRPO 训练的 600M 和 1.7B 模型在 RewardBench 上可比前沿模型；**J1-micro（1.7B）达 80.7%**，Claude 3 Opus 和 GPT-4o-mini 约 80%，Llama 3 70B 约 77%。小模型加更多计算可胜过大模型。
+- **输入生成是自然语言上的离散优化。** 暴力枚举不可能，目标是最小化评审器输出分数，即寻找让应用低分的输入。方法包括从评审损失反向传播到 token、树搜索/MCTS、先搜潜在/嵌入空间再映射回文本，以及 DSPy。
+- **两种输入模式：** 面向客户正常路径的分布内一般模糊测试，以及更激进地模拟提示注入/越狱的对抗测试。
+- **匈牙利最大银行案例：** 面向客户的贷款计算应用须遵守 18 条行为准则；hazing 找到准则未覆盖的多种提示注入、越狱和边角情况，修补后才得以上线。
+- **财富 500 强银行语音催收智能体：** 测试扩展到音频信号的背景噪声、静电声和频率变化，仍可表述为优化；内部运维团队约三个月的工作，该平台约五分钟完成。
+- **语音智能体公司的扩展：** `verdict` 的“量规扇出”架构逐样本提出标准、批判、自验证并聚合，相对内部运维团队使与人工真值的一致率提高 **38%**。
+- **问答：** hazing 同时覆盖单轮、多轮和持续对话，并跨越文本与语音等模态。
 
-## Verified quotes
-- "nondeterminism is really fine if you set the temperature to zero" [03:11]
-- "What does bite you a lot when you're building AI apps though is when you send two ostensibly similar inputs to your AI application with maybe slight variance in the syntax or the semantics or the appearance of the text but all of a sudden you get wildly different outputs on the other side." [00:33] *(timestamp as captioned; ASR shows [02:33])*
-- "It might look like your AI system is 100% on all your unit tests on all your golden data set points. But if you just push around the corner and look around the corner for more inputs that cover your space more densely, it is entirely possible that you get [perturbations] that tell a very very different story about how your AI application actually does in the wild." [04:46] *(lightly fixed: ASR "prohibations" → "perturbations")*
-- "what is a one to an LLM that's very different to what is a one to a human" [07:51]
-- "So the key question in my mind is how do you actually QA the judge itself, right? How do you get to a point where you can judge the judge" [08:29]
-- "what took this team you know 3 months or so to do with their internal ops teams took in their own words only 5 minutes for [the] platform to do" [17:07]
-- "they've seen a 38% increase in ground truth human agreements using [verdict] as opposed to using their internal ops teams" [17:59]
+## 已核验引述（中文翻译）
+- [03:11] “如果把温度设为零，非确定性其实没什么问题。”
+- [00:33] “真正会咬你的，是两个看起来相似、仅在句法、语义或文字外观上略有不同的输入，却突然在另一端产生截然不同的输出。”
+- [04:46] “你的系统可能在所有单元测试和黄金数据点上都是 100%；但只要看看拐角周围，以更密的输入覆盖空间，就完全可能发现扰动揭示出它在真实环境中的另一番表现。”
+- [07:51] “对 LLM 而言的 1 分，与对人类而言的 1 分可能完全不同。”
+- [08:29] “关键问题是怎样对评审器本身做 QA；怎样才能评审评审器？”
+- [17:07] “他们内部运维团队大约三个月的工作，用这个平台按他们自己的说法只花了五分钟。”
+- [17:59] “与内部运维团队相比，使用 `verdict` 后，与人工真值的一致率提高了 38%。”
 
-## What it adds
-Most written eval guidance treats the dataset as fixed and spends its energy on *scoring*. Tang inverts the emphasis: the input set should itself be the output of an *optimization search* whose objective is your own judge's score — eval becomes adversarial fuzzing, not a static report card. That "the input space is the thing to optimize over" framing (with concrete discrete-optimization machinery — gradient backprop to tokens, MCTS, latent-space search, DSPy) is rarely spelled out in canonical eval writeups. Second, it gives an unusually crisp, mechanism-level answer to "how do you trust the judge": import *scalable oversight* primitives (debate, self-verification, ensembling) and stack a cheap backbone (GPT-4o-mini) to beat frontier reasoning models at a fraction of cost/latency — plus the RL alternative (GRPO + SPCT-style instance-specific rubrics) where a 1.7B model is competitive on RewardBench. The "Lipschitz discontinuity / brittleness, not non-determinism" diagnosis is a sharper articulation than the usual hand-waving about LLMs being "flaky." And the war stories ground it: multimodal fuzzing of *voice* agents by perturbing the audio signal (noise, static, frequency) is a concrete, non-obvious extension of fuzzing beyond text, and the 38% human-agreement lift and 3-months-to-5-minutes claims are talk-specific data points.
+## 本演讲的独特增量
+多数评测指南固定数据集、专注评分；Tang 则把输入集本身视作优化搜索的产物，以自家评审器分数为目标主动找低分输入，使评测成为对抗式模糊测试。梯度回传到 token、MCTS、潜在空间搜索和 DSPy 等离散优化手段，使这一观点具有可操作性。对“如何信任评审器”，他给出机制级答案：把辩论、自验证、集成等可扩展监督原语叠加在廉价骨干上，或使用 GRPO + SPCT 式实例量规训练小模型。“脆弱性/Lipschitz 不连续，而非非确定性”的诊断也比泛称 LLM “不稳定”更精确。语音信号扰动、38% 人工一致率提升和三个月缩短为五分钟，则是极具辨识度的实证案例。
 
-## Themes
-1 why-evals · 6 benchmark-vs-eval · 8 judge/verifiers · 9 agent-specific · 10 safety · 2 eval⇄capability⇄RL-env
+## 主题
+1 为什么需要评测 · 6 基准与评测 · 8 评审器/验证器 · 9 智能体特有问题 · 10 安全 · 2 评测⇄能力⇄RL 环境
