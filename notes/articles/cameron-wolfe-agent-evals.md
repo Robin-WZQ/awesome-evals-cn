@@ -1,37 +1,42 @@
-# Notes — "Agent Evaluation: A Detailed Guide"
+# 笔记——《智能体评测：详细指南》
 
-**Author:** Cameron R. Wolfe (Staff Research Scientist, Netflix; "Deep Learning Focus" Substack) · **URL:** https://cameronrwolfe.substack.com/p/agent-evals · **Type:** newsletter · **Found:** true
+**作者：** Cameron R. Wolfe（Netflix 高级研究科学家；《Deep Learning Focus》Substack）· **链接：** https://cameronrwolfe.substack.com/p/agent-evals · **类型：** 时事通讯 · **已找到：** 是
 
-## Summary
-A long-form, citation-dense practitioner guide that reframes evaluation for agents (LLMs that use tools in a loop) versus single-turn LLMs. Its central move is the harness/model framing: when you evaluate an agent you are always evaluating the *scaffold and model together*, never the model in isolation — so the eval-harness anatomy (tasks → trials → transcripts → outcomes → graders) is the real unit of analysis. Wolfe carefully separates *trajectory/transcript* evaluation (did the agent reason and call tools well) from *outcome* evaluation (did the final environment state match ground truth), and argues outcome-driven grading is what keeps benchmarks from being brittle. A major theme is *reliability* over peak capability: pass@k vs pass^k, where pass^k (succeed on *all* k trials) collapses as k grows and exposes how unreliable even frontier models are. He grounds all of this in two deep case studies — the τ-bench family (τ-bench → τ²-bench dual-control → τ³-bench's ~700-doc retrieval) and Terminal-Bench 2.0 — and closes with a 7-step recipe for building your own agent eval. The recurring meta-lesson: benchmarks are *living artifacts* that saturate fast and must be continuously hardened.
+## 摘要
 
-## Key points
-- **Agent = LLM + tools + instructions in a loop (ReAct).** "The simplest definition of an agent is an LLM that autonomously uses tools in a loop." Tools are invoked via special tokens in the token stream (e.g. Qwen3's `<tool_call>` tags), intercepted/executed, and results concatenated back into context.
-- **You evaluate the harness, not the model.** The scaffold (tools, prompting, context management, multi-agent structure) materially moves performance independent of raw model capability — a poor scaffold caps a strong model. This is the through-line for the whole piece.
-- **Eval-harness anatomy:** tasks (test cases) → trials (multiple attempts per task, because sampling is stochastic) → transcripts (full reasoning + tool-call record) → outcomes (final *environment state*, distinct from agent output) → graders. Outcomes vs. outputs is a deliberate distinction.
-- **Two grader families.** Code-based/deterministic (string match, assertions, ROUGE/BLEU, unit tests on coding tasks) — cheap, reproducible, but reference-bound and brittle. Model-based / LLM-as-judge in three setups: pairwise/preference, direct/pointwise (e.g. 1–5 Likert), and reference-guided. Advanced **rubric-based judging decomposes evaluation into dozens of individual criteria scored separately** for reliability — the key practitioner technique flagged for this source.
-- **Reliability metric split — pass@k vs pass^k.** pass@k = success on *at least one* of k tries (rises with k); pass^k = success on *all* k tries (collapses with k). pass^k is the real-world reliability number for things like customer service. War-stat: o4-mini hits only ~26% pass^4 on τ-bench Telecom.
-- **τ-bench family as the trajectory/outcome exemplar.** LLM-simulated *users* (replacing expensive human testers) drive multi-turn convos against per-domain JSON DBs + APIs + policy docs; success is objective — did the agent make the required DB writes / emit the specified values. τ²-bench adds **dual-control** (user *and* agent both hold tools over a shared environment) and **atomic subtasks** (Telecom: 15 task groups → 2,285 candidate tasks → 114 difficulty-balanced). τ²-bench-*verified* found policy/DB/instruction defects; after fixes top models exceeded 80% Avg@5.
-- **τ³-bench raises the bar with retrieval:** agents must autonomously search a **~700-document knowledge base** for the right policies/tools before acting — best models drop to **25.5%** pass rate vs 80%+ on earlier domains.
-- **Terminal-Bench 2.0 as the outcome-driven exemplar.** Harbor task format = instruction + time limit + Docker image (reproducibility) + test suite (deterministic outcome check) + oracle solution (proves solvability). Tests verify *outcomes only* — agents may solve any way they like — which avoids command-sequence brittleness. Curation: 229 contributions → 89 accepted through automated checks, LLM quality checks, manual expert review, **an adversarial "exploit agent" that hunts for cheating/shortcut vulnerabilities**, and two-reviewer sign-off — ~3 reviewer-hours per task. Results: GPT-5.2 62.9% vs Kimi K2 Thinking 35.7%; scaffold effect real but smaller than model effect; 2.0 already nearing saturation (3.0 in dev).
-- **Context engineering is part of the eval story.** Long-horizon agents accumulate tokens and suffer "context rot"; mitigations (dynamic retrieval, compaction, note-taking) are scaffold choices that the eval is implicitly measuring.
-- **Human eval = calibration, not throughput.** Start with vibe checks/manual inspection for fast iteration, calibrate rubrics with multiple annotators, track inter-annotator agreement (Cohen's kappa), and use human consensus to calibrate the LLM judge — humans "rarely agree without refining guidelines."
-- **7-step DIY recipe:** define success (outcome *and* process) → collect 10–20 realistic tasks → write reproducible specs → add ground truth/reference solutions → code-based graders first, model-based for subjective bits → harness with a *fresh environment per trial* → treat the benchmark as a living artifact, inspecting failures and adding harder tasks.
+这是一篇长篇、引用密集的实践指南，它重新界定了智能体（在闭环中使用工具的大模型）评测与单轮大模型评测的区别。其核心是“框架/模型”视角：评估智能体时，我们始终在联合评估**支架与模型**，而非孤立模型。因此，评测框架的解剖结构——任务 → 试验 → 转录 → 结果 → 评分器——才是真正的分析单元。Wolfe 仔细区分**轨迹/转录**评估（智能体的推理和工具调用是否良好）与**结果**评估（最终环境状态是否与标准答案一致），并认为，以结果为中心的评分才能防止基准变得脆弱。另一大主题是强调**可靠性**高于峰值能力：pass@k 与 pass^k 含义不同，其中 pass^k（k 次试验**全部**成功）会随 k 增大而快速崩塌，揭示即使前沿模型也很不可靠。文章以两个深入案例为基础：τ-bench 家族（τ-bench → τ²-bench 双重控制 → τ³-bench 的约 700 文档检索）和 Terminal-Bench 2.0，最后给出了构建自有智能体评测的七步方法。反复出现的元结论是：基准是会快速饱和的**活产物**，必须持续加固。
 
-## Verified quotes
-- "In fact, the simplest definition of an agent is an LLM that autonomously uses tools in a loop." — https://cameronrwolfe.substack.com/p/agent-evals
-- "When we evaluate an agent, we're evaluating the harness and the model working together." — https://cameronrwolfe.substack.com/p/agent-evals
-- "`Pass^K` declines quickly as the value of `K` increases, while `Pass@K` increases as `K` increases." — https://cameronrwolfe.substack.com/p/agent-evals
-- "Effective teams combine methods: automated evals for fast iteration, production monitoring for ground truth, and periodic human review for calibration." — https://cameronrwolfe.substack.com/p/agent-evals
+## 要点
 
-## What it adds / why it's good
-Most "LLM-as-judge 101" posts stop at pairwise/pointwise scoring. Wolfe's value is three things the obvious sources skip. (1) The **harness/model inseparability framing** — he refuses to let you pretend you're scoring "the model," which reframes every benchmark result as a scaffold result too. (2) The **pass@k vs pass^k reliability lens** with a concrete collapse number (26% pass^4) — it operationalizes "consistency" as a measurable axis rather than a vibe, which is exactly what production teams under-measure. (3) A **forensic tour of how good benchmarks are actually built and maintained** — τ²-verified's data-defect cleanup and Terminal-Bench's adversarial "exploit agent" + ~3 reviewer-hours/task are rare, concrete looks at eval *quality control* and reward-hacking defense, not just eval design. The outcome-vs-transcript and outcome-vs-output distinctions are stated more precisely than in most practitioner writing. It's heavily grounded in real, recent benchmarks rather than toy examples, and the 7-step recipe is immediately actionable.
+- **智能体 = 闭环中的大模型 + 工具 + 指令（ReAct）。**“对智能体最简单的定义，是在闭环中自主使用工具的大模型。”工具通过词元流中的特殊词元调用（如 Qwen3 的 `<tool_call>` 标签），调用被拦截、执行，然后将结果拼接回上下文。
+- **被评估的是框架，不只是模型。**支架（工具、提示、上下文管理、多智能体结构）能在独立于原始模型能力的情况下大幅改变表现；糟糕支架会限制强模型。这是整篇文章的主线。
+- **评测框架的解剖结构：**任务（测试案例）→ 试验（由于采样具有随机性，每个任务需多次尝试）→ 转录（完整推理 + 工具调用记录）→ 结果（最终**环境状态**，与智能体输出不同）→ 评分器。区分结果与输出是有意设计。
+- **两类评分器。**基于代码/确定性的评分器（字符串匹配、断言、ROUGE/BLEU、编程任务单元测试）便宜且可复现，但受参考答案约束且脆弱。基于模型/大模型裁判器有三种设置：成对/偏好、直接/逐点（如 1–5 Likert 分数）和参考答案引导。高级的**基于评分细则的裁判，会将评测分解为数十条单独准则，再分别评分**，以提高可靠性；这是该来源标记的关键实践技巧。
+- **可靠性指标拆分——pass@k 与 pass^k。**pass@k 表示 k 次尝试中**至少一次**成功，它会随 k 上升；pass^k 表示 k 次尝试**全部**成功，会随 k 快速崩塌。对客服等真实场景，pass^k 才是可靠性数字。一个惊人的实战统计是：o4-mini 在 τ-bench Telecom 上的 pass^4 仅约 **26%**。
+- **τ-bench 家族是轨迹/结果评测的范例。**由大模型模拟的**用户**（替代昂贵人工测试者）在每个领域的 JSON 数据库、API 和政策文档上，与智能体进行多轮对话；成功标准是客观的：智能体是否执行必需的数据库写入/输出指定值。τ²-bench 加入**双重控制**（用户和智能体都拥有操作共享环境的工具）和**原子子任务**（Telecom：15 个任务组 → 2,285 个候选任务 → 114 个难度平衡任务）。τ²-bench-verified 发现了政策/数据库/指令缺陷；修复后，顶级模型的 Avg@5 超过 80%。
+- **τ³-bench 用检索提高门槛：**智能体在行动前必须自主检索一个包含**约 700 份文档的知识库**，找到正确政策/工具。最强模型的通过率降至 **25.5%**，而早期领域超过 80%。
+- **Terminal-Bench 2.0 是以结果为中心的范例。**Harbor 任务格式 = 指令 + 时间限制 + Docker 镜像（可复现性）+ 测试套件（确定性结果检查）+ 预言机解法（证明可解）。测试只验证**结果**，智能体可以用任意方式解决，因而避免命令序列脆弱性。筛选流程为：229 个贡献 → 89 个接收，经过自动检查、大模型质量检查、人工专家审查、**寻找作弊/捷径漏洞的对抗“利用智能体”**和两名审查者签字；每个任务约需 3 小时审查。结果：GPT-5.2 为 62.9%，Kimi K2 Thinking 为 35.7%；支架确实有影响，但小于模型影响；2.0 已接近饱和，3.0 正在开发。
+- **上下文工程是评测叙事的一部分。**长时域智能体会累积词元并遭遇“上下文腐烂”；动态检索、压缩和记笔等缓解方法都是支架选择，也就被评测隐式衡量。
+- **人工评测用于校准，而非吞吐量。**以快速的直观检查/人工审阅迭代，用多名标注者校准评分细则，跟踪标注者间一致性（Cohen's kappa），并用人类共识校准大模型裁判器。人类“在细化指南前很少会自然达成一致”。
+- **自建评测的七步方法：**定义成功（结果**和**过程）→ 收集 10–20 个真实任务 → 编写可复现规格 → 添加标准答案/参考解法 → 优先使用代码评分器，主观部分再用模型评分 → 每次试验都用**全新环境**的框架 → 将基准当作活产物，检查失败并增加更难任务。
 
-## Themes
-- **1 why-evals** — argues rigorous measurement (not anecdotal vibe checks) is the engine of capability improvement.
-- **2 eval⇄capability⇄RL-env** — τ-bench/Terminal-Bench are simulated environments; framing treats evals and agent capability as co-evolving, living artifacts.
-- **3 model/harness/skill** — central thesis: you always evaluate harness+model together; scaffold drives performance.
-- **5 eval infra** — eval-harness anatomy (tasks/trials/transcripts/outcomes/graders), fresh-env-per-trial, Docker/Harbor format, curation pipelines.
-- **6 benchmark-vs-eval** — outcome-driven benchmarks vs brittle command-checking; benchmarks saturate and must be hardened.
-- **8 judge/verifiers** — code-based graders, LLM-as-judge (pairwise/pointwise/reference-guided), rubric-decomposition, judge calibration to humans.
-- **9 agent-specific** — trajectory vs outcome eval, tool calling, context rot, multi-turn user simulators, dual-control, long-horizon reliability (pass^k).
+## 已核验引述（中文翻译）
+
+- “事实上，对智能体最简单的定义，就是在闭环中自主使用工具的大模型。”—— https://cameronrwolfe.substack.com/p/agent-evals
+- “当我们评估一个智能体时，评估的是框架和模型的协同工作。”—— https://cameronrwolfe.substack.com/p/agent-evals
+- “`Pass^K` 会随 `K` 的增大而快速下降，而 `Pass@K` 会随 `K` 增大而上升。”—— https://cameronrwolfe.substack.com/p/agent-evals
+- “高效团队会组合多种方法：用自动评测快速迭代，用生产监控获得真实标准，再定期人工审查以进行校准。”—— https://cameronrwolfe.substack.com/p/agent-evals
+
+## 价值与优点
+
+大多数“大模型裁判入门”文章都停留在成对/逐点评分。Wolfe 的价值在于三个明显来源常忽略的方面。（1）**框架与模型不可分离的视角**：他拒绝让人伪装自己只在评分“模型”，从而把每个基准结果重新界定为同时反映支架的结果。（2）以具体的 26% pass^4 崩塌数字展示**pass@k 与 pass^k 的可靠性视角**；这将“一致性”操作化为可测维度，正是生产团队严重低估的方面。（3）**对优质基准实际构建和维护方式的取证式巡礼**：τ²-verified 的数据缺陷清理和 Terminal-Bench 的对抗“利用智能体”及每任务约 3 小时的审查，是少见的、有关评测**质量控制**和奖励黑客防御的具体材料，而不只是评测设计。文章对“结果与转录”、“结果与输出”的区分，也比多数实践文章更精确。其内容大量建立在真实、最新基准上，而非玩具例子；七步方法也可立即执行。
+
+## 主题
+
+- **1 为什么需要评测**——论证严谨衡量而非轶事性直观检查，是推动能力进步的引擎。
+- **2 评测↔能力↔强化学习环境**——τ-bench/Terminal-Bench 是模拟环境；评测与智能体能力共同演化，都是活产物。
+- **3 模型/框架/技能**——中心命题是始终在联合评估框架与模型，支架会驱动表现。
+- **5 评测基础设施**——评测框架解剖（任务/试验/转录/结果/评分器）、每次试验的全新环境、Docker/Harbor 格式和筛选流水线。
+- **6 基准与评测**——以结果为中心的基准与脆弱命令检查对比；基准会饱和，必须持续加固。
+- **8 裁判器/验证器**——代码评分器、大模型裁判器（成对/逐点/参考引导）、评分细则分解和人类校准。
+- **9 智能体专属**——轨迹与结果评测、工具调用、上下文腐烂、多轮用户模拟器、双重控制和长时域可靠性（pass^k）。
