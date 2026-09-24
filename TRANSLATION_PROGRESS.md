@@ -1,8 +1,8 @@
 # 深度笔记中文翻译进度
 
-进度：`[████████████████████] 98%（141/143）`
+进度：`[████████████████████] 99%（142/143）`
 
-- 文章：66/68
+- 文章：67/68
 - 论文：28/28
 - 演讲与播客：47/47
 
@@ -156,3 +156,4 @@
 139. `notes/articles/benchmark-label-errors.md`
 140. `notes/articles/yao-second-half.md`
 141. `notes/articles/era-of-experience.md`
+142. `notes/articles/warex-web-agent-reliability-evaluation.md`

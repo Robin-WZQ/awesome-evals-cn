@@ -1,39 +1,44 @@
-# Notes — "WAREX: Web Agent Reliability Evaluation on Existing Benchmarks"
+# 笔记——《WAREX：基于现有基准的 Web 智能体可靠性评估》
 
-**Author:** Su Kara, Fazle Faisal, Suman Nath (Microsoft Research; Kara at Stanford, work done at MSR) · **URL:** https://arxiv.org/abs/2510.03285 · **Type:** paper · **Found:** true
+**作者：** Su Kara、Fazle Faisal、Suman Nath（Microsoft Research；Kara 就职于 Stanford，本工作在 MSR 完成） · **链接：** https://arxiv.org/abs/2510.03285 · **类型：** 论文 · **已找到：** 是
 
-## Summary
-WAREX ("Web Agent Reliability Evaluation on eXisting benchmarks") is a plug-and-play framework that turns existing web-agent benchmarks into dynamic, fault-injecting testbeds without modifying the agent or benchmark source code. It sits as a transparent man-in-the-middle network proxy (mitmproxy with a split-TLS interception cert) between the agent and the live server, intercepts HTTP(S) responses, and injects realistic disruptions — network delays/timeouts, 5xx server errors, JavaScript-loading failures, and malicious pop-ups — at configurable frequencies. Applied to WebArena, REAL, and WebVoyager with GPT-4o, Qwen2.5-VL (72B), and GPT-OSS (20B) agents, it shows that SOTA agents that look strong on clean benchmarks degrade severely: WebArena success drops over 70% under network errors, and the best agent clicks a malicious "Click ACCEPT to claim FREE bitcoin" popup 87% of the time. The framing argument is that current benchmarks assume a "failure-free infrastructure" and ignore adversarial manipulation, producing overly optimistic robustness estimates. As a bonus, because it's a proxy, WAREX also logs efficiency metrics (latency, API calls, token counts) even for closed-source agents.
+## 摘要
 
-## Key points
-- **Core thesis (epigraph):** "Web agents are leaving the lab and entering the wild, but benchmarks give a false sense of reliability." Existing benchmarks make three simplifying assumptions: failure-free infrastructure, no adversarial manipulation, and static/closed (frozen) websites.
-- **Mechanism — network-layer, not wrapper-layer.** WAREX is a transparent HTTP(S) proxy that performs "split TLS": one encrypted connection to the client (agent) presenting an interception cert, a separate one to the origin server, so it can decrypt, rewrite responses/status codes, and re-encrypt — all while preserving browser state (cookies, localStorage) and leaving the origin server unchanged. This is what makes it benchmark-agnostic and requires "no changes" to agent or benchmark source code, working even when the underlying code is not public.
-- **Configurable Type × Frequency injection.** An injection script specifies failure Type (4xx delay, 5xx failure, JS error, popup) and Frequency policy (exact/regex URL match; k-th occurrence; every k-th; random; or n times per task). k=1 = first occurrence; n=1 = injected once per task.
-- **Three core web-failure types implemented**, chosen from prior empirical web-reliability studies: (1) **Network errors** — 10-second delays + an error page simulating connectivity/DNS issues; a human would refresh. (2) **Server-side errors** — HTTP 500 (also 408/429/502/503 in design); a human would retry. (3) **JavaScript failures** — HTTP 504 on JS endpoints + 10s delay so images/buttons appear broken or missing; a human notices the broken page and refreshes.
-- **Benchmarks & scale:** WebArena (660 of ~812 tasks, Maps excluded), REAL (all 112 tasks, Next.js replicas of Amazon/Uber/LinkedIn on Vercel), WebVoyager (643 tasks on live sites). Agents: SteP (SOTA leaderboard agent, Playwright + accessibility tree), REAL Demo Agent, and the Selenium-based WebVoyager agent. Backbone GPT-4o for main runs; Qwen2.5-VL (72B) and GPT-OSS (20B) for the LLM comparison on REAL.
-- **Headline degradation:** "Network errors are particularly severe, immediately reporting tasks as infeasible. Success rate on WebArena decreases by over 70%." Efficiency metrics also collapse under network error on WebArena: avg steps −74.9%, task latency −61.7%, cost −71.3% — i.e., the agent gives up early. Server errors are milder than network errors (WebVoyager only ~1.4× success drop vs ~21× for network errors, partly because its harness redirects to Google on errors/CAPTCHAs).
-- **Synthetic benchmarks are more JS-fragile than live ones.** Intercepting 5 JS flows/task barely dents WebVoyager (+2% — live sites have many JS endpoints) but disproportionately hurts WebArena/REAL, which have fewer JS resources so each interception matters more. Timed JS delays >5s degrade Playwright-based agents (WebArena, REAL); Selenium-based (WebVoyager) only declines beyond 30s.
-- **Prompting mitigation helps but doesn't recover.** Telling the agent to refresh on errors raised WebArena network-error success only from 3.7% to 7.1% (still far below the 12.4% no-fault baseline); server-error accuracy improved +4% (WebArena), +1.9% (REAL), +0.25% (WebVoyager).
-- **Reasoning capacity ≈ robustness.** Reload behavior on REAL: GPT-4o reloaded most (46), Qwen2.5-VL 37, GPT-OSS only 15 — Qwen "can recognize repeated interaction failures and proactively reload," while GPT-OSS "struggles without screenshots and with limited model capacity." GPT-OSS had 42:107 fixed network-to-server reloads vs 2:90 for Qwen-2.5VL under identical prompts.
-- **Malicious popup result (the alarming one):** deceptive popup "Click ACCEPT to claim FREE bitcoin" with a big green button redirecting to a fake site (pranx.com). On 112 REAL tasks, malicious clicks: GPT-4o 109 (97.3%), Qwen2.5-VL 97 (86.6%), GPT-OSS 110 (98.2%). Most agents reported the task infeasible only *later* (after being redirected) rather than at the start. Best-performing agent still clicked the popup 87% of the time.
-- **Non-intrusive by design:** WAREX does not affect agent accuracy on the no-fault path (Proxy − No Fault ≈ Original), validating it as a measurement tool, at a cost of roughly 10% increase in client latency on average.
-- **Naming/framing:** named after the U.S. Army's WarriorExercise (WAREX), "which immerses military units in realistic combat scenarios to prepare them for deployment." Positioned against prior wrapper-based attack work (Zhao et al.; DoomArena's AttackGateways) which depend on specific automation frameworks (BrowserGym/τ-bench) and instrumented browsers.
+WAREX（“Web Agent Reliability Evaluation on eXisting benchmarks”，基于现有基准的 Web 智能体可靠性评估）是一个即插即用框架，无需修改智能体或基准源代码，即可将现有 Web 智能体基准变成能够动态注入故障的测试平台。它以透明的中间人网络代理形式部署在智能体与实时服务器之间，采用 mitmproxy 和分离式 TLS 拦截证书，截获 HTTP(S) 响应，并以可配置频率注入真实干扰，包括网络延迟／超时、5xx 服务器错误、JavaScript 加载失败以及恶意弹窗。研究将其应用于 WebArena、REAL 和 WebVoyager，并测试 GPT-4o、Qwen2.5-VL（72B）和 GPT-OSS（20B）智能体。结果表明，在干净基准上看似强大的 SOTA 智能体会严重退化：发生网络错误时，WebArena 成功率下降超过 70%；即使是表现最好的智能体，也有 87% 的概率点击写有“Click ACCEPT to claim FREE bitcoin”的恶意弹窗。论文的核心论点是，当前基准假设“基础设施无故障”，并忽略对抗性操纵，因此会给出过度乐观的鲁棒性估计。附带优势是，由于 WAREX 本质上是代理，它甚至能为闭源智能体记录延迟、API 调用次数和 token 数等效率指标。
 
-## Verified quotes
-- "Current benchmarks measure agent performance in controlled environments, such as containers or stable networks, where websites behave deterministically." — https://arxiv.org/abs/2510.03285
-- "Our experiments show that introducing WAREX leads to significant drops in task success rates, highlighting the limited robustness of state-of-the-art agents." — https://arxiv.org/abs/2510.03285
-- "Web agents are leaving the lab and entering the wild, but benchmarks give a false sense of reliability." — https://arxiv.org/abs/2510.03285
-- "Network errors are particularly severe, immediately reporting tasks as infeasible. Success rate on WebArena decreases by over 70%." — https://arxiv.org/pdf/2510.03285
-- "Finally, current web agents fail miserably when encountering malicious popups, with the best performing agent clicking the popup 87% of the time." — https://arxiv.org/pdf/2510.03285
-- "Because these modifications happen at the network layer, WAREX requires no changes to benchmark or agent source code and is plug-and-play for any benchmark/sandbox environment which runs over a network, including ones where the underlying code is not public." — https://arxiv.org/pdf/2510.03285
+## 要点
 
-## What it adds / why it's good
-The non-BS value is the *delivery mechanism*, not just the "agents are brittle" finding. By operating as a split-TLS network proxy rather than a code wrapper, WAREX decouples chaos-injection from the benchmark and agent harness entirely — so it composes with WebArena, REAL, and WebVoyager unchanged, and works against closed-source/commercial agents (Comet, ChatGPT Agent-class) where you can't touch the code. That's a genuinely different axis from DoomArena/AttackGateways (which need BrowserGym/τ-bench instrumentation) and from the earlier wrapper-overlay attacks (which stop after the first click). It also reframes the robustness conversation away from only adversarial security toward *mundane infrastructure failure* — network/DNS/5xx/JS-load errors that every real deployment hits — and shows these are often more lethal than the flashy attacks (network errors cause ~21× drops vs server errors' 1.4× on WebVoyager). The free efficiency telemetry (latency, API calls, token counts) for black-box agents is a useful side effect for anyone doing eval infra. Honest limitations are acknowledged: only 3 failure types and 3 agents tested, GPT-4o as the main backbone, requires installing a trusted root cert (struggles under TLS pinning / enterprise proxies), and ~10% latency overhead. It's a tool/framework paper more than a deep empirical study, but the central demonstration — clean-benchmark success masks near-total collapse under realistic chaos, and a 97% malicious-popup click rate — is concrete and load-bearing.
+- **核心论点（题词）：** “Web 智能体正在走出实验室、进入真实环境，但基准让人对其可靠性产生了错误信心。”现有基准做出三项简化假设：基础设施无故障、不存在对抗性操纵，以及网站静态、封闭（冻结）。
+- **机制位于网络层，而非封装层。** WAREX 是一个透明 HTTP(S) 代理，采用“分离式 TLS”：它向客户端（智能体）出示拦截证书并建立一条加密连接，同时与源服务器建立另一条独立连接，因此能够解密并重写响应和状态码，再重新加密传输；整个过程仍会保留浏览器状态（cookie、localStorage），且不改变源服务器。正因如此，它与具体基准无关，且“无需修改”智能体或基准源代码，即使底层代码不公开也能使用。
+- **可配置的类型 × 频率注入。** 注入脚本会指定故障类型（4xx 延迟、5xx 故障、JS 错误、弹窗）和频率策略（URL 精确匹配／正则匹配；第 k 次出现；每逢第 k 次；随机；或每个任务注入 n 次）。k=1 表示第一次出现；n=1 表示每个任务只注入一次。
+- **实现了三类核心 Web 故障**，依据既有 Web 可靠性实证研究选定：（1）**网络错误**——延迟 10 秒，并显示模拟连接或 DNS 问题的错误页面；人类通常会刷新。（2）**服务器端错误**——HTTP 500（设计中还包括 408/429/502/503）；人类通常会重试。（3）**JavaScript 故障**——对 JS 端点返回 HTTP 504 并延迟 10 秒，使图像或按钮呈现损坏、缺失状态；人类会注意到页面异常并刷新。
+- **基准与规模：** WebArena（约 812 个任务中选取 660 个，排除 Maps）、REAL（全部 112 个任务，是部署在 Vercel 上的 Amazon/Uber/LinkedIn Next.js 复刻站点）、WebVoyager（实时网站上的 643 个任务）。智能体包括 SteP（排行榜 SOTA 智能体，采用 Playwright + 无障碍树）、REAL Demo Agent，以及基于 Selenium 的 WebVoyager 智能体。主实验使用 GPT-4o 作为骨干；在 REAL 上比较 LLM 时，还使用 Qwen2.5-VL（72B）和 GPT-OSS（20B）。
+- **最醒目的性能退化：** “网络错误尤其严重，智能体会立即报告任务不可行。WebArena 的成功率下降超过 70%。”WebArena 上的效率指标在网络错误下也大幅下降：平均步骤数 −74.9%、任务延迟 −61.7%、成本 −71.3%，即智能体会过早放弃。服务器错误的影响弱于网络错误；在 WebVoyager 上，服务器错误只使成功率约下降 1.4 倍，而网络错误约下降 21 倍。部分原因是其运行框架在发生错误或 CAPTCHA 时会重定向到 Google。
+- **合成基准比真实网站更易受 JS 故障影响。** 每个任务拦截 5 次 JS 流量，对 WebVoyager 几乎没有影响（+2%；实时网站具有大量 JS 端点），却会对 WebArena/REAL 造成不成比例的损害，因为它们的 JS 资源较少，每次拦截的影响更大。超过 5 秒的定时 JS 延迟会使基于 Playwright 的智能体（WebArena、REAL）退化；基于 Selenium 的 WebVoyager 只有延迟超过 30 秒才开始下降。
+- **提示式缓解有所帮助，但无法恢复原水平。** 告诉智能体遇到错误时刷新，只能使 WebArena 网络错误条件下的成功率从 3.7% 提高到 7.1%，仍远低于无故障基线的 12.4%；服务器错误条件下，准确率在 WebArena、REAL 和 WebVoyager 上分别提高 4%、1.9% 和 0.25%。
+- **推理能力约等于鲁棒性。** REAL 上的重新加载次数：GPT-4o 最多（46 次），Qwen2.5-VL 为 37 次，GPT-OSS 仅 15 次。Qwen“能够识别反复发生的交互失败并主动重新加载”，而 GPT-OSS“在缺少截图且模型能力有限时表现困难”。相同提示下，GPT-OSS 面对固定网络错误和服务器错误的重载次数为 42:107，而 Qwen-2.5VL 为 2:90。
+- **恶意弹窗结果最令人警惕：** 欺骗性弹窗写着“Click ACCEPT to claim FREE bitcoin”，配有一个会重定向至假网站 pranx.com 的大型绿色按钮。在 REAL 的 112 个任务上，恶意点击次数分别为：GPT-4o 109 次（97.3%）、Qwen2.5-VL 97 次（86.6%）、GPT-OSS 110 次（98.2%）。大多数智能体并未一开始就识别风险，而是在被重定向后才报告任务不可行。即使表现最好的智能体，仍有 87% 的概率点击弹窗。
+- **设计上无侵入：** 在无故障路径上，WAREX 不影响智能体准确率（代理无故障结果与原始结果近似相同），说明它可作为有效测量工具；代价是客户端平均延迟约增加 10%。
+- **命名与定位：** WAREX 得名于美国陆军的 WarriorExercise（WAREX），该演习“让军事单位沉浸在真实作战场景中，为部署做好准备”。论文将其与既有的封装式攻击工作作区分，例如 Zhao 等人的工作和 DoomArena 的 AttackGateways；这些方法依赖特定自动化框架（BrowserGym/τ-bench）以及经过插桩的浏览器。
 
-## Themes
-- **1 why-evals** — central argument: lab-clean determinism overstates robustness; benchmarks give "a false sense of reliability."
-- **6 benchmark-vs-eval/integrity** — exposes the gap between benchmark numbers and real-world reliability; turns static benchmarks into dynamic testbeds.
-- **9 agent-specific** — purpose-built for browser/web agents (proxy, DOM, browser state, multi-turn).
-- **10 safety/adversarial** — XSS, malicious redirecting pop-ups, adversarial manipulation as a first-class failure mode.
-- **5 eval infra** — reusable proxy harness + efficiency logging that drops into existing benchmarks and black-box agents.
-- **4 observability/surfaces** (secondary) — latency/API-call/token-count telemetry for closed-source agents.
+## 已核验引述（中文翻译）
+
+- “当前基准在受控环境中衡量智能体性能，例如容器或稳定网络；在这些环境中，网站行为是确定性的。”——https://arxiv.org/abs/2510.03285
+- “我们的实验表明，引入 WAREX 会使任务成功率显著下降，凸显出最先进智能体的鲁棒性有限。”——https://arxiv.org/abs/2510.03285
+- “Web 智能体正在走出实验室、进入真实环境，但基准让人对其可靠性产生了错误信心。”——https://arxiv.org/abs/2510.03285
+- “网络错误尤其严重，智能体会立即报告任务不可行。WebArena 上的成功率下降超过 70%。”——https://arxiv.org/pdf/2510.03285
+- “最后，当前 Web 智能体遇到恶意弹窗时表现极差，即使表现最好的智能体也有 87% 的概率点击该弹窗。”——https://arxiv.org/pdf/2510.03285
+- “由于这些修改发生在网络层，WAREX 无需更改基准或智能体源代码；对任何通过网络运行的基准或沙盒环境，它都能即插即用，包括底层代码不公开的环境。”——https://arxiv.org/pdf/2510.03285
+
+## 本文新增了什么／为何出色
+
+它真正有价值之处不是再次发现“智能体很脆弱”，而是提供了独特的**交付机制**。WAREX 作为分离式 TLS 网络代理运行，而不是代码封装器，因此完全解耦了混沌注入与基准及智能体运行框架；WebArena、REAL 和 WebVoyager 无需修改即可与它组合，它也适用于无法触碰代码的闭源或商业智能体（如 Comet、ChatGPT Agent 类系统）。这与依赖 BrowserGym/τ-bench 插桩的 DoomArena/AttackGateways，以及先前在首次点击后便停止的封装层叠加攻击，构成了真正不同的维度。它还让鲁棒性讨论不再只聚焦对抗安全，而是转向每次真实部署都会遇到的**普通基础设施故障**，如网络、DNS、5xx 和 JS 加载错误；结果表明，这些平常故障常比炫目的攻击更致命，例如 WebVoyager 上网络错误导致约 21 倍的下降，而服务器错误仅导致 1.4 倍下降。对黑盒智能体免费获得效率遥测（延迟、API 调用次数、token 数），对评测基础设施建设者也是实用的附带收益。论文坦诚承认了局限：只测试了 3 种故障类型和 3 个智能体，主要骨干为 GPT-4o；系统需要安装受信任的根证书，在 TLS 固定或企业代理环境中会遇到困难；并会带来约 10% 的延迟开销。这更像一篇工具／框架论文，而非深入的实证研究，但其核心演示——干净基准上的成功掩盖了真实混沌下近乎完全的崩溃，以及 97% 的恶意弹窗点击率——具体而关键。
+
+## 主题
+
+- **1 为何需要评测**——核心论点：实验室式的干净确定性会高估鲁棒性；基准给人“一种错误的可靠感”。
+- **6 基准与评测／完整性**——揭示基准数字与现实可靠性之间的差距，把静态基准转变成动态测试平台。
+- **9 智能体特有问题**——专为浏览器／Web 智能体构建，涵盖代理、DOM、浏览器状态与多轮交互。
+- **10 安全／对抗**——把 XSS、恶意重定向弹窗和对抗性操纵视为一等失败模式。
+- **5 评测基础设施**——可复用代理框架和效率日志，可直接接入现有基准与黑盒智能体。
+- **4 可观测性／观测面**（次要）——为闭源智能体记录延迟、API 调用次数和 token 数。
