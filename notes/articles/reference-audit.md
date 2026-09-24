@@ -1,483 +1,433 @@
-# Reference-integrity audit (recursive)
+# 参考文献完整性审计（递归）
 
-Verifies our quotes AND the references cited *inside* each source. Run 2026-06-23.
+同时核验我们的引述，以及每个来源**内部引用**的参考文献。审计日期：2026-06-23。
 
-## Eugene Yan (eval posts) — integrity: **solid** (23 quotes verified)
+## Eugene Yan（评测相关文章）——完整性：**可靠**（已核验 23 条引述）
 
-- **[verbatim-ok]** "If you've ran off-the-shelf evals for your tasks, you may have found that most don't work..." — evals post
-  - Verbatim, correct attribution and URL.
-  - primary: https://eugeneyan.com/writing/evals/
-- **[verbatim-ok]** "IMHO, accuracy is too coarse a metric to be useful." — evals post
-  - Verbatim.
-  - primary: https://eugeneyan.com/writing/evals/
-- **[verbatim-ok]** "Examining the separation of distributions is valuable because a model can have high ROC-AUC and PR-AUC but still not be suitable for production."
-  - Verbatim (second clause is italicized in original; text identical).
-  - primary: https://eugeneyan.com/writing/evals/
-- **[verbatim-ok]** "Don't be paralyzed by the need for perfection or zero risk... succumb to Innovator's Dilemma. Instead, set realistic, risk-adjusted evaluation criteria, start small, collect feedback, and iterate frequently."
-  - Verbatim (first sentence bold in original).
-  - primary: https://eugeneyan.com/writing/evals/
-- **[supported-by-primary]** "...typical factual inconsistency/irrelevance rate is 5 - 10%, even after grounding via RAG... it may be prohibitively hard to go below 2%."
-  - Verbatim quote. NOTE: this is Eugene's own anecdotal estimate ('from what I've learned from LLM providers'), not a cited study — inherently unverifiable against a primary, but honestly framed as anecdote in the original.
-  - primary: https://eugeneyan.com/writing/evals/
-- **[verbatim-ok]** "Building product evals is simply the scientific method in disguise. That's the secret sauce. It's a cycle of inquiry, experimentation, and analysis."
-  - Verbatim.
-  - primary: https://eugeneyan.com/writing/eval-process/
-- **[verbatim-ok]** "If teams don't apply the scientific method, practice eval-driven development... buying or building yet another evaluation tool won't save the product."
-  - Verbatim.
-  - primary: https://eugeneyan.com/writing/eval-process/
-- **[verbatim-ok]** "Automated evaluators amplify our existing annotation and feedback processes."
-  - Verbatim; appears as a figure caption in the original. Text matches exactly.
-  - primary: https://eugeneyan.com/writing/eval-process/
-- **[verbatim-ok]** "Align AI to human. Calibrate human to AI. Repeat." — AlignEval
-  - Verbatim (section heading).
-  - primary: https://eugeneyan.com/writing/aligneval/
-- **[verbatim-ok]** "Many teams make the mistake of crafting elaborate eval criteria without first looking at the data..."
-  - Verbatim.
-  - primary: https://eugeneyan.com/writing/aligneval/
-- **[verbatim-ok]** "The way to solve this—and build useful evals—is to work backward from the data..."
-  - Verbatim.
-  - primary: https://eugeneyan.com/writing/aligneval/
-- **[verbatim-ok]** "One anti-pattern is building a single \"God Evaluator\" ... that attempts to assess 5 - 10 dimensions... I've never seen this work well."
-  - Verbatim. The ' ... ' correctly elides a parenthetical '(also see God Object)' Wikipedia link; no meaning distorted.
-  - primary: https://eugeneyan.com/writing/product-evals/
-- **[verbatim-ok]** "The benchmark is human performance, not perfection."
-  - Verbatim (section heading).
-  - primary: https://eugeneyan.com/writing/product-evals/
-- **[verbatim-ok]** "...the true benefit isn't higher accuracy than human annotators—it's scalability... 24/7, without being bottlenecked by human review."
-  - Verbatim.
-  - primary: https://eugeneyan.com/writing/product-evals/
-- **[verbatim-ok]** "If we want to assess a model migration from Claude Haiku 3.5 to Haiku 4.5, we make a one-line config change... get lunch, and check results."
-  - Verbatim.
-  - primary: https://eugeneyan.com/writing/product-evals/
-- **[verbatim-ok]** "I tend to be skeptical of correlation metrics... (though Cohen's κ is an exception). ... Thus, where possible, I have my evaluators return binary outputs."
-  - Verbatim. The ' ... ' elides two intermediate sentences about translating correlation metrics to production; elision does not distort meaning.
-  - primary: https://eugeneyan.com/writing/llm-evaluators/
-- **[verbatim-ok]** "If using it as a guardrail in production (low latency, high throughput), consider investing in finetuning a classifier or reward model..."
-  - Verbatim.
-  - primary: https://eugeneyan.com/writing/llm-evaluators/
-- **[supported-by-primary]** "Gpt-4 favored itself with a 10% higher win rate while claude-v1 favored itself with a 25% higher win rate." (summarizing Zheng et al., MT-Bench)
-  - RECURSIVE CHECK PASSED. Primary (MT-Bench, Sec 3.3 self-enhancement bias) states verbatim: 'GPT-4 favors itself with a 10% higher win rate; Claude-v1 favors itself with a 25% higher win rate.' Numbers exact. CAVEAT: primary hedges strongly — 'Due to limited data and small differences, our study cannot determine whether the models exhibit a self-enhancement bias,' and notes GPT-3.5 does NOT favor itself. Eugene's attribution as 'summarizing Zheng et al.' is fair; recommend the book carry the primary's hedge so the stat isn't read as settled.
-  - primary: https://arxiv.org/abs/2306.05685
-- **[supported-by-primary]** "The LLM-evaluators had high variance in correlation with human judgments across the datasets. Each model performed poorly on some datasets... not reliable enough to systematically replace human judgments."
-  - RECURSIVE CHECK PASSED. Quote is verbatim from Eugene's post; it summarizes Bavaresco et al. (2024), 'LLMs instead of Human Judges? A Large Scale Empirical Study across 20 NLP Evaluation Tasks.' Primary abstract: 'Our evaluations show substantial variance across models and datasets... LLMs should be carefully validated against human judgments before being used as evaluators.' Faithfully represented.
-  - primary: https://arxiv.org/abs/2406.18403
-- **[verbatim-ok]** "...intern test... If you took the exact input to the language model... gave it to an average college student in the relevant major... could they succeed?"
-  - Verbatim.
-  - primary: https://applied-llms.org/
-- **[verbatim-ok]** "Input-output pairs from production are the \"real things, real places\" (genchi genbutsu) of LLM applications, and they cannot be substituted."
-  - Verbatim.
-  - primary: https://applied-llms.org/
-- **[verbatim-ok]** "These \"vibe checks\" are signals of bad outputs; code and assertions operationalize them."
-  - Verbatim.
-  - primary: https://applied-llms.org/
-- **[verbatim-ok]** "LLM-as-Judge is not a silver bullet though... conventional classifiers and reward models can achieve higher accuracy than LLM-as-Judge, and with lower cost and latency."
-  - Verbatim. NOTE: the 'higher accuracy/lower cost' claim is the authors' own experiential assertion, not a cited study — consistent with the surrounding essay's framing.
-  - primary: https://applied-llms.org/
-- **[verbatim-ok]** "When a measure becomes a target, it ceases to be a good measure." — Goodhart's Law, cited in Yan et al.
-  - Verbatim and explicitly attributed to Goodhart's Law in the source. (Strictly, this popular phrasing is Marilyn Strathern's restatement of Goodhart, but the common attribution to 'Goodhart's Law' as the book uses it is standard and matches the source.)
-  - primary: https://applied-llms.org/
+- **[原文一致]** “如果你曾在自己的任务上运行现成评测，可能已经发现其中大多数都不起作用……”——评测文章
+  - 逐字一致，归属和 URL 正确。
+  - 一手来源：https://eugeneyan.com/writing/evals/
+- **[原文一致]** “依我看，准确率作为指标过于粗糙，无法真正发挥作用。”——评测文章
+  - 逐字一致。
+  - 一手来源：https://eugeneyan.com/writing/evals/
+- **[原文一致]** “考察分布的分离程度很有价值，因为模型即使拥有很高的 ROC-AUC 和 PR-AUC，也仍可能不适合投入生产。”
+  - 逐字一致（原文第二个分句使用斜体，文字完全相同）。
+  - 一手来源：https://eugeneyan.com/writing/evals/
+- **[原文一致]** “不要因为追求完美或零风险而陷入瘫痪……从而落入创新者困境。相反，应设定现实且经过风险调整的评估标准，小步起步，收集反馈，并频繁迭代。”
+  - 逐字一致（原文第一句为粗体）。
+  - 一手来源：https://eugeneyan.com/writing/evals/
+- **[一手来源支持]** “……即使经过 RAG 扎根，典型的事实不一致/不相关率仍为 5–10%……要降到 2% 以下可能困难到代价无法承受。”
+  - 引述逐字一致。注意：这是 Eugene 自己的经验估计（“据我从 LLM 提供商那里了解到”），并非引用某项研究，因此本质上无法用一手研究核验；不过原文确实诚实地将其表述为经验之谈。
+  - 一手来源：https://eugeneyan.com/writing/evals/
+- **[原文一致]** “构建产品评测，不过是披着外衣的科学方法。这就是秘诀。它是一个由提问、实验和分析组成的循环。”
+  - 逐字一致。
+  - 一手来源：https://eugeneyan.com/writing/eval-process/
+- **[原文一致]** “如果团队不应用科学方法、不实践评测驱动开发……那么再买或再造一个评估工具也救不了产品。”
+  - 逐字一致。
+  - 一手来源：https://eugeneyan.com/writing/eval-process/
+- **[原文一致]** “自动评估器会放大我们现有的标注和反馈流程。”
+  - 逐字一致；在原文中作为图注出现，文字完全匹配。
+  - 一手来源：https://eugeneyan.com/writing/eval-process/
+- **[原文一致]** “让 AI 与人对齐。让人校准到 AI。不断重复。”——AlignEval
+  - 逐字一致（小节标题）。
+  - 一手来源：https://eugeneyan.com/writing/aligneval/
+- **[原文一致]** “许多团队会犯这样的错误：还没先查看数据，就开始精心设计复杂的评测标准……”
+  - 逐字一致。
+  - 一手来源：https://eugeneyan.com/writing/aligneval/
+- **[原文一致]** “解决这个问题、并构建有用评测的方法，是从数据反向推导……”
+  - 逐字一致。
+  - 一手来源：https://eugeneyan.com/writing/aligneval/
+- **[原文一致]** “一种反模式是构建单一的‘上帝评估器’……试图一次评估 5–10 个维度……我从未见它取得过良好效果。”
+  - 逐字一致。省略号恰当地略去了指向 Wikipedia 的括注链接“另见 God Object”，没有歪曲含义。
+  - 一手来源：https://eugeneyan.com/writing/product-evals/
+- **[原文一致]** “基准是人类表现，而不是完美。”
+  - 逐字一致（小节标题）。
+  - 一手来源：https://eugeneyan.com/writing/product-evals/
+- **[原文一致]** “……真正的收益并非比人类标注者更准确，而是可扩展性……全天候运行，不受人工审核吞吐量限制。”
+  - 逐字一致。
+  - 一手来源：https://eugeneyan.com/writing/product-evals/
+- **[原文一致]** “如果想评估从 Claude Haiku 3.5 迁移到 Haiku 4.5，我们只需改动一行配置……去吃午饭，然后回来查看结果。”
+  - 逐字一致。
+  - 一手来源：https://eugeneyan.com/writing/product-evals/
+- **[原文一致]** “我通常对相关性指标持怀疑态度……（不过 Cohen's κ 是个例外）。……因此，只要条件允许，我会让评估器返回二元结果。”
+  - 逐字一致。省略号删去了关于如何将相关性指标转化为生产含义的两句中间文字，但没有歪曲含义。
+  - 一手来源：https://eugeneyan.com/writing/llm-evaluators/
+- **[原文一致]** “如果将它用作生产环境的护栏（低延迟、高吞吐），可考虑投入资源微调分类器或奖励模型……”
+  - 逐字一致。
+  - 一手来源：https://eugeneyan.com/writing/llm-evaluators/
+- **[一手来源支持]** “GPT-4 偏爱自身，胜率高出 10%；Claude-v1 偏爱自身，胜率高出 25%。”（对 Zheng 等人 MT-Bench 的总结）
+  - **递归核验通过。** 一手论文（MT-Bench，第 3.3 节“自我增强偏差”）逐字写道：“GPT-4 favors itself with a 10% higher win rate; Claude-v1 favors itself with a 25% higher win rate.”数字完全一致。**注意：** 原论文的措辞非常谨慎：“由于数据有限、差异很小，我们的研究无法确定这些模型是否表现出自我增强偏差”，并指出 GPT-3.5 **不会**偏爱自身。Eugene 将其标为“总结 Zheng 等人”并无不妥；建议书中保留原论文的限定，避免把这项统计读成定论。
+  - 一手来源：https://arxiv.org/abs/2306.05685
+- **[一手来源支持]** “不同数据集上，LLM 评估器与人类判断之间的相关性方差很高。每个模型都会在某些数据集上表现不佳……还不够可靠，不能系统性替代人类判断。”
+  - **递归核验通过。** 引述逐字来自 Eugene 的文章；它总结的是 Bavaresco 等人（2024）《LLMs instead of Human Judges? A Large Scale Empirical Study across 20 NLP Evaluation Tasks》。论文摘要称：“我们的评估显示，模型和数据集之间存在显著方差……在把 LLM 用作评估器之前，应根据人类判断进行仔细验证。”表述忠实。
+  - 一手来源：https://arxiv.org/abs/2406.18403
+- **[原文一致]** “……实习生测试……如果把提供给语言模型的完全相同输入……交给相关专业的一名普通大学生……他们能成功吗？”
+  - 逐字一致。
+  - 一手来源：https://applied-llms.org/
+- **[原文一致]** “生产环境中的输入—输出对，是 LLM 应用的‘现地现物’（genchi genbutsu），无法被替代。”
+  - 逐字一致。
+  - 一手来源：https://applied-llms.org/
+- **[原文一致]** “这些‘凭感觉检查’是坏输出的信号；代码和断言把它们操作化。”
+  - 逐字一致。
+  - 一手来源：https://applied-llms.org/
+- **[原文一致]** “不过，LLM-as-Judge 并非万能药……传统分类器和奖励模型可以比 LLM-as-Judge 更准确，而且成本和延迟更低。”
+  - 逐字一致。注意：“更高准确率/更低成本”是作者自己的经验判断，而不是引自某项研究；这与全文的实践文章定位一致。
+  - 一手来源：https://applied-llms.org/
+- **[原文一致]** “当一项度量成为目标时，它就不再是一项好的度量。”——Yan 等人引用的 Goodhart 定律
+  - 逐字一致，且来源明确将其归于 Goodhart 定律。（严格说来，这种流行表述是 Marilyn Strathern 对 Goodhart 的改述；但书中采用的常见归属属于通行做法，也与来源一致。）
+  - 一手来源：https://applied-llms.org/
 
-**Reference findings (recursive):**
-- RECURSIVE CHECK 1 (MT-Bench self-bias): Eugene's '10% / 25%' figures are an EXACT transcription of Zheng et al. 2306.05685 (Sec 3.3). Telephone-game test PASSED on the numbers. However, the primary itself is far more cautious than the blog framing implies: it explicitly states it 'cannot determine whether the models exhibit a self-enhancement bias' due to limited data, and notes GPT-3.5 does not self-favor. If the book leans on this as evidence of self-preference, add the primary's hedge.
-- RECURSIVE CHECK 2 (high-variance finding): Eugene's summary sentence faithfully represents Bavaresco et al. 2024 (arXiv:2406.18403, 'LLMs instead of Human Judges?'). Primary abstract confirms 'substantial variance across models and datasets' and recommends validating LLM judges against humans. PASSED.
-- evals post additionally cites Krysciinski et al. (summarization eval dimensions), Fabbri et al. 2021 / Zhang et al. 2023 (generated > reference summaries), Stiennon et al. 2020 (reward models), Gehman et al. 2020 (RealToxicityPrompts), Dhamala et al. 2021 (BOLD), HELM/Liang et al. 2022, and a Voiceflow blog (~10% perf drop across ChatGPT versions). These back secondary points and were not individually re-verified to primary, as no quote in our cluster depends on them.
-- aligneval cites 'Who Validates the Validators' (2404.12272), PoLL (2404.18796), Llama2 (2307.09288), and the FIB dataset (r-three/fib) — none load-bearing for our quoted text.
-- product-evals cites Anthropic's 'Statistical Approach to Model Evals' and Harrison Chase; eval-process cites mainly Wikipedia (TDD, train/val/test) plus internal links — none load-bearing for our quotes.
-- applied-llms.org: the 'classifiers/reward models beat LLM-as-Judge on accuracy/cost/latency' and Goodhart framing are authorial/aphoristic, not external-stat dependent; nothing to chase to a primary.
+**参考文献发现（递归）：**
 
-All 23 quotes are verbatim and correctly attributed to the right post and URL. Minor formatting-only notes: quote #3 and #4 (evals) have italic/bold styling in the original that the plain-text quote drops (no wording change); #8 (eval-process) is a figure caption; the two ellipses (#12 God Evaluator, #16 correlation metrics) legitimately elide a parenthetical link and two intermediate sentences respectively, without distorting meaning. The two recursive primary-source checks — MT-Bench 10%/25% self-bias and the Bavaresco 'high variance' study — both check out: numbers/claims are faithfully represented, no telephone-game distortion. The single watch-item is that the MT-Bench primary explicitly cannot conclude self-enhancement bias exists (limited data; GPT-3.5 doesn't self-favor); if the book presents the 10/25 stat as established self-preference, append that caveat. The 5-10%/below-2% inconsistency figures are Eugene's own anecdotal estimates (so labeled in source) and have no citable primary. Overall integrity: solid.
+- **递归核验 1（MT-Bench 自我偏爱）：** Eugene 的“10% / 25%”数字与 Zheng 等人的 2306.05685（第 3.3 节）**完全一致**。数字的传话失真测试通过。然而，一手论文远比博客语境显得谨慎：它明确说，由于数据有限，论文“无法确定模型是否表现出自我增强偏差”，并指出 GPT-3.5 不会偏爱自身。如果本书据此证明模型存在自我偏好，应补上原论文的限定。
+- **递归核验 2（高方差发现）：** Eugene 的总结句忠实反映了 Bavaresco 等人 2024（arXiv:2406.18403，《LLMs instead of Human Judges?》）。论文摘要确认“不同模型和数据集之间存在显著方差”，并建议用人类判断验证 LLM 裁判。核验通过。
+- 评测文章还引用 Krysciinski 等人（摘要评估维度）、Fabbri 等人 2021 / Zhang 等人 2023（生成摘要优于参考摘要）、Stiennon 等人 2020（奖励模型）、Gehman 等人 2020（RealToxicityPrompts）、Dhamala 等人 2021（BOLD）、HELM/Liang 等人 2022，以及一篇 Voiceflow 博客（不同 ChatGPT 版本间约 10% 的性能下降）。这些材料支撑的是次要观点，当前材料中的引述并不依赖它们，因此未逐一回查一手来源。
+- AlignEval 引用《Who Validates the Validators》（2404.12272）、PoLL（2404.18796）、Llama2（2307.09288）和 FIB 数据集（r-three/fib）；它们均非当前引述的关键支撑。
+- 产品评测文章引用 Anthropic 的《Statistical Approach to Model Evals》和 Harrison Chase；评测过程文章主要引用 Wikipedia（TDD、训练/验证/测试）及内部链接；均非当前引述的关键支撑。
+- applied-llms.org 中，“分类器/奖励模型在准确率、成本、延迟方面胜过 LLM-as-Judge”以及 Goodhart 框架，属于作者判断/警句，而非依赖外部统计的结论；无需继续追溯一手来源。
 
----
-
-## Hamel Husain & Shreya Shankar (evals course/FAQ, EvalGen) — integrity: **solid** (24 quotes verified)
-
-- **[verbatim-ok]** intern test passage
-  - Verbatim in sec 1.4.3. Correctly attributed to the six co-authors (Yan, Bischof, Frye, Husain, Liu, Shankar). Only diff is straight vs curly quotes around 'intern test' — trivial.
-  - primary: https://applied-llms.org/
-- **[verbatim-ok]** 'Many people focus exclusively on #3 above...beyond a demo.'
-  - primary: https://hamel.dev/blog/posts/evals/
-- **[verbatim-ok]** 'You must remove all friction from the process of looking at data.'
-  - primary: https://hamel.dev/blog/posts/evals/
-- **[verbatim-ok]** 'Don't rely on generic evaluation frameworks...specific to your problem.'
-  - primary: https://hamel.dev/blog/posts/evals/
-- **[verbatim-ok]** 'You can never stop looking at data—no free lunch exists.'
-  - primary: https://hamel.dev/blog/posts/evals/
-- **[verbatim-ok]** '...assertions should run fast and cheaply...every time your code changes.'
-  - primary: https://hamel.dev/blog/posts/evals/
-- **[verbatim-ok]** '...better to build my own data viewing & labeling tool...onto one screen.'
-  - primary: https://hamel.dev/blog/posts/evals/
-- **[verbatim-ok]** 'track the correlation between model-based and human evaluation...'
-  - primary: https://hamel.dev/blog/posts/evals/
-- **[verbatim-ok]** 'Tracking a bunch of scores on a 1-5 scale is often a sign of a bad eval process'
-  - Page continues '(I'll discuss why later).' — our excerpt stops before the parenthetical, fine.
-  - primary: https://hamel.dev/blog/posts/llm-judge/
-- **[verbatim-ok]** 'What makes something a 3 versus a 4? Nobody knows...'
-  - primary: https://hamel.dev/blog/posts/llm-judge/
-- **[verbatim-ok]** 'When domain experts must decide if an interaction passes or fails...'
-  - primary: https://hamel.dev/blog/posts/llm-judge/
-- **[verbatim-ok]** 'In most organizations there is usually one (maybe two) key individuals...'
-  - primary: https://hamel.dev/blog/posts/llm-judge/
-- **[verbatim-ok]** '...critique should be detailed enough so that you can use it in a few-shot prompt...new employee could understand it.'
-  - Both sentences confirmed verbatim and consecutive.
-  - primary: https://hamel.dev/blog/posts/llm-judge/
-- **[verbatim-ok]** '...using raw agreement is generally not recommended and can be misleading when classes are imbalanced.'
-  - primary: https://hamel.dev/blog/posts/llm-judge/
-- **[verbatim-ok]** 'It took us only three iterations to achieve > 90% agreement between the LLM and Phillip.'
-  - Self-reported Honeycomb case study; not independently verifiable, but quote is accurate.
-  - primary: https://hamel.dev/blog/posts/llm-judge/
-- **[verbatim-ok]** 'Remember, the whole point of the LLM as a judge is to help you find these errors...'
-  - primary: https://hamel.dev/blog/posts/llm-judge/
-- **[verbatim-ok]** 'Error analysis is the most important activity in evals.'
-  - primary: https://hamel.dev/blog/posts/evals-faq/
-- **[verbatim-ok]** 'Appointing a single domain expert as a benevolent dictator is the most effective approach.'
-  - Full sentence is prefixed 'For most small to medium-sized companies,' — our excerpt drops the qualifier but does not distort meaning.
-  - primary: https://hamel.dev/blog/posts/evals-faq/
-- **[verbatim-ok]** 'Write evaluators for errors you discover, not errors you imagine.'
-  - primary: https://hamel.dev/blog/posts/evals-faq/
-- **[verbatim-ok]** '...aim to review at least 100 traces...if ~20 traces don't turn up a new category, you can stop...'
-  - primary: https://hamel.dev/blog/posts/evals-faq/
-- **[verbatim-ok]** 'Annotate only the first failure in the trace initially...cascade from the first issue.'
-  - primary: https://hamel.dev/blog/posts/evals-faq/
-- **[verbatim-ok]** '...transition failure matrices...rows represent the last successful state and columns represent where the first failure occurred.'
-  - primary: https://hamel.dev/blog/posts/evals-faq/
-- **[verbatim-ok]** 'Error analysis - the single most valuable activity in AI development and consistently the highest-ROI activity.'
-  - primary: https://hamel.dev/blog/posts/field-guide/
-- **[verbatim-ok]** 'The single most impactful investment...isn't a fancy evaluation dashboard – it's building a customized interface...'
-  - primary: https://hamel.dev/blog/posts/field-guide/
-- **[supported-by-primary]** RECURSIVE: llm-judge & FAQ cite EvalGen 'Who Validates the Validators?' (Shankar et al.) for 'criteria drift'
-  - Faithful. Paper's abstract: 'users need criteria to grade outputs, but grading outputs helps users define criteria.' Blog paraphrase matches with no distortion. Note self-citation: Shankar co-authors both the paper and the blog cluster.
-  - primary: https://arxiv.org/abs/2404.12272
-- **[supported-by-primary]** RECURSIVE: llm-judge cites Google ML Crash Course for 'raw agreement misleading when classes imbalanced'
-  - Supported. Google page: a model predicting negative 100% of the time scores 99% accuracy on a 1%-positive set 'despite being useless'; recommends precision/recall for imbalanced data. Blog claim is faithful.
-  - primary: https://developers.google.com/machine-learning/crash-course/classification/accuracy-precision-recall
-
-**Reference findings (recursive):**
-- EvalGen / 'Who Validates the Validators?' (arXiv 2404.12272, Shankar/Zamfirescu-Pereira/Hartmann/Parameswaran/Arawjo) — the load-bearing academic citation in this cluster, cited in both llm-judge and evals-faq for 'criteria drift'. Primary verified: the blog's paraphrase faithfully represents the paper's definition ('users need criteria to grade outputs, but grading outputs helps users define criteria'). No telephone-game distortion. Caveat: this is effectively a self-citation since Shreya Shankar co-authors both.
-- Google ML Crash Course 'Accuracy, Precision, Recall' — cited in llm-judge to justify that raw agreement/accuracy misleads on imbalanced classes. Primary verified: the page gives the 99%-accuracy-on-1%-positive example and recommends precision/recall. Faithfully represented.
-- FAQ '100 traces' / '~20 traces saturation' / 'transition failure matrices' — the author does NOT cite peer-reviewed research for these; they are explicitly framed as practitioner heuristics. The saturation idea is loosely linked to a 'theoretical saturation' concept from a qualitative-research blog (delvetool), and transition matrices to talks by Bryan Bischof. No misattribution — the author makes no academic claim, so these are honest heuristics rather than distorted citations.
-- Honeycomb '>90% agreement with Phillip in 3 iterations' — self-reported case study (Honeycomb Query Assistant), not an independent primary; accurate as quoted but unverifiable externally.
-- Other supporting links in the cluster (Databricks 'Grading Notes', Eugene Yan AlignEval/LLM-evaluators, OpenAI Cookbook custom-judge, LangChain Dosu case study) are corroborating practitioner sources, not load-bearing statistics; not individually distorted in the quotes we drew.
-
-All 24 of our quotes/claims verify VERBATIM against the primary source pages with correct attribution and URLs — no misquotes, no fabricated attributions. Two minor, non-distorting truncations worth noting in the book if precision matters: (1) the 'benevolent dictator' quote drops the leading qualifier 'For most small to medium-sized companies,'; (2) the '1-5 scale' quote stops before the page's parenthetical '(I'll discuss why later).' Neither changes meaning. The intern-test quote differs only in straight vs curly quotation marks.
-
-Recursive reference check (the part the author was challenged on): the cluster's two genuinely load-bearing external citations both hold up. The EvalGen 'criteria drift' citation is represented faithfully against the arXiv primary, though readers should know it is partly a self-citation (Shankar co-authors both). The Google ML Crash Course citation correctly supports the imbalanced-classes warning. The widely-repeated '100 traces / 20-trace saturation' and 'transition failure matrix' rules are honestly presented as practitioner heuristics, NOT dressed up as academic findings — so no telephone-game inflation there. Overall integrity: solid.
+全部 23 条引述都逐字一致，并正确归属到相应文章和 URL。仅有几项格式方面的小问题：评测文章的第 3、4 条在原文中分别使用斜体/粗体，而纯文本引述省略了样式（措辞未变）；第 8 条（评测过程）是图注；两处省略号（第 12 条“上帝评估器”、第 16 条相关性指标）分别合理地省略一处括注链接和两句中间文字，没有歪曲原意。两项递归一手来源核验——MT-Bench 的 10%/25% 自我偏爱数字，以及 Bavaresco 的“高方差”研究——均通过：数字与论断得到忠实呈现，没有传话失真。唯一需要警惕的是，MT-Bench 原论文明确表示，受限于数据量且 GPT-3.5 不偏爱自身，无法断定自我增强偏差存在；如果本书把 10/25 统计作为已证实的自我偏好，应附上这项限定。5–10% / 低于 2% 的不一致率是 Eugene 本人的经验估计（来源也如此标明），没有可引用的一手研究。总体完整性：可靠。
 
 ---
 
-## Han-Chung Lee (agent eval infra; RL-env taxonomy) — integrity: **minor-issues** (23 quotes verified)
+## Han-Chung Lee（智能体评测基础设施；RL 环境分类）——完整性：**存在轻微问题**（已核验 23 条引述）
 
-- **[verbatim-ok]** Eval infra quote: 'These scores are useful... task definitions, runtimes, snapshots... production feedback.'
-  - Verbatim on page; correctly attributed (2026-06-13).
-  - primary: https://leehanchung.github.io/blogs/2026/06/13/hidden-technical-debt-agent-evaluation-infra/
-- **[verbatim-ok]** 'Scoring the final response is the easy part... explainable, reproducible, and actionable.'
-  - Verbatim.
-  - primary: https://leehanchung.github.io/blogs/2026/06/13/hidden-technical-debt-agent-evaluation-infra/
-- **[verbatim-ok]** 'agents complete tasks by changing the environment, so final-output-only evals are no longer sufficient.'
-  - Verbatim; on page preceded by 'This is all to say that'.
-  - primary: https://leehanchung.github.io/blogs/2026/06/13/hidden-technical-debt-agent-evaluation-infra/
-- **[verbatim-ok]** 'Traces should not be scored primarily on whether they follow one golden path... weak measure of agent intelligence.'
-  - Verbatim.
-  - primary: https://leehanchung.github.io/blogs/2026/06/13/hidden-technical-debt-agent-evaluation-infra/
-- **[verbatim-ok]** 'The canonical trace-level failure is the empty tool result hallucination.'
-  - Verbatim.
-  - primary: https://leehanchung.github.io/blogs/2026/06/13/hidden-technical-debt-agent-evaluation-infra/
-- **[verbatim-ok]** 'A polished final answer does not mean its faithful to the context...unsafe or excessive.'
-  - Verbatim, including the source's own typo 'its' (for 'it's').
-  - primary: https://leehanchung.github.io/blogs/2026/06/13/hidden-technical-debt-agent-evaluation-infra/
-- **[verbatim-ok]** 'A 2.4-point move in an average can be a real improvement or pure noise; Simpson's paradox applies...'
-  - Verbatim.
-  - primary: https://leehanchung.github.io/blogs/2026/06/13/hidden-technical-debt-agent-evaluation-infra/
-- **[verbatim-ok]** 'The useful question is not "did the number go up"... which tasks flipped and in which direction.'
-  - Verbatim.
-  - primary: https://leehanchung.github.io/blogs/2026/06/13/hidden-technical-debt-agent-evaluation-infra/
-- **[verbatim-ok]** 'And an eval infrastructure that cannot restore the state to a checkpoint is logs, not eval infra.'
-  - Verbatim.
-  - primary: https://leehanchung.github.io/blogs/2026/06/13/hidden-technical-debt-agent-evaluation-infra/
-- **[verbatim-ok]** 'State is the part... They are used to datasets. Agents need worlds. Agentic evaluation infra needs multiverses.'
-  - Verbatim.
-  - primary: https://leehanchung.github.io/blogs/2026/06/13/hidden-technical-debt-agent-evaluation-infra/
-- **[verbatim-ok]** 'This is cargo cult evaluation - the number moved up and to the right because the measurement changed...'
-  - Verbatim.
-  - primary: https://leehanchung.github.io/blogs/2026/06/13/hidden-technical-debt-agent-evaluation-infra/
-- **[verbatim-ok]** 'Agents do not only need datasets. Agents need worlds. Evaluation infrastructure is how those worlds become measurable.'
-  - Verbatim.
-  - primary: https://leehanchung.github.io/blogs/2026/06/13/hidden-technical-debt-agent-evaluation-infra/
-- **[verbatim-ok]** 'If your eval does not capture the state delta, it is not flexible enough to evaluate tasks that are stateful.'
-  - Verbatim.
-  - primary: https://leehanchung.github.io/blogs/2026/06/13/hidden-technical-debt-agent-evaluation-infra/
-- **[verbatim-ok]** 'If memory is part of the harness, it is part of the evaluation surface.'
-  - Verbatim.
-  - primary: https://leehanchung.github.io/blogs/2026/06/13/hidden-technical-debt-agent-evaluation-infra/
-- **[verbatim-ok]** 'One bad episode becomes a durable preference. A polluted memory narrows exploration...'
-  - Verbatim.
-  - primary: https://leehanchung.github.io/blogs/2026/06/13/hidden-technical-debt-agent-evaluation-infra/
-- **[verbatim-ok]** 'A benchmark is a frozen environment.'
-  - Verbatim.
-  - primary: https://leehanchung.github.io/blogs/2026/06/13/hidden-technical-debt-agent-evaluation-infra/
-- **[verbatim-ok]** 'A trajectory is what the trainer sees (state-action-reward tuples); a trace is what the observability system sees...'
-  - Verbatim; correctly attributed (2026-03-21).
-  - primary: https://leehanchung.github.io/blogs/2026/03/21/rl-environments-for-llm-agents/
-- **[verbatim-ok]** 'Verifiable beats judgeable. Programmatic checks such as string match or code execution... not as the default.'
-  - Verbatim.
-  - primary: https://leehanchung.github.io/blogs/2026/03/21/rl-environments-for-llm-agents/
-- **[verbatim-ok]** 'Static rubrics get gamed. Models learn to write answers that score well on your rubric rather than solving the problem.'
-  - Verbatim.
-  - primary: https://leehanchung.github.io/blogs/2026/03/21/rl-environments-for-llm-agents/
-- **[verbatim-ok]** 'If you've built benchmarks before, you've already built an RL environment — just a frozen one.'
-  - Verbatim.
-  - primary: https://leehanchung.github.io/blogs/2026/03/21/rl-environments-for-llm-agents/
-- **[verbatim-ok]** 'This is the generation-verification gap: generating outputs with AI agents is cheap, but verifying their quality...'
-  - Verbatim.
-  - primary: https://leehanchung.github.io/blogs/2026/03/21/rl-environments-for-llm-agents/
-- **[verbatim-ok]** 'Using the same model family to both generate completions and judge them creates a feedback loop...'
-  - Verbatim.
-  - primary: https://leehanchung.github.io/blogs/2026/03/21/rl-environments-for-llm-agents/
-- **[verbatim-ok]** 'Get these right, and the agent learns behaviors that transfer to production. Get them wrong... an expensive demo.'
-  - Verbatim.
-  - primary: https://leehanchung.github.io/blogs/2026/03/21/rl-environments-for-llm-agents/
-- **[verbatim-ok]** 'While some express skepticism about the quality and trustworthiness of LLMs as judges... align with expectations.'
-  - Verbatim in the Introduction; correctly attributed (2024-08-11).
-  - primary: https://leehanchung.github.io/blogs/2024/08/11/llm-as-a-judge/
-- **[supported-by-primary]** REFERENCE CHECK: Blog claims AutoEnv generates environments at ~$4 each.
-  - Primary (AutoEnv, Zhang et al., 2025-11) abstract states 'low-cost (4.12 USD on average) generation of heterogeneous worlds.' Independently confirmed via search. Accurate.
-  - primary: https://arxiv.org/abs/2511.19304
-- **[supported-by-primary]** REFERENCE CHECK: Blog claims EnterpriseOps-Gym maintains 164 DB tables and 512 tools.
-  - Primary abstract: 'EnterpriseOps-Gym features a containerized sandbox with 164 database tables and 512 functional tools.' Exact match.
-  - primary: https://arxiv.org/abs/2603.13594
-- **[supported-by-primary]** REFERENCE CHECK: Blog cites AgentScaler with a two-phase curriculum / fine-tuning strategy.
-  - Primary paper 'Towards General Agentic Intelligence via Environment Scaling' (Fang et al.) describes 'a two-phase agent fine-tuning strategy'; the model is named AgentScaler. Note actual paper title differs from a generic 'AgentScaler: Scaling LLM Agent Training' label, but the blog's anchor + claim are accurate.
-  - primary: https://arxiv.org/abs/2509.13311
-- **[unverifiable]** REFERENCE CHECK: Blog states Step-DeepResearch 'deliberately injects 5-10% tool errors during training.'
-  - PARTIAL/WEAK LINK. Primary (Step-DeepResearch Technical Report) supports the QUALITATIVE claim: it 'intentionally retained' a 'controlled proportion of trajectories containing tool-call errors, such as empty search results or tool failures' — but in the SFT stage and WITHOUT any 5-10% figure. The specific '5-10%' quantification could not be found in the abstract or HTML body; appears to be the blog author's own gloss. Flag as a number not substantiated by the primary.
-  - primary: https://arxiv.org/abs/2512.20491
-- **[supported-by-primary]** REFERENCE CHECK: Blog states Step-DeepResearch scales context 32K to 128K during mid-training.
-  - Primary: Stage II mid-training 'further extends the maximum context length to 128K' (Stage I = 32K, per Table 3). Accurate.
-  - primary: https://arxiv.org/abs/2512.20491
-- **[supported-by-primary]** REFERENCE CHECK (LLM-as-judge post): cites Sclar et al. ~76 accuracy points from prompt formatting.
-  - Primary (Sclar, Choi, Tsvetkov, Suhr) abstract: 'performance differences of up to 76 accuracy points when evaluated using LLaMA-2-13B.' Accurately represented.
-  - primary: https://arxiv.org/abs/2310.11324
+- **[原文一致]** 评测基础设施引述：“这些分数很有用……任务定义、运行时、快照……生产反馈。”
+  - 页面文字逐字一致；归属正确（2026-06-13）。
+  - 一手来源：https://leehanchung.github.io/blogs/2026/06/13/hidden-technical-debt-agent-evaluation-infra/
+- **[原文一致]** “给最终回答打分是容易的部分……可解释、可复现且可行动。”
+  - 逐字一致。来源同上。
+- **[原文一致]** “智能体通过改变环境来完成任务，因此只评估最终输出已不再充分。”
+  - 逐字一致；页面原文前有“这归根结底意味着”。来源同上。
+- **[原文一致]** “不应主要根据轨迹是否遵循某条黄金路径来评分……这是对智能体智能水平的薄弱度量。”
+  - 逐字一致。来源同上。
+- **[原文一致]** “典型的轨迹级故障，是对空工具结果产生幻觉。”
+  - 逐字一致。来源同上。
+- **[原文一致]** “一份润色精美的最终回答，并不意味着它忠于上下文……可能不安全或过度。”
+  - 逐字一致，包括来源将“it's”误写为“its”的拼写错误。来源同上。
+- **[原文一致]** “平均值移动 2.4 个点，可能是真正的改进，也可能只是纯粹噪声；辛普森悖论在此同样适用……”
+  - 逐字一致。来源同上。
+- **[原文一致]** “真正有用的问题不是‘数字是否上升’……而是哪些任务发生了翻转，以及向哪个方向翻转。”
+  - 逐字一致。来源同上。
+- **[原文一致]** “无法把状态恢复到检查点的评测基础设施，只是日志，而非评测基础设施。”
+  - 逐字一致。来源同上。
+- **[原文一致]** “状态是……他们习惯的是数据集。智能体需要世界。智能体评测基础设施需要多重宇宙。”
+  - 逐字一致。来源同上。
+- **[原文一致]** “这是货物崇拜式评测——数字之所以向右上方移动，是因为测量方式发生了变化……”
+  - 逐字一致。来源同上。
+- **[原文一致]** “智能体需要的不只是数据集。智能体需要世界。评测基础设施让这些世界变得可测量。”
+  - 逐字一致。来源同上。
+- **[原文一致]** “如果评测不捕获状态差异，它就不够灵活，无法评估有状态任务。”
+  - 逐字一致。来源同上。
+- **[原文一致]** “如果记忆是工具的一部分，它就是评估面的一部分。”
+  - 逐字一致。来源同上。
+- **[原文一致]** “一次糟糕回合会变成持久偏好。受污染的记忆会缩窄探索范围……”
+  - 逐字一致。来源同上。
+- **[原文一致]** “基准是一个冻结的环境。”
+  - 逐字一致。来源同上。
+- **[原文一致]** “轨迹是训练器看到的内容（状态—动作—奖励元组）；踪迹是可观测系统看到的内容……”
+  - 逐字一致；归属正确（2026-03-21）。
+  - 一手来源：https://leehanchung.github.io/blogs/2026/03/21/rl-environments-for-llm-agents/
+- **[原文一致]** “可验证胜过可裁判。字符串匹配、代码执行等程序化检查……不应把裁判作为默认选择。”
+  - 逐字一致。来源同上。
+- **[原文一致]** “静态量表会被钻空子。模型学会的是写出能在量表上得高分的回答，而不是解决问题。”
+  - 逐字一致。来源同上。
+- **[原文一致]** “如果你以前构建过基准，那么你已经构建了一个 RL 环境——只不过是冻结的环境。”
+  - 逐字一致。来源同上。
+- **[原文一致]** “这就是生成—验证鸿沟：用 AI 智能体生成输出很便宜，但验证其质量……”
+  - 逐字一致。来源同上。
+- **[原文一致]** “使用同一模型家族既生成补全又进行裁判，会形成反馈回路……”
+  - 逐字一致。来源同上。
+- **[原文一致]** “把这些做对，智能体就能学到可迁移到生产环境的行为。做错了……就只得到一个昂贵的演示。”
+  - 逐字一致。来源同上。
+- **[原文一致]** “虽然有人对 LLM 作为裁判的质量和可信度表示怀疑……但仍可使结果与期望对齐。”
+  - 引言中逐字一致；归属正确（2024-08-11）。
+  - 一手来源：https://leehanchung.github.io/blogs/2024/08/11/llm-as-a-judge/
+- **[一手来源支持]** 参考文献核验：博客称 AutoEnv 生成每个环境的成本约为 4 美元。
+  - 一手论文（AutoEnv，Zhang 等人，2025-11）摘要称，可“以低成本（平均 4.12 美元）生成异构世界”。已通过搜索独立确认，准确。
+  - 一手来源：https://arxiv.org/abs/2511.19304
+- **[一手来源支持]** 参考文献核验：博客称 EnterpriseOps-Gym 维护 164 张数据库表和 512 个工具。
+  - 一手论文摘要称：“EnterpriseOps-Gym 提供一个容器化沙箱，包含 164 张数据库表和 512 个可用工具。”完全匹配。
+  - 一手来源：https://arxiv.org/abs/2603.13594
+- **[一手来源支持]** 参考文献核验：博客称 AgentScaler 使用两阶段课程/微调策略。
+  - 一手论文《Towards General Agentic Intelligence via Environment Scaling》（Fang 等人）描述了“一种两阶段智能体微调策略”；模型名为 AgentScaler。注意，论文真实标题不同于泛称《AgentScaler: Scaling LLM Agent Training》，但博客链接和实质论断均准确。
+  - 一手来源：https://arxiv.org/abs/2509.13311
+- **[无法核验]** 参考文献核验：博客称 Step-DeepResearch“在训练时故意注入 5–10% 的工具错误”。
+  - **链接仅部分/弱支持。** 一手技术报告支持定性论断：在 SFT 阶段“有意保留”了“比例受控、包含工具调用错误（如空搜索结果或工具失败）的轨迹”，但**没有**给出 5–10% 这一数字。在摘要和 HTML 正文中均未找到具体比例；它似乎是博客作者自己的概括。应标记为一手来源无法支撑的数字。
+  - 一手来源：https://arxiv.org/abs/2512.20491
+- **[一手来源支持]** 参考文献核验：博客称 Step-DeepResearch 在中期训练中把上下文从 32K 扩展到 128K。
+  - 一手论文称，第二阶段中期训练“进一步把最大上下文长度扩展到 128K”（表 3 显示第一阶段为 32K）。准确。来源同上。
+- **[一手来源支持]** 参考文献核验（LLM-as-judge 文章）：引用 Sclar 等人因提示格式变化而出现约 76 个准确率百分点的差异。
+  - Sclar、Choi、Tsvetkov、Suhr 的一手论文摘要称：“在使用 LLaMA-2-13B 评估时，性能差异最高可达 76 个准确率百分点。”表述准确。
+  - 一手来源：https://arxiv.org/abs/2310.11324
 
-**Reference findings (recursive):**
-- AutoEnv (arxiv 2511.19304, Zhang et al., 2025-11): REAL and correctly cited. Blog's '~$4/environment' matches the primary's '4.12 USD on average'. Existence independently confirmed via web search (HF, GitHub FoundationAgents/AutoEnv).
-- EnterpriseOps-Gym (arxiv 2603.13594, Malay et al.): REAL and exactly cited. '164 database tables and 512 functional tools' is a verbatim match to the abstract.
-- AgentScaler (arxiv 2509.13311): REAL. Actual title is 'Towards General Agentic Intelligence via Environment Scaling' (Fang et al.); AgentScaler is the resulting model. Blog's two-phase fine-tuning claim is supported. Only nuance: the paper title is not literally 'AgentScaler', but the link and substantive claim are correct.
-- Step-DeepResearch (arxiv 2512.20491): REAL ('Step-DeepResearch Technical Report', 65 authors). The 32K->128K context-scaling claim checks out exactly. HOWEVER the blog's specific '5-10% tool errors' figure is NOT found in the primary — the paper only says it 'intentionally retained' a 'controlled proportion' of error trajectories (empty search results / tool failures) in SFT, with no percentage. This is the one telephone-game risk in the cluster: a qualitative practice was given an unsupported specific number. Recommend softening to 'a controlled proportion of tool-error trajectories' unless the 5-10% appears elsewhere in the full PDF.
-- Sclar et al. (arxiv 2310.11324) in the 2024 LLM-as-a-Judge post: REAL and accurately represented — 'up to 76 accuracy points' from prompt-format sensitivity matches the abstract verbatim.
-- SWE-bench (arxiv 2310.06770) and SciCode (arxiv 2407.13168): cited with correct, well-known arxiv IDs; standard benchmark references, no distortion observed.
-- Foundational/namesake citations — Sculley et al. 2015 'Hidden Technical Debt in Machine Learning Systems' (NeurIPS) and Sutton & Barto 2018 — are correctly attributed and uncontroversial. Other cited resources (MCP, Open Reward Standard, OpenReward, Prime Intellect prime-rl, Ofir Press benchmarks guide) are project/blog links used illustratively, not load-bearing statistics.
+**参考文献发现（递归）：**
 
-All 23 author quotes are VERBATIM and correctly attributed to the right post/date/URL across the three sources (eval-infra 2026-06-13, RL-env taxonomy 2026-03-21, LLM-as-judge 2024-08-11). One quote (#6) faithfully preserves the source's own typo 'its' for 'it's' — keep as-is for fidelity. Recursive reference check: the source's load-bearing external citations are real and, with one exception, accurately represented against their primaries — verified AutoEnv ($4.12 avg), EnterpriseOps-Gym (164 tables/512 tools), AgentScaler (two-phase), Sclar (76 accuracy points), and Step-DeepResearch context 32K->128K. SINGLE FLAG: the blog's claim that Step-DeepResearch 'deliberately injects 5-10% tool errors during training' adds a specific percentage that the primary paper does not state (it only describes retaining 'a controlled proportion' of tool-error trajectories, in the SFT stage). The qualitative point stands; the precise 5-10% figure is unverifiable against the primary. Overall integrity: solid quoting, one unsupported quantification to fix or soften.
+- AutoEnv（arXiv 2511.19304，Zhang 等人，2025-11）真实存在且引用正确。博客“每个环境约 4 美元”与一手论文“平均 4.12 美元”匹配；并通过网页搜索在 HF、GitHub FoundationAgents/AutoEnv 独立确认其存在。
+- EnterpriseOps-Gym（arXiv 2603.13594，Malay 等人）真实存在且引用完全正确。“164 张数据库表、512 个可用工具”逐字匹配摘要。
+- AgentScaler（arXiv 2509.13311）真实存在。实际标题为《Towards General Agentic Intelligence via Environment Scaling》（Fang 等人），AgentScaler 是所得模型；博客关于两阶段微调的说法得到支持。唯一细节是论文标题并非字面上的“AgentScaler”，但链接与实质论断正确。
+- Step-DeepResearch（arXiv 2512.20491）真实存在（《Step-DeepResearch Technical Report》，65 位作者）。32K→128K 的上下文扩展论断完全正确。**然而**，博客具体写出的“5–10% 工具错误”没有出现在一手论文中；论文只说在 SFT 阶段“有意保留”了“比例受控”的错误轨迹（空搜索结果/工具失败），未给出百分比。这是本组唯一存在传话风险之处：定性实践被加上了没有依据的具体数字。除非完整 PDF 其他位置确有 5–10%，否则建议改成“比例受控的工具错误轨迹”。
+- 2024 年 LLM-as-a-Judge 文章引用的 Sclar 等人（arXiv 2310.11324）真实存在，且表述准确——对提示格式的敏感性导致“最高 76 个准确率百分点”差异，与摘要逐字一致。
+- SWE-bench（arXiv 2310.06770）和 SciCode（arXiv 2407.13168）的 arXiv ID 正确，均为标准基准引用，未发现歪曲。
+- 奠基性/同名引用 Sculley 等人 2015《Hidden Technical Debt in Machine Learning Systems》（NeurIPS）和 Sutton & Barto 2018 的归属正确且无争议。其他引用资源（MCP、Open Reward Standard、OpenReward、Prime Intellect prime-rl、Ofir Press 基准指南）仅作为项目/博客示例，不承担关键统计支撑。
+
+全部 23 条作者引述均与原文一致，且在三个来源中归属到正确的文章、日期和 URL（评测基础设施 2026-06-13、RL 环境分类 2026-03-21、LLM-as-judge 2024-08-11）。第 6 条忠实保留来源自身将“it's”误写为“its”的错误，出于保真应维持原样。递归核验结果表明，来源所依赖的外部引用真实存在，除一项外均与一手来源一致：AutoEnv（平均 4.12 美元）、EnterpriseOps-Gym（164 张表/512 个工具）、AgentScaler（两阶段）、Sclar（76 个准确率百分点）以及 Step-DeepResearch 上下文从 32K 扩展到 128K 均已核验。**唯一标记：** 博客称 Step-DeepResearch“训练时故意注入 5–10% 工具错误”，但一手论文没有这一具体比例，只说保留“比例受控”的工具错误轨迹，且发生在 SFT 阶段。定性观点成立，精确的 5–10% 无法由一手来源验证。总体完整性：引述可靠，但有一项不受支持的量化需要修正或弱化。
 
 ---
 
-## Anthropic (demystifying evals; error bars) — integrity: **minor-issues** (20 quotes verified)
+## Anthropic（揭开评测神秘面纱；误差条）——完整性：**存在轻微问题**（已核验 20 条引述）
 
-- **[verbatim-ok]** An evaluation ('eval') is a test for an AI system: give an AI an input, then apply grading logic to its output to measure success.
-  - Exact match; opens 'The structure of an evaluation'.
-  - primary: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
-- **[verbatim-ok]** A good task is one where two domain experts would independently reach the same pass/fail verdict.
-  - Exact match; Step 2 (unambiguous tasks).
-  - primary: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
-- **[verbatim-ok]** Everything the grader checks should be clear from the task description; agents shouldn't fail due to ambiguous specs.
-  - Exact match.
-  - primary: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
-- **[verbatim-ok]** So as not to unnecessarily punish creativity, it's often better to grade what the agent produced, not the path it took.
-  - Exact match; Step 5 (design graders).
-  - primary: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
-- **[verbatim-ok]** A support agent that correctly identifies the problem and verifies the customer but fails to process a refund is meaningfully better than one that fails immediately.
-  - Exact match; partial-credit discussion.
-  - primary: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
-- **[verbatim-ok]** Test both the cases where a behavior should occur and where it shouldn't. One-sided evals create one-sided optimization.
-  - Exact match; Step 3 (balanced problem sets).
-  - primary: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
-- **[verbatim-ok]** You won't know if your graders are working well unless you read the transcripts and grades from many trials.
-  - Exact match; Step 6 (check the transcripts).
-  - primary: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
-- **[verbatim-ok]** As a rule, we do not take eval scores at face value until someone digs into the details of the eval and reads some transcripts.
-  - Exact match.
-  - primary: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
-- **[verbatim-ok]** When we evaluate 'an agent,' we're evaluating the harness and the model working together.
-  - Exact match; definitions section.
-  - primary: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
-- **[verbatim-ok]** Eval saturation occurs when an agent passes all of the solvable tasks, leaving no room for improvement.
-  - Exact match; Step 7 (capability eval saturation).
-  - primary: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
-- **[verbatim-ok]** Each trial should be 'isolated' by starting from a clean environment. Unnecessary shared state between runs (leftover files, cached data, resource exhaustion) can cause correlated failures due to infrastructure flakiness rather than agent performance.
-  - Exact match; Step 4.
-  - primary: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
-- **[verbatim-ok]** It 'failed' the evaluation as written, but actually came up with a better solution for the user. (Opus 4.5 / tau2-bench policy loophole)
-  - Quote verbatim and correctly attributed. NOTE: the Opus 4.5 tau2-bench loophole is Anthropic's own internal anecdote, not independently verifiable against an external primary; the linked tau2-bench paper (arXiv 2506.07982) is only the benchmark, not this finding.
-  - primary: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
-- **[verbatim-ok]** For AI product teams, owning and iterating on evaluations should be as routine as maintaining unit tests.
-  - Exact match; Step 8.
-  - primary: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
-- **[verbatim-ok]** To avoid hallucinations, give the LLM a way out, like providing an instruction to return 'Unknown' when it doesn't have enough information.
-  - Exact match; Step 5.
-  - primary: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
-- **[verbatim-ok]** It can also help to create clear, structured rubrics to grade each dimension of a task, and then grade each dimension with an isolated LLM-as-judge rather than using one to grade all dimensions.
-  - Exact match; Step 5.
-  - primary: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
-- **[verbatim-ok]** Like the Swiss Cheese Model from safety engineering, no single evaluation layer catches every issue. With multiple methods combined, failures that slip through one layer are caught by another.
-  - Exact match; article links 'Swiss Cheese Model' to Wikipedia. Analogy attribution is generic safety-engineering, fine.
-  - primary: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
-- **[verbatim-ok]** It's often best to quickly pick a framework that fits your workflow, then invest your energy in the evals themselves by iterating on high-quality test cases and graders.
-  - Exact match; Appendix.
-  - primary: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
-- **[verbatim-ok]** pass@k measures the likelihood that an agent gets at least one correct solution in k attempts.
-  - Quote verbatim. Article cites the NeurIPS 2019 SPoC paper (Kulal et al.) for pass@k; SPoC does originate pass@k and defines it as a task solved if at least one of k samples passes the tests — Anthropic's characterization is faithful to the primary.
-  - primary: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
-- **[verbatim-ok]** pass^k measures the probability that all k trials succeed.
-  - Quote verbatim. pass^k originates with tau-bench (Yao et al.); article's definition is consistent with that primary.
-  - primary: https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
-- **[verbatim-ok]** We make a number of specific recommendations for running language model evaluations and reporting experiment results in a way that minimizes statistical noise and maximizes informativeness. (attributed to 'Miller et al. (Anthropic)')
-  - Quote is verbatim from the abstract; Anthropic affiliation correct (evanmiller@anthropic.com). ATTRIBUTION FLAW: the paper is single-author (Evan Miller), so 'Miller et al.' is wrong — should be 'Miller (Anthropic)'. Fix the 'et al.'
-  - primary: https://arxiv.org/abs/2411.00640
+- **[原文一致]** 评估（“eval”）是对 AI 系统的测试：向 AI 提供一个输入，再对其输出应用评分逻辑来衡量成功与否。
+  - 完全匹配；是“评估的结构”一节开头。
+  - 一手来源：https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents
+- **[原文一致]** 一个好的任务，应当让两位领域专家在相互独立的情况下得出相同的通过/失败判断。
+  - 完全匹配；第 2 步（无歧义任务）。来源同上。
+- **[原文一致]** 评分器检查的一切都应在任务说明中写清楚；智能体不应因规格含糊而失败。
+  - 完全匹配。来源同上。
+- **[原文一致]** 为避免不必要地惩罚创造性，通常最好评价智能体产出了什么，而不是它走过哪条路径。
+  - 完全匹配；第 5 步（设计评分器）。来源同上。
+- **[原文一致]** 一个支持智能体即使正确识别了问题并核验了客户身份，却未能处理退款，也仍然显著优于一开始就失败的智能体。
+  - 完全匹配；部分得分讨论。来源同上。
+- **[原文一致]** 既要测试某种行为应当发生的案例，也要测试它不应发生的案例。单侧评测会造成单侧优化。
+  - 完全匹配；第 3 步（平衡问题集）。来源同上。
+- **[原文一致]** 如果不阅读多次试验的对话记录和评分，就无法知道评分器是否运行良好。
+  - 完全匹配；第 6 步（检查对话记录）。来源同上。
+- **[原文一致]** 作为规则，在有人深入研究评测细节并阅读一些对话记录之前，我们不会照单全收评测分数。
+  - 完全匹配。来源同上。
+- **[原文一致]** 当我们评估“一个智能体”时，评估的是工具与模型协同工作的整体。
+  - 完全匹配；定义部分。来源同上。
+- **[原文一致]** 当智能体通过了所有可解决任务、不再有改进空间时，就会发生评测饱和。
+  - 完全匹配；第 7 步（能力评测饱和）。来源同上。
+- **[原文一致]** 每次试验都应从干净环境开始，从而彼此“隔离”。不同运行之间不必要的共享状态（残留文件、缓存数据、资源耗尽）可能因基础设施不稳定而造成相关失败，而不是反映智能体性能。
+  - 完全匹配；第 4 步。来源同上。
+- **[原文一致]** 按照评测原本的写法，它“失败”了；但实际上，它为用户想出了更好的解决方案。（Opus 4.5 / tau2-bench 政策漏洞）
+  - 引述逐字一致、归属正确。注意：Opus 4.5 在 tau2-bench 中发现漏洞，是 Anthropic 自己的内部轶事，无法通过外部一手来源独立核验；链接的 tau2-bench 论文（arXiv 2506.07982）只描述基准，并不包含这一发现。来源同上。
+- **[原文一致]** 对 AI 产品团队而言，拥有并持续迭代评测，应当像维护单元测试一样成为日常工作。
+  - 完全匹配；第 8 步。来源同上。
+- **[原文一致]** 为避免幻觉，应给 LLM 一条退路，例如指示它在信息不足时返回“未知”。
+  - 完全匹配；第 5 步。来源同上。
+- **[原文一致]** 为任务的每个维度创建清晰、结构化的量表也会有所帮助；随后用相互隔离的 LLM-as-judge 分别评价每个维度，而不是用一个裁判评价所有维度。
+  - 完全匹配；第 5 步。来源同上。
+- **[原文一致]** 就像安全工程中的瑞士奶酪模型一样，没有任何单一评估层能够捕获所有问题。组合多种方法后，从一层漏过的故障会被另一层捕获。
+  - 完全匹配；文章将“瑞士奶酪模型”链接至 Wikipedia。它只是通用的安全工程类比，归属没有问题。来源同上。
+- **[原文一致]** 通常最好的做法是迅速选定适合工作流的框架，然后把精力投入评测本身，不断迭代高质量测试用例和评分器。
+  - 完全匹配；附录。来源同上。
+- **[原文一致]** pass@k 衡量智能体在 k 次尝试中至少获得一个正确解的可能性。
+  - 引述逐字一致。文章将 pass@k 引至 NeurIPS 2019 的 SPoC 论文（Kulal 等人）；SPoC 的确提出 pass@k，并把任务解出定义为 k 个样本中至少有一个通过测试。因此 Anthropic 的概括忠实于一手来源。来源同上。
+- **[原文一致]** pass^k 衡量全部 k 次试验均成功的概率。
+  - 引述逐字一致。pass^k 源自 tau-bench（Yao 等人）；文章定义与一手来源一致。来源同上。
+- **[原文一致]** “我们提出了一系列具体建议，以尽量降低统计噪声、提高信息量的方式运行语言模型评估并报告实验结果。”（归属于“Miller 等人（Anthropic）”）
+  - 引述与摘要逐字一致；Anthropic 任职信息正确（evanmiller@anthropic.com）。**归属缺陷：** 论文只有一位作者 Evan Miller，因此“Miller 等人”错误，应改为“Miller（Anthropic）”。
+  - 一手来源：https://arxiv.org/abs/2411.00640
 
-**Reference findings (recursive):**
-- pass@k -> SPoC: Search-based Pseudocode to Code (Kulal, Pasupat, Chandra, Lee, Padon, Aiken, Liang; NeurIPS 2019). The demystifying article links pass@k to this NeurIPS 2019 paper (proceedings.neurips.cc/.../7298332f...Paper.pdf). SPoC is a legitimate origin of pass@k and defines it as a task being solved if at least one of the top-k candidate samples passes the tests — Anthropic's phrasing ('at least one correct solution in k attempts') faithfully represents the primary. No telephone-game distortion. (The more cited unbiased-estimator version is Chen et al. 2021 Codex paper, but citing SPoC is defensible.)
-- tau2-bench -> arXiv:2506.07982 and tau-bench -> arXiv:2406.12045: both links resolve to the correct benchmark papers. However, the article's load-bearing anecdote ('Opus 4.5 found a policy loophole... came up with a better solution') is Anthropic's own internal result, NOT something in the tau2-bench paper; it is unverifiable against an external primary. Correctly attributed to the article itself.
-- Swiss Cheese Model -> Wikipedia: linked correctly; used as a generic safety-engineering analogy, no specific statistic borrowed, so no misrepresentation risk.
-- Adding Error Bars to Evals -> arXiv:2411.00640: abstract quote verbatim; author Evan Miller is confirmed Anthropic (evanmiller@anthropic.com), so the Anthropic attribution is right, but the paper is SINGLE-AUTHOR — 'Miller et al.' is incorrect and should be corrected to 'Miller'.
-- Other benchmark citations in the article (SWE-bench Verified, Terminal-Bench, WebArena arXiv:2307.13854, OSWorld) and tooling (Harbor, Braintrust, LangSmith, Langfuse, Arize Phoenix) link to correct primaries; none are load-bearing for the quotes we drew.
+**参考文献发现（递归）：**
 
-All 20 of our quotes are verbatim and correctly sourced to the right URL. Only defect found: one attribution error — the error-bars paper (arXiv:2411.00640) is single-authored by Evan Miller (Anthropic), so 'Miller et al.' should read 'Miller'. Quote text itself is exact. Recursive check of the source's OWN citations: the load-bearing ones (pass@k -> SPoC/Kulal 2019; pass^k -> tau-bench; Swiss Cheese -> Wikipedia) are represented faithfully, no telephone-game distortion. Caveat: the Opus 4.5 / tau2-bench 'policy loophole, came up with a better solution' anecdote is Anthropic's own internal claim and cannot be independently verified against the tau2-bench primary; it is correctly attributed to the blog but should be presented as Anthropic's self-report, not a third-party-verified result. Recommend fixing 'Miller et al.' -> 'Miller'.
+- pass@k → SPoC：《Search-based Pseudocode to Code》（Kulal、Pasupat、Chandra、Lee、Padon、Aiken、Liang；NeurIPS 2019）。文章将 pass@k 链接到这篇 NeurIPS 论文。SPoC 确实是 pass@k 的正当起源之一，并把任务解出定义为排名前 k 的候选样本中至少一个通过测试；Anthropic 的“k 次尝试中至少一个正确解”忠实反映一手来源，不存在传话失真。（更常被引用的无偏估计版本来自 Chen 等人 2021 Codex 论文，但引用 SPoC 也站得住脚。）
+- tau2-bench → arXiv:2506.07982，tau-bench → arXiv:2406.12045：两条链接都指向正确的基准论文。不过，文章关键轶事“Opus 4.5 找到政策漏洞……想出更好方案”是 Anthropic 内部结果，**不是** tau2-bench 论文中的发现，无法通过外部一手来源核验；它被正确归于博客本身。
+- 瑞士奶酪模型 → Wikipedia：链接正确，只作为通用安全工程类比使用，没有借用具体统计，因此不存在误述风险。
+- 《Adding Error Bars to Evals》→ arXiv:2411.00640：摘要引述逐字一致；作者 Evan Miller 的 Anthropic 身份得到确认，但论文为**单作者**，“Miller 等人”错误，应改成“Miller”。
+- 文章中的其他基准引用（SWE-bench Verified、Terminal-Bench、WebArena arXiv:2307.13854、OSWorld）和工具（Harbor、Braintrust、LangSmith、Langfuse、Arize Phoenix）均链接到正确的一手材料；我们的引述不依赖它们承担关键支撑。
+
+我们的 20 条引述均与原文一致，且指向正确 URL。只发现一项缺陷：误差条论文（arXiv:2411.00640）为 Anthropic 的 Evan Miller 独著，因此“Miller 等人”应写作“Miller”；引述文本本身准确。对来源自身引用的递归核验表明，关键引用（pass@k → SPoC/Kulal 2019；pass^k → tau-bench；瑞士奶酪模型 → Wikipedia）均得到忠实呈现，不存在传话失真。注意：Opus 4.5 / tau2-bench“找到政策漏洞、提出更优解”的轶事是 Anthropic 内部自报，无法针对 tau2-bench 一手论文进行独立核验；它应作为 Anthropic 的自报结果呈现，而非第三方验证事实。建议将“Miller 等人”改为“Miller”。
 
 ---
 
-## Ofir Press / SWE-bench (+ SWE-bench Illusion) — integrity: **solid** (13 quotes verified)
+## Hamel Husain 与 Shreya Shankar（评测课程/常见问题、EvalGen）——完整性：**可靠**（已核验 24 条引述）
 
-- **[verbatim-ok]** Try to build a benchmark that has natural questions that some category of humans ask on a frequent basis.
-  - Opening of the 'Natural' section. Verbatim, correctly attributed to Ofir Press.
-  - primary: https://ofir.io/How-to-Build-Good-Language-Modeling-Benchmarks/
-- **[verbatim-ok]** I think that at launch, a good benchmark should have the top LMs achieving between 1% to 35% accuracy on it.
-  - Under 'Challenging'. Verbatim.
-  - primary: https://ofir.io/How-to-Build-Good-Language-Modeling-Benchmarks/
-- **[verbatim-ok]** Due to the speed of development of AI I'm now asking my collaborators, not to think of benchmarks that would have AI systems achieving 0% at launch, but to think of benchmarks that would have systems achieving '-200%' at launch.
-  - May 2025 edit. Verbatim.
-  - primary: https://ofir.io/How-to-Build-Good-Language-Modeling-Benchmarks/
-- **[verbatim-ok]** Benchmarks typically get saturated within a year.
-  - Verbatim, but author provides NO citation/source for this empirical assertion (unsourced claim presented as fact). Fine to quote as his opinion; do not present as established/sourced finding.
-  - primary: https://ofir.io/How-to-Build-Good-Language-Modeling-Benchmarks/
-- **[verbatim-ok]** Beware- researchers are humans and humans have emotions. If at launch, the top model's accuracy is less than 10%, that might seem very intimidating for most researchers, and they might not want to work on your benchmark at all.
-  - Confirmed verbatim on targeted re-fetch. (An initial fetch dropped 'want to' as a paraphrasing artifact; the source text does contain 'might not want to work'.)
-  - primary: https://ofir.io/How-to-Build-Good-Language-Modeling-Benchmarks/
-- **[verbatim-ok]** Could we build a benchmark such that even if the benchmark itself leaks into an LM's training data, it won't really help that LM in getting a good score on the benchmark?
-  - 'Bonus Property' section. Verbatim.
-  - primary: https://ofir.io/How-to-Build-Good-Language-Modeling-Benchmarks/
-- **[verbatim-ok]** If you're asking coding questions, and your scaffolding doesn't allow for code execution, that's not a very good representation of reality.
-  - 'Concluding Thoughts'. Verbatim.
-  - primary: https://ofir.io/How-to-Build-Good-Language-Modeling-Benchmarks/
-- **[verbatim-ok]** Have one number for your benchmark. One metric that people go for. 'We get 87% on HumanEval' is the vibe you are going for.
-  - Verbatim. Note: '87% on HumanEval' is an illustrative example of communication style, NOT a factual claim about HumanEval scores — do not cite it as a real benchmark result.
-  - primary: https://ofir.io/How-to-Build-Good-Language-Modeling-Benchmarks/
-- **[verbatim-ok]** would a system that got better-than-baseline accuracy on this benchmark be useful to humans?
-  - 'Natural' section. Verbatim.
-  - primary: https://ofir.io/How-to-Build-Good-Language-Modeling-Benchmarks/
-- **[verbatim-ok]** Resolving issues in SWE-bench frequently requires understanding and coordinating changes across multiple functions, classes, and even files simultaneously, calling for models to interact with execution environments, process extremely long contexts and perform complex reasoning that goes far beyond traditional code generation tasks.
-  - Matches the published abstract verbatim. Author order confirmed: Jimenez, Yang, Wettig, Yao, Pei, Press, Narasimhan.
-  - primary: https://arxiv.org/abs/2310.06770
-- **[verbatim-ok]** The best-performing model, Claude 2, is able to solve a mere 1.96% of the issues.
-  - Verbatim in abstract (rendered as $1.96$% in LaTeX). Correct attribution.
-  - primary: https://arxiv.org/abs/2310.06770
-- **[verbatim-ok]** We worked with 93 software developers experienced in Python to manually screen SWE-bench samples for quality. We annotated 1,699 random samples from the SWE-bench test set.
-  - Verbatim; full source sentence continues '...test set to produce SWE-bench Verified.' Our quote truncates cleanly at a sentence boundary, no meaning altered. (openai.com 403'd to WebFetch; confirmed via a faithful mirror of the post + corroborating search.)
-  - primary: https://openai.com/index/introducing-swe-bench-verified/
-- **[verbatim-ok]** state-of-the-art models achieve up to 76% accuracy in identifying buggy file paths using only issue descriptions
-  - Verbatim from the abstract of 'The SWE-bench Illusion' (Liang, Garg, Zilouchian Moghaddam). Correctly attributed.
-  - primary: https://arxiv.org/abs/2506.12286
+- **[原文一致]** “实习生测试”段落
+  - 第 1.4.3 节逐字一致。正确归属于六位共同作者（Yan、Bischof、Frye、Husain、Liu、Shankar）。唯一差别是“intern test”使用直引号还是弯引号，无实质影响。
+  - 一手来源：https://applied-llms.org/
+- **[原文一致]** “许多人只关注上面的第 3 点……无法超越演示阶段。”
+  - 一手来源：https://hamel.dev/blog/posts/evals/
+- **[原文一致]** “必须消除查看数据过程中的所有摩擦。”
+  - 一手来源：https://hamel.dev/blog/posts/evals/
+- **[原文一致]** “不要依赖通用评估框架……应针对你的问题定制。”
+  - 一手来源：https://hamel.dev/blog/posts/evals/
+- **[原文一致]** “永远不能停止查看数据——世上没有免费午餐。”
+  - 一手来源：https://hamel.dev/blog/posts/evals/
+- **[原文一致]** “……断言应当运行得又快又便宜……每次代码变化时都运行。”
+  - 一手来源：https://hamel.dev/blog/posts/evals/
+- **[原文一致]** “……最好构建自己的数据查看与标注工具……把所有内容放在一个屏幕上。”
+  - 一手来源：https://hamel.dev/blog/posts/evals/
+- **[原文一致]** “追踪基于模型的评估与人工评估之间的相关性……”
+  - 一手来源：https://hamel.dev/blog/posts/evals/
+- **[原文一致]** “追踪一堆 1–5 分量表上的分数，往往说明评测流程有问题。”
+  - 页面后面还有“（稍后我会解释原因）”，当前摘录在括号前结束，不构成问题。
+  - 一手来源：https://hamel.dev/blog/posts/llm-judge/
+- **[原文一致]** “什么叫 3 分、什么叫 4 分？没人知道……”
+  - 一手来源：https://hamel.dev/blog/posts/llm-judge/
+- **[原文一致]** “当领域专家必须判断一次交互通过还是失败时……”
+  - 一手来源：https://hamel.dev/blog/posts/llm-judge/
+- **[原文一致]** “在大多数组织里，通常有一位（也许两位）关键人物……”
+  - 一手来源：https://hamel.dev/blog/posts/llm-judge/
+- **[原文一致]** “……批判意见应当足够详细，使你能把它用于少样本提示……也应让新员工能够理解。”
+  - 两句话得到确认，均逐字一致且在原文中前后相连。
+  - 一手来源：https://hamel.dev/blog/posts/llm-judge/
+- **[原文一致]** “……通常不建议使用原始一致率；当类别不平衡时，它可能产生误导。”
+  - 一手来源：https://hamel.dev/blog/posts/llm-judge/
+- **[原文一致]** “我们只迭代了三次，LLM 与 Phillip 的一致率便超过 90%。”
+  - Honeycomb 的自报案例研究，无法独立验证，但引述准确。
+  - 一手来源：https://hamel.dev/blog/posts/llm-judge/
+- **[原文一致]** “请记住，把 LLM 用作裁判的全部目的，就是帮助你发现这些错误……”
+  - 一手来源：https://hamel.dev/blog/posts/llm-judge/
+- **[原文一致]** “错误分析是评测中最重要的活动。”
+  - 一手来源：https://hamel.dev/blog/posts/evals-faq/
+- **[原文一致]** “任命一位领域专家担任仁慈独裁者，是最有效的方法。”
+  - 完整原句以“对大多数中小型公司而言”开头；当前摘录删去了限定，但没有歪曲含义。
+  - 一手来源：https://hamel.dev/blog/posts/evals-faq/
+- **[原文一致]** “为你发现的错误编写评估器，而不是为你想象的错误编写评估器。”
+  - 一手来源：https://hamel.dev/blog/posts/evals-faq/
+- **[原文一致]** “……目标是至少检查 100 条轨迹……如果检查约 20 条轨迹仍未出现新类别，就可以停止……”
+  - 一手来源：https://hamel.dev/blog/posts/evals-faq/
+- **[原文一致]** “初期只标注轨迹中的第一个失败……后续错误可能由第一个问题级联而来。”
+  - 一手来源：https://hamel.dev/blog/posts/evals-faq/
+- **[原文一致]** “……状态转移失败矩阵……行表示最后一个成功状态，列表示第一次失败发生的位置。”
+  - 一手来源：https://hamel.dev/blog/posts/evals-faq/
+- **[原文一致]** “错误分析——AI 开发中最有价值的单项活动，也是投资回报率始终最高的活动。”
+  - 一手来源：https://hamel.dev/blog/posts/field-guide/
+- **[原文一致]** “最具影响力的单项投入……并不是华丽的评估仪表板，而是构建定制界面……”
+  - 一手来源：https://hamel.dev/blog/posts/field-guide/
+- **[一手来源支持]** 递归核验：LLM 裁判文章和常见问题引用 EvalGen《Who Validates the Validators?》（Shankar 等人）来支持“标准漂移”
+  - 表述忠实。论文摘要称：“用户需要标准来给输出评分，但给输出评分又会帮助用户定义标准。”博客的释义一致，没有歪曲。注意这是自引：Shankar 同时参与了论文和该博客系列的写作。
+  - 一手来源：https://arxiv.org/abs/2404.12272
+- **[一手来源支持]** 递归核验：LLM 裁判文章引用 Google 机器学习速成课程，支持“类别不平衡时原始一致率会误导”
+  - 得到支持。Google 页面给出这样的例子：正类仅占 1% 时，始终预测负类的模型可以得到 99% 准确率，“尽管它毫无用处”；页面建议在类别不平衡时使用精确率/召回率。博客论断忠实。
+  - 一手来源：https://developers.google.com/machine-learning/crash-course/classification/accuracy-precision-recall
 
-**Reference findings (recursive):**
-- Ofir Press blog -> SWE-bench (his own paper, arxiv 2310.06770): the 1.96% Claude 2 figure and the SWE-bench framing used across this cluster are internally consistent with the primary paper (2,294 tasks, 12 Python repos). No telephone-game distortion.
-- Ofir Press blog -> 'Benchmarks typically get saturated within a year': UNSOURCED. The author cites no reference or data for this empirical claim; it is his assertion/opinion. Safe to quote as his view, not as a sourced finding.
-- Ofir Press blog -> '87% on HumanEval': this is an illustrative example of how to communicate a single headline metric, NOT a citation of an actual HumanEval result. No misrepresentation, but it should not be repeated as a real score.
-- SWE-bench Illusion (2506.12286) -> OpenAI SWE-bench Verified (cited as OpenAI 2024) and Jimenez et al. 2024 (SWE-bench): both are cited and represented correctly. The paper states SWE-bench Verified is 'a human-validated subset... consisting of 500 curated samples from 12 open-source Python repositories', which matches OpenAI's primary (500 samples, screened by 93 devs from 1,699 annotated). Checks out.
-- SWE-bench Illusion internal nuance (does NOT affect our verbatim quote): the abstract's headline 'up to 76%' is loosely attributed in one body sentence to 'o3-mini', but the paper's own Table 3 / Figure 4 show o3 (not o3-mini) is the model at ~76-77.44%, while o3-mini is 68.37%. The '76%' figure itself is the paper's own measurement and is correctly quoted; flag only that the '76%' belongs to o3. The 'up to 53%' comparison figure is measured on out-of-distribution 'Outside-Repo' tasks (pandas-dev/pandas, 123 tasks; pytorch/pytorch, 32 tasks) not in SWE-bench.
+**参考文献发现（递归）：**
 
-All 13 quotes are verbatim and correctly attributed; integrity is solid. Two process caveats: (1) openai.com returned HTTP 403 to WebFetch, so the SWE-bench Verified quote was confirmed via a faithful mirror plus corroborating search rather than the live page — re-verify against openai.com directly if you want a first-party screenshot. (2) The first automated fetch of the Ofir Press page dropped 'want to' from quote 5; a targeted re-fetch confirmed the source reads 'they might not want to work on your benchmark at all', matching our quote. Recommend the book add light framing for two items: the 'saturated within a year' line is the author's unsourced assertion, and '87% on HumanEval' is his illustrative example (not a real result). Recursive reference check found no telephone-game distortions: the Illusion paper faithfully represents both SWE-bench and SWE-bench Verified, and the cluster's cross-references (1.96% Claude 2, 500 verified samples, 93 devs / 1,699 annotated) are mutually consistent with the primaries.
+- EvalGen /《Who Validates the Validators?》（arXiv 2404.12272，Shankar、Zamfirescu-Pereira、Hartmann、Parameswaran、Arawjo）是该组材料中真正关键的学术引用；LLM 裁判文章和评测常见问题都用它说明“标准漂移”。一手来源核验表明，博客释义忠实反映论文定义（“用户需要标准来给输出评分，但给输出评分又会帮助用户定义标准”），没有传话失真。需要说明的是，这实质上部分属于自引，因为 Shreya Shankar 同时是论文和博客系列的作者。
+- Google 机器学习速成课程“准确率、精确率、召回率”由 LLM 裁判文章引用，用来说明在类别不平衡时原始一致率/准确率会误导。一手来源给出正类占 1% 时仍可得到 99% 准确率的例子，并建议使用精确率/召回率，表述忠实。
+- 常见问题中的“100 条轨迹”/“约 20 条轨迹达到饱和”/“状态转移失败矩阵”没有引用同行评审研究；作者明确把它们当作实践启发式规则。饱和概念仅宽泛链接到一篇定性研究博客（delvetool）中的“理论饱和”，转移矩阵则链接到 Bryan Bischof 的演讲。这不构成错误归属——作者没有宣称它们是学术发现，因此这些是诚实的启发式经验，而不是遭到夸大的传话结果。
+- Honeycomb“与 Phillip 迭代三次后达到 >90% 一致率”是自报案例研究（Honeycomb Query Assistant），并非独立一手来源；引述准确，但外部无法验证。
+- 该组材料的其他支持链接（Databricks《Grading Notes》、Eugene Yan 的 AlignEval/LLM 评估器、OpenAI Cookbook 的定制裁判、LangChain Dosu 案例研究）属于佐证性的实践来源，不是关键统计依据；我们的引述没有对它们进行歪曲。
 
----
+我们的 24 条引述/论断均在一手来源页面上逐字核验通过，归属和 URL 正确；不存在误引或虚构归属。如果书中追求极致精确，有两处轻微但不改变含义的截断值得注明：（1）“仁慈独裁者”引述删去了开头的限定“对大多数中小型公司而言”；（2）“1–5 分量表”引述在原文括注“（稍后我会解释原因）”之前结束。两者均未改变含义。“实习生测试”只有直引号与弯引号的区别。
 
-## Kapoor et al. "AI Agents That Matter" + METR (plus Hamel Husain LLM-judge and Jason Wei verifier's-law posts grouped in this cluster) — integrity: **solid** (8 quotes verified)
-
-- **[verbatim-ok]** Hamel Husain: 'However, using raw agreement is generally not recommended and can be misleading when classes are imbalanced.'
-  - Verbatim on the page, correctly attributed. Hamel's recommended alternative is measuring precision and recall separately (not Cohen's kappa, despite kappa being the common textbook alternative) — does not affect our quote.
-  - primary: https://hamel.dev/blog/posts/llm-judge/
-- **[verbatim-ok]** Jason Wei: 'The ease of training AI to solve a task is proportional to how verifiable the task is.'
-  - Verbatim, correctly attributed.
-  - primary: https://www.jasonwei.net/blog/asymmetry-of-verification-and-verifiers-law
-- **[verbatim-ok]** Jason Wei: 'All tasks that are possible to solve and easy to verify will be solved by AI.'
-  - Verbatim. This is his formally-stated 'Verifier's rule' (a.k.a. verifier's law). Correctly attributed.
-  - primary: https://www.jasonwei.net/blog/asymmetry-of-verification-and-verifiers-law
-- **[verbatim-ok]** Jason Wei: 'In RL terms, ability to verify solutions is equivalent to ability to create an RL environment.'
-  - Verbatim, appears immediately before the Verifier's rule. Correctly attributed.
-  - primary: https://www.jasonwei.net/blog/asymmetry-of-verification-and-verifiers-law
-- **[verbatim-ok]** Kapoor et al.: 'many agent benchmarks have inadequate holdout sets, and sometimes none at all. This has led to agents that are fragile because they take shortcuts and overfit to the benchmark'
-  - Verbatim from the abstract. Original continues '...overfit to the benchmark in various ways.' Our quote truncates cleanly without distortion. Authors confirmed: Kapoor, Stroebl, Siegel, Nadgir, Narayanan.
-  - primary: https://arxiv.org/abs/2407.01502
-- **[verbatim-ok]** Kapoor et al.: 'the benchmarking needs of model and downstream developers have been conflated, making it hard to identify which agent would be best suited for a particular application'
-  - Verbatim from the abstract, correctly attributed.
-  - primary: https://arxiv.org/abs/2407.01502
-- **[verbatim-ok]** METR: 'the length of tasks (measured by how long they take human professionals) that generalist frontier model agents can complete autonomously with 50% reliability has been doubling approximately every 7 months'
-  - Verbatim. Original sentence continues '...every 7 months for the last 6 years.' Our quote drops the duration clause but does not misrepresent it.
-  - primary: https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/
-- **[verbatim-ok]** METR: 'AI agents often seem to struggle with stringing together longer sequences of actions more than they lack skills or knowledge needed to solve single steps.'
-  - Verbatim, correctly attributed.
-  - primary: https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/
-- **[supported-by-primary]** RECURSIVE — Hamel's cited source for the imbalanced-class claim: Google ML Crash Course (accuracy/precision/recall)
-  - Hamel links this Google page as support for 'raw agreement misleading when imbalanced.' The primary explicitly says accuracy is a poor metric for imbalanced data ('a model that predicts negative 100% of the time would score 99% on accuracy, despite being useless'; guidance table: 'Avoid for imbalanced datasets'). Hamel represents it faithfully.
-  - primary: https://developers.google.com/machine-learning/crash-course/classification/accuracy-precision-recall
-- **[supported-by-primary]** RECURSIVE — Kapoor's HumanEval comparison numbers (LDB 91.0, LATS 88.0, Reflexion 87.8 vs GPT-4 zero-shot 89.6, warming baseline 93.2)
-  - These figures (Table A1) are Kapoor's OWN reproductions with bootstrap CIs, not figures copied from the agent papers — so they legitimately differ from originally-reported numbers (e.g., the LDB repo advertises ~95% with GPT-4o/Reflexion seeds). Their load-bearing claim 'SOTA agent architectures for HumanEval do not outperform simple baselines' is internally consistent with the numbers shown. No telephone-game distortion of an external statistic, since the numbers are self-generated.
-  - primary: https://arxiv.org/html/2407.01502
-- **[supported-by-primary]** RECURSIVE — Kapoor's characterization that the STeP agent 'hardcodes policies to solve the specific tasks included in WebArena'
-  - STeP (Sodhi et al.) does compose hand-designed, task-category-specific LLM policies and reports the 14.9%->35.8% WebArena gain Kapoor references. 'Hardcodes' is Kapoor's pointed framing, but the underlying fact (developer-authored policies tuned to the WebArena task set with no holdout) is accurate and supports their overfitting argument. Defensible, not a misrepresentation.
-  - primary: https://arxiv.org/abs/2310.03720
-
-**Reference findings (recursive):**
-- Hamel -> Google ML Crash Course: the one external citation backing our quoted claim checks out. The primary unambiguously states accuracy is misleading for imbalanced classes and recommends precision/recall. Faithful representation.
-- Kapoor 'AI Agents That Matter' HumanEval numbers are self-reproduced (with CIs), not lifted from the LDB/LATS/Reflexion papers; this is the correct scientific move and avoids inheriting the agent papers' optimistic self-reported figures. Worth noting in the book that Kapoor's 91.0 for LDB is THEIR reproduction, not LDB's advertised ~95%.
-- Kapoor's STeP/WebArena overfitting example is grounded in the actual STeP paper (Sodhi et al. 2023, arXiv:2310.03720), which does rely on task-specific designed policies and reports the cited WebArena improvement. 'Hardcodes' is rhetorical but factually defensible.
-- Jason Wei post cites AlphaEvolve, BrowseComp, Brandolini's law, and Alperen Keles' 'Verifiability is the Limit' — all are illustrative references, not load-bearing statistics, so no telephone-game risk to our quotes.
-- METR headline figures (7-month doubling, ~1hr horizon for Claude 3.7 Sonnet, <10% success on >4hr tasks) are METR's own primary measurements from their task suites (HCAST/RE-Bench/SWAA), not third-party citations, so the recursive-citation risk is low for the two quotes we use.
-
-All 8 of our quotes are verbatim and correctly attributed to the right author and URL. Two quotes are clean truncations that drop a trailing clause without changing meaning: the Kapoor holdout-sets quote omits '...in various ways,' and the METR doubling quote omits '...for the last 6 years.' Both are honest truncations. The recursive layer (the references INSIDE the sources we cite) holds up: Hamel's supporting citation (Google ML Crash Course) genuinely backs the imbalanced-class claim; Kapoor's HumanEval numbers are their own reproductions rather than uncritically forwarded agent-paper figures; and Kapoor's STeP/WebArena overfitting example is grounded in the real STeP paper. One soft recommendation for the book: when citing Kapoor's LDB=91.0 HumanEval figure, note it is Kapoor's reproduction (the LDB authors advertise ~95% with stronger seed models) so a reader doesn't mistake it for LDB's self-reported number. No misrepresentations or fabricated attributions found.</notes>
-
+就被要求检查的递归参考文献而言，本组两个真正关键的外部引用都经得住核验。EvalGen 的“标准漂移”引用忠实反映 arXiv 一手论文，但读者应知道它部分属于自引（Shankar 同时参与两边写作）。Google 机器学习速成课程确实支持类别不平衡警告。广为流传的“100 条轨迹 / 20 条达到饱和”及“状态转移失败矩阵”规则，被诚实地表述为实践者启发式规则，**并未**包装成学术发现，因此不存在传话过程中的夸大。总体完整性：可靠。
 
 ---
 
-## Nathan Lambert (Interconnects; RLVR) — integrity: **minor-issues** (0 quotes verified)
+## Ofir Press / SWE-bench（及 SWE-bench Illusion）——完整性：**可靠**（已核验 13 条引述）
 
-- **[unverifiable]** OUR QUOTES list was empty — no verbatim quotes attributed to this cluster were supplied to verify.
-  - Nothing on our side to check verbatim. Audit therefore focused entirely on the recursive reference-check of the source's own citations.
-- **[supported-by-primary]** Representative load-bearing post: 'Reinforcement learning with random rewards actually works with Qwen 2.5' (interconnects.ai). Central claim: spurious/random rewards in RLVR improve Qwen2.5-Math-7B math reasoning almost as much as ground-truth rewards.
-  - This IS the paper's central finding (Spurious Rewards, Shao et al.). Crucially, Lambert is himself a co-author of the primary ('I was along for the ride with some great students'), so this is contributor-reporting, not third-party citation.
-  - primary: https://arxiv.org/abs/2506.10947
-- **[quote-mismatch]** Blog's MATH-500 improvement table: ground truth +24.6, majority vote +23.2, one-shot RL +21.4, format +19.8, incorrect labels +21.2, random rewards +15.8.
-  - VERSION SKEW / TELEPHONE RISK. The published arXiv abstract gives DIFFERENT (revised, higher) figures: random +21.4, format +13.8, incorrect label +24.1, 1-shot RL +26.0, majority voting +27.1, ground truth +29.1. The blog (~late May 2025) reported the earlier Notion/preprint numbers; the arXiv v1 (June 2025) superseded them. The qualitative direction holds, but a book must NOT cite the blog's specific magnitudes — cite the arXiv numbers. Notably the random-reward figure differs by ~5.6 pts (+15.8 vs +21.4).
-  - primary: https://arxiv.org/abs/2506.10947
-- **[supported-by-primary]** Code reasoning (reasoning in code without execution) rises from ~65% to 90%+ after RLVR with spurious rewards.
-  - Matches the published primary exactly: 'code-reasoning frequency increases from 65 percent to over 90 percent with spurious rewards.' Clean.
-  - primary: https://arxiv.org/abs/2506.10947
-- **[supported-by-primary]** Spurious rewards that work for Qwen often fail for other families (Llama3, OLMo2).
-  - Paper explicitly states the effect is largely Qwen-specific and does not transfer to Llama/OLMo. Correctly represented.
-  - primary: https://arxiv.org/abs/2506.10947
-- **[supported-by-primary]** Blog cites TTRL (arXiv 2504.16084) for the 'majority voting as reward' result.
-  - TTRL: Test-Time Reinforcement Learning does use majority-voting from test-time scaling as a reward signal for LLM math reasoning on unlabeled data. Correctly characterized.
-  - primary: https://arxiv.org/abs/2504.16084
-- **[supported-by-primary]** Blog cites one-shot RL (arXiv 2504.20571) for the 'one-shot RLVR' row.
-  - 'RL for Reasoning in LLMs with One Training Example' shows single-example RLVR lifts Qwen2.5-Math-1.5B on MATH500 from 36.0% to 73.6%. Correctly characterized.
-  - primary: https://arxiv.org/abs/2504.20571
-- **[unverifiable]** Compute-allocation estimates: o1 used ~1-3% of total compute on post-training, o3 ~10-30%; o3 used ~10x o1's compute.
-  - No primary exists; author explicitly labels these as his own back-of-envelope estimates. Honestly flagged in the post, so not a citation-integrity failure — but uncitable as fact.
+- **[原文一致]** “尝试构建一个包含自然问题的基准，即某一类人会经常提出的问题。”
+  - “自然”一节开头；逐字一致，正确归属 Ofir Press。
+  - 一手来源：https://ofir.io/How-to-Build-Good-Language-Modeling-Benchmarks/
+- **[原文一致]** “我认为，一个好的基准在发布时，应当让顶尖语言模型达到 1%–35% 的准确率。”
+  - 位于“挑战性”一节；逐字一致。来源同上。
+- **[原文一致]** “鉴于 AI 的发展速度，我现在要求合作者不要构想那种发布时 AI 系统得分为 0% 的基准，而要构想发布时系统得分为‘-200%’的基准。”
+  - 2025 年 5 月修订；逐字一致。来源同上。
+- **[原文一致]** “基准通常会在一年内饱和。”
+  - 逐字一致，但作者没有为这一经验论断提供任何引用/来源（以事实口吻呈现的无来源主张）。可以作为他的观点引用，不应当作已有来源支持的结论。来源同上。
+- **[原文一致]** “请注意——研究人员是人，人有情绪。如果发布时顶尖模型的准确率低于 10%，大多数研究人员可能会觉得这很吓人，从而根本不愿研究你的基准。”
+  - 通过定向重新抓取确认逐字一致。（第一次抓取因释义伪影漏掉了“愿意”；源文本确有“不愿研究”。）来源同上。
+- **[原文一致]** “能否构建这样一种基准：即使基准本身泄漏到语言模型的训练数据里，也不会真正帮助它在基准上取得高分？”
+  - “额外属性”一节；逐字一致。来源同上。
+- **[原文一致]** “如果你问的是编程问题，而脚手架不允许运行代码，那就不能很好地代表现实。”
+  - “结语”；逐字一致。来源同上。
+- **[原文一致]** “让你的基准只有一个数字，一个人们追逐的指标。你想要的感觉是：‘我们在 HumanEval 上达到 87%。’”
+  - 逐字一致。注意：“HumanEval 上达到 87%”只是说明传播风格的示例，**不是**关于 HumanEval 分数的事实性论断；不要把它引用为真实基准结果。来源同上。
+- **[原文一致]** “一个在该基准上取得优于基线准确率的系统，对人类有用吗？”
+  - “自然”一节；逐字一致。来源同上。
+- **[原文一致]** “解决 SWE-bench 中的问题，往往需要同时理解并协调对多个函数、类乃至文件的修改；模型必须与执行环境交互、处理极长上下文，并执行远超传统代码生成任务的复杂推理。”
+  - 与已发表摘要逐字一致。作者顺序确认：Jimenez、Yang、Wettig、Yao、Pei、Press、Narasimhan。
+  - 一手来源：https://arxiv.org/abs/2310.06770
+- **[原文一致]** “表现最好的模型 Claude 2，也只能解决区区 1.96% 的问题。”
+  - 摘要中逐字一致（LaTeX 渲染为 $1.96$%），归属正确。来源同上。
+- **[原文一致]** “我们与 93 位有 Python 经验的软件开发者合作，以人工方式筛查 SWE-bench 样本的质量。我们从 SWE-bench 测试集中随机标注了 1,699 个样本。”
+  - 逐字一致；完整原句继续写道“……以产生 SWE-bench Verified”。当前引述在句子边界干净截断，没有改变含义。（openai.com 对 WebFetch 返回 403；通过该文章的忠实镜像和搜索佐证确认。）
+  - 一手来源：https://openai.com/index/introducing-swe-bench-verified/
+- **[原文一致]** “仅凭问题描述，最先进模型识别错误文件路径的准确率最高可达 76%。”
+  - 来自《The SWE-bench Illusion》（Liang、Garg、Zilouchian Moghaddam）摘要，逐字一致、归属正确。
+  - 一手来源：https://arxiv.org/abs/2506.12286
 
-**Reference findings (recursive):**
-- Spurious Rewards (arXiv 2506.10947, Shao, Li, Xin, Geng, Wang, ... Lambert ... Zettlemoyer): the source's central reference. Qualitative claims (random/format/incorrect-label rewards rival ground truth on Qwen2.5-Math; code-reasoning 65%->90%+; effect is Qwen-specific) all check out against the published primary. BUT the specific magnitude numbers in the blog are the preliminary Notion-release figures and were revised upward in the arXiv version (e.g. random reward blog +15.8 vs published +21.4; ground truth +24.6 vs +29.1). Lambert is a co-author, so this is early self-reporting later superseded, not a misread of someone else's work.
-- TTRL: Test-Time Reinforcement Learning (arXiv 2504.16084): cited for the 'majority voting' reward row. Primary confirms majority-vote-as-reward on unlabeled math data (claimed ~211% pass@1 gain on AIME24 for Qwen2.5-Math-7B). Correctly represented.
-- One-Shot RLVR (arXiv 2504.20571, 'RL for Reasoning in LLMs with One Training Example'): cited for the 'one-shot RL' row. Primary confirms single-example RLVR substantially improves math reasoning (MATH500 36.0%->73.6% on Qwen2.5-Math-1.5B). Correctly represented.
-- Background references linked (Qwen2.5 base 2412.15115, Qwen2.5-Math 2409.12122, MATH benchmark 2103.03874, MATH-Perturb 2502.06453, sampling/pass@k baseline 2504.13837) are used as pointers rather than for load-bearing numbers; not individually re-verified but consistent with their known content.
-- NET: the source's citations are accurate in direction and attribution. The one actionable integrity issue is VERSION SKEW on the headline numbers — the blog's improvement table predates and disagrees with the citable arXiv primary. Any quote our book draws from this post must use the arXiv 2506.10947 figures, not the blog's.
+**参考文献发现（递归）：**
 
-No quotes were supplied in OUR QUOTES, so quotesVerified=0 and there was nothing on our side to confirm verbatim. The recursive reference check is the substance here. Bottom line: Nathan Lambert's RLVR writing represents its cited primaries faithfully (TTRL, one-shot RLVR, and the Spurious Rewards paper of which he is a co-author all check out qualitatively, and the 65%->90% code-reasoning stat matches the published paper verbatim). The single caveat — enough to rate the cluster 'minor-issues' rather than 'solid' — is that the blog's specific MATH-500 improvement magnitudes are preliminary numbers later revised upward in the published arXiv paper (random reward +15.8 in the blog vs +21.4 published; ground truth +24.6 vs +29.1). If the book cites any of these magnitudes, pull them from arXiv 2506.10947, not the Interconnects post. Source pages: https://www.interconnects.ai/p/reinforcement-learning-with-random and primary https://arxiv.org/abs/2506.10947 .
+- Ofir Press 博客 → SWE-bench（他自己的论文，arXiv 2310.06770）：Claude 2 的 1.96% 数字及该组材料中的 SWE-bench 框架，都与一手论文（2,294 个任务、12 个 Python 仓库）内部一致，不存在传话失真。
+- Ofir Press 博客 →“基准通常会在一年内饱和”：**无来源。** 作者没有为这一经验主张提供引用或数据；应作为其观点引用，而不是有来源支撑的发现。
+- Ofir Press 博客 →“HumanEval 上达到 87%”：这是说明如何传播单一头条指标的例子，**不是**真实 HumanEval 结果的引用。并无误述，但不应作为真实分数传播。
+- SWE-bench Illusion（2506.12286）→ OpenAI SWE-bench Verified（引为 OpenAI 2024）与 Jimenez 等人 2024（SWE-bench）：两者引用和表述均正确。论文称 SWE-bench Verified 是“经人类验证的子集……包含来自 12 个开源 Python 仓库的 500 个精选样本”，与 OpenAI 一手来源相符（500 个样本，由 93 位开发者从 1,699 个已标注样本中筛选）。核验通过。
+- SWE-bench Illusion 的内部细节（**不影响**我们的逐字引述）：摘要头条数字“最高 76%”在正文某一句中被宽泛归于“o3-mini”，但论文自己的表 3 / 图 4 显示，约 76–77.44% 对应的是 o3（不是 o3-mini），o3-mini 为 68.37%。76% 本身是论文测量值且引述无误；只是应标明它属于 o3。“最高 53%”的对比数字是在分布外的“Outside-Repo”任务上测得（pandas-dev/pandas 123 个任务，pytorch/pytorch 32 个任务），这些任务不属于 SWE-bench。
+
+全部 13 条引述均与原文一致且归属正确，完整性可靠。有两项过程层面的注意事项：（1）openai.com 对 WebFetch 返回 HTTP 403，因此 SWE-bench Verified 引述通过忠实镜像和搜索佐证核验，而非直接从在线页面核验；如果需要第一方截图，应直接在 openai.com 上再次确认。（2）第一次自动抓取 Ofir Press 页面时，第 5 条漏掉“愿意”一词；定向重抓确认源文确实是“他们可能根本不愿研究你的基准”，与我们的引述一致。建议本书为两项内容增加简短说明：“一年内饱和”是作者未给来源的主张；“HumanEval 87%”只是说明性例子，并非真实结果。递归核验未发现传话失真：Illusion 论文忠实表述 SWE-bench 和 SWE-bench Verified，各项交叉数字（Claude 2 为 1.96%、500 个验证样本、93 位开发者/1,699 个已标注样本）也与一手来源相互一致。
 
 ---
 
+## Kapoor 等人《AI Agents That Matter》与 METR（并包括同组的 Hamel Husain LLM 裁判文章、Jason Wei“验证器定律”文章）——完整性：**可靠**（已核验 8 条引述）
+
+- **[原文一致]** Hamel Husain：“不过，通常不建议使用原始一致率；当类别不平衡时，它可能产生误导。”
+  - 页面逐字一致、归属正确。Hamel 建议分别测量精确率和召回率（并非教科书中常见的 Cohen's kappa），不影响当前引述。
+  - 一手来源：https://hamel.dev/blog/posts/llm-judge/
+- **[原文一致]** Jason Wei：“训练 AI 解决某项任务的容易程度，与该任务的可验证程度成正比。”
+  - 逐字一致、归属正确。
+  - 一手来源：https://www.jasonwei.net/blog/asymmetry-of-verification-and-verifiers-law
+- **[原文一致]** Jason Wei：“所有可以解决且容易验证的任务，终将被 AI 解决。”
+  - 逐字一致。这是他正式提出的“验证器规则”（又称验证器定律），归属正确。来源同上。
+- **[原文一致]** Jason Wei：“用 RL 的术语说，能够验证解答，就等价于能够创建 RL 环境。”
+  - 逐字一致，紧接在验证器规则之前，归属正确。来源同上。
+- **[原文一致]** Kapoor 等人：“许多智能体基准的留出集合并不充分，有时甚至完全没有。这导致智能体十分脆弱，因为它们会走捷径，以各种方式过拟合基准。”
+  - 摘要逐字一致。原文后面还有“以各种方式过拟合基准”；当前引述干净截断，未歪曲含义。作者确认：Kapoor、Stroebl、Siegel、Nadgir、Narayanan。
+  - 一手来源：https://arxiv.org/abs/2407.01502
+- **[原文一致]** Kapoor 等人：“模型开发者和下游开发者的基准需求被混为一谈，因此很难确定哪个智能体最适合某一具体应用。”
+  - 摘要逐字一致，归属正确。来源同上。
+- **[原文一致]** METR：“通用前沿模型智能体能以 50% 可靠性自主完成的任务长度（以人类专业人士完成所需时间衡量），大约每 7 个月翻一番。”
+  - 逐字一致。原句后面还有“在过去 6 年中”；当前引述删去时长分句，但没有误述。
+  - 一手来源：https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/
+- **[原文一致]** METR：“AI 智能体看起来往往更难把较长的动作序列串联起来，而不是缺少解决单个步骤所需的技能或知识。”
+  - 逐字一致、归属正确。来源同上。
+- **[一手来源支持]** 递归核验——Hamel 关于类别不平衡主张的引用来源：Google 机器学习速成课程（准确率/精确率/召回率）
+  - Hamel 用该页面支持“类别不平衡时原始一致率会误导”。一手来源明确称准确率不适合不平衡数据（“始终预测负类的模型仍会得到 99% 准确率，尽管它毫无用处”；指导表写着“避免用于不平衡数据集”）。Hamel 表述忠实。
+  - 一手来源：https://developers.google.com/machine-learning/crash-course/classification/accuracy-precision-recall
+- **[一手来源支持]** 递归核验——Kapoor 的 HumanEval 对比数字（LDB 91.0、LATS 88.0、Reflexion 87.8，对比 GPT-4 零样本 89.6、warming 基线 93.2）
+  - 这些数字（表 A1）是 Kapoor 自己带 bootstrap 置信区间的复现实验，不是从相应智能体论文中照抄，因此与原报告数字合理地不同（例如 LDB 仓库宣传使用 GPT-4o/Reflexion 种子时约 95%）。关键结论“HumanEval 上的 SOTA 智能体架构并未超过简单基线”与表中数字内部一致。由于数据为自行生成，不存在外部统计在传话中的失真。
+  - 一手来源：https://arxiv.org/html/2407.01502
+- **[一手来源支持]** 递归核验——Kapoor 对 STeP 智能体“把策略硬编码为专门解决 WebArena 中的具体任务”的描述
+  - STeP（Sodhi 等人）确实组合了人工设计、针对任务类别的 LLM 策略，并报告 Kapoor 引用的 WebArena 提升 14.9%→35.8%。“硬编码”是 Kapoor 带有锋芒的措辞，但底层事实准确：开发者编写的策略针对 WebArena 任务集进行调优，且没有留出集合；这足以支持其过拟合论证。表述站得住脚，不构成歪曲。
+  - 一手来源：https://arxiv.org/abs/2310.03720
+
+**参考文献发现（递归）：**
+
+- Hamel → Google 机器学习速成课程：支撑我们引述论断的外部引用经核验成立。一手来源明确指出，准确率会在类别不平衡时造成误导，并建议精确率/召回率。表述忠实。
+- Kapoor 的《AI Agents That Matter》所给 HumanEval 数字是自行复现并带有置信区间的结果，而不是转抄 LDB/LATS/Reflexion 论文；这种做法在科学上更正确，也避免承袭智能体论文偏乐观的自报数字。书中值得注明：Kapoor 所报 LDB=91.0 是**他们的复现**，而不是 LDB 作者在使用更强种子模型时宣传的约 95%。
+- Kapoor 的 STeP/WebArena 过拟合示例以真实 STeP 论文（Sodhi 等人 2023，arXiv:2310.03720）为基础；该方法确实依赖按任务设计的策略，也报告了所引 WebArena 提升。“硬编码”虽有修辞色彩，但事实可辩护。
+- Jason Wei 文章引用 AlphaEvolve、BrowseComp、Brandolini 定律及 Alperen Keles 的《Verifiability is the Limit》，都只是说明性参考，而非关键统计支撑，因此我们的引述没有传话风险。
+- METR 的头条数字（7 个月翻倍、Claude 3.7 Sonnet 的时程约 1 小时、超过 4 小时的任务成功率低于 10%）来自 METR 自己在 HCAST/RE-Bench/SWAA 任务套件上的一手测量，并非第三方引用，因此当前两条引述的递归引用风险较低。
+
+我们的 8 条引述均与原文一致，并归属于正确作者和 URL。两条为干净截断，只删去末尾分句而不改变含义：Kapoor 的留出集合引述省略“……以各种方式”；METR 的翻倍引述省略“……在过去 6 年中”。来源内部引用的递归核验也经得住检查：Hamel 引用的 Google 机器学习速成课程确实支持类别不平衡论断；Kapoor 的 HumanEval 数字是其自行复现，而非不加批判地转述智能体论文；Kapoor 的 STeP/WebArena 过拟合案例也有真实 STeP 论文支撑。给本书的一项温和建议是：引用 Kapoor 的 LDB=91.0 HumanEval 数字时，注明它是 Kapoor 的复现（LDB 作者使用更强种子模型时宣传约 95%），避免读者误以为它是 LDB 的自报数字。没有发现歪曲或虚构归属。
+
+---
+
+## Nathan Lambert（Interconnects；RLVR）——完整性：**存在轻微问题**（核验引述 0 条）
+
+- **[无法核验]** 我们的引述列表为空——没有提供归于该组材料的逐字引述可供核验。
+  - 我们一侧没有任何逐字内容可检查。因此，审计完全聚焦于来源自身引用的递归核验。
+- **[一手来源支持]** 代表性的关键文章：《Reinforcement learning with random rewards actually works with Qwen 2.5》（interconnects.ai）。中心论断是：在 RLVR 中，虚假/随机奖励对 Qwen2.5-Math-7B 数学推理的提升几乎可以媲美真实奖励。
+  - 这确实是论文《Spurious Rewards》（Shao 等人）的中心发现。关键是，Lambert 本人也是一手论文作者之一（“我跟几位优秀学生一起参与了这项工作”），因此这是贡献者报告，而不是第三方引用。
+  - 一手来源：https://arxiv.org/abs/2506.10947
+- **[引述不匹配]** 博客中的 MATH-500 提升表：真实标签 +24.6，多数投票 +23.2，单样本 RL +21.4，格式奖励 +19.8，错误标签 +21.2，随机奖励 +15.8。
+  - **版本偏差 / 传话风险。** 已发表 arXiv 摘要给出不同且经修订后更高的数字：随机 +21.4，格式 +13.8，错误标签 +24.1，单样本 RL +26.0，多数投票 +27.1，真实标签 +29.1。博客（约 2025 年 5 月下旬）报告的是更早的 Notion/预印本数字；2025 年 6 月的 arXiv v1 已取代它们。定性方向成立，但本书**不得**引用博客中的具体增幅，而应引用 arXiv 数字。尤其随机奖励相差约 5.6 点（+15.8 对 +21.4）。
+  - 一手来源：https://arxiv.org/abs/2506.10947
+- **[一手来源支持]** 使用虚假奖励进行 RLVR 后，不执行代码、只在代码中进行推理的比例从约 65% 上升到 90% 以上。
+  - 与已发表一手论文完全一致：“在使用虚假奖励后，代码推理频率从 65% 上升到 90% 以上。”准确。来源同上。
+- **[一手来源支持]** 对 Qwen 有效的虚假奖励，换到其他模型家族（Llama3、OLMo2）时往往失效。
+  - 论文明确表示，该效应主要限于 Qwen，无法迁移到 Llama/OLMo。表述正确。来源同上。
+- **[一手来源支持]** 博客引用 TTRL（arXiv 2504.16084）支持“多数投票作为奖励”。
+  - TTRL（Test-Time Reinforcement Learning）确实把测试时扩展产生的多数投票用作无标签数据上的 LLM 数学推理奖励信号。表述正确。
+  - 一手来源：https://arxiv.org/abs/2504.16084
+- **[一手来源支持]** 博客引用单样本 RL（arXiv 2504.20571）支持“单样本 RLVR”这一行。
+  - 《RL for Reasoning in LLMs with One Training Example》表明，只使用一个样本进行 RLVR，就能把 Qwen2.5-Math-1.5B 在 MATH500 上的分数从 36.0% 提升到 73.6%。表述正确。
+  - 一手来源：https://arxiv.org/abs/2504.20571
+- **[无法核验]** 算力分配估计：o1 的后训练约占总算力 1–3%，o3 约占 10–30%；o3 的算力约为 o1 的 10 倍。
+  - 没有一手来源；作者明确将其标为自己的粗略估算。文章对此做了诚实标注，因此不属于引用完整性问题，但不能作为事实引用。
+
+**参考文献发现（递归）：**
+
+- 《Spurious Rewards》（arXiv 2506.10947，Shao、Li、Xin、Geng、Wang、……、Lambert、……、Zettlemoyer）是该来源的中心引用。定性论断（在 Qwen2.5-Math 上，随机/格式/错误标签奖励可接近真实奖励；代码推理从 65%→90% 以上；效果主要限于 Qwen）均与已发表一手论文相符。**但是**，博客的具体增幅来自初步 Notion 版本，后来在 arXiv 版本中被向上修订（例如随机奖励：博客 +15.8、论文 +21.4；真实标签：博客 +24.6、论文 +29.1）。Lambert 是共同作者，因此这是后来被取代的早期自报数据，不是对他人工作的误读。
+- TTRL: Test-Time Reinforcement Learning（arXiv 2504.16084）用于支撑“多数投票”奖励。论文确认在无标签数学数据上使用多数投票作为奖励（声称 Qwen2.5-Math-7B 在 AIME24 上的 pass@1 提升约 211%），表述正确。
+- One-Shot RLVR（arXiv 2504.20571，《RL for Reasoning in LLMs with One Training Example》）用于支撑“单样本 RL”。论文确认，单样本 RLVR 显著提升数学推理（Qwen2.5-Math-1.5B 在 MATH500 上从 36.0%→73.6%），表述正确。
+- 链接的背景资料（Qwen2.5 基础模型 2412.15115、Qwen2.5-Math 2409.12122、MATH 基准 2103.03874、MATH-Perturb 2502.06453、采样/pass@k 基线 2504.13837）只作为指针，而非关键数字依据；虽未逐项重查，但与已知内容一致。
+- **总体结论：** 来源的引用在方向和归属上准确。唯一需要采取行动的完整性问题，是头条数字存在**版本偏差**——博客提升表早于可引用的 arXiv 一手论文，且数值不一致。本书凡引用这些增幅，都必须使用 arXiv 2506.10947 的数字，而非博客数字。
+
+由于“我们的引述”列表为空，quotesVerified=0，我们这一侧没有逐字引述可核验；递归参考文献核验才是本节实质。结论是：Nathan Lambert 关于 RLVR 的文章忠实表达了所引一手研究（TTRL、单样本 RLVR，以及他本人共同署名的《Spurious Rewards》在定性上都核验通过；65%→90% 的代码推理数字与已发表论文逐字一致）。唯一注意事项——它足以让本组被评为“存在轻微问题”而非“可靠”——是博客中的 MATH-500 具体提升幅度属于初步数据，后来在 arXiv 论文中被向上修订（随机奖励：博客 +15.8、论文 +21.4；真实标签：博客 +24.6、论文 +29.1）。如果本书引用任何这些增幅，应从 arXiv 2506.10947 取数，而非 Interconnects 文章。来源页面：https://www.interconnects.ai/p/reinforcement-learning-with-random ；一手论文：https://arxiv.org/abs/2506.10947 。
+
+---
