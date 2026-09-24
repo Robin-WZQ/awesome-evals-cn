@@ -1,37 +1,39 @@
-# Notes — "Improve agent quality with Insights Agent and Multi-turn Evals, now in LangSmith"
+# 笔记——《LangSmith 上线 Insights Agent 与多轮评测，提升智能体质量》
 
-**Author:** The LangChain Team · **URL:** https://www.langchain.com/blog/insights-agent-multiturn-evals-langsmith · **Type:** eng-blog · **Found:** true
+**作者：** LangChain 团队 · **网址：** https://www.langchain.com/blog/insights-agent-multiturn-evals-langsmith · **类型：** 工程博客 · **已找到：** 是
 
-## Summary (3-6 sentences)
-LangChain's product-announcement blog (Oct 23, 2025) ships two LangSmith features aimed squarely at the gap most eval write-ups miss: evaluating *whole multi-turn agent threads* rather than single trace steps. **Insights Agent** is an offline analysis agent that mines production traces at scale to auto-cluster usage patterns and failure modes, so teams don't have to hand-review interactions one by one. **Multi-turn Evals** are online, LLM-as-a-judge evaluations that fire automatically when a conversation (a "thread") completes and score whether the agent actually accomplished the user's goal across the entire exchange — along three axes: semantic intent, semantic outcome, and agent trajectory. The framing pillar is that "most other evaluation platforms only focus on individual traces or steps," which can't tell you whether the overall interaction succeeded. It's a vendor post (light on customer numbers), but the conceptual decomposition of thread-level evaluation is the substantive contribution.
+## 摘要（3–6 句）
+LangChain 在 2025 年 10 月 23 日的产品公告中推出两项 LangSmith 功能，直面多数评测文章遗漏的问题：评估完整的多轮智能体线程，而非单个追踪步骤。**Insights Agent** 是一种离线分析智能体，可大规模挖掘生产追踪并自动聚类使用模式与失败模式，使团队无需逐条人工审查交互。**多轮评测**则是在线的大模型裁判评测，会在对话（即“线程”）完成时自动触发，从语义意图、语义结果和智能体轨迹三个维度，判断智能体是否在整个交互中真正实现用户目标。文章的核心论点是，多数其他评测平台只关注单条追踪或单个步骤，因此无法判断整体交互是否成功。尽管这是一篇缺少客户数据的厂商文章，但它对线程级评测的概念拆解很有价值。
 
-## Key points (5-12 substantive bullets)
-- **The core thesis is a real gap:** single-trace/single-step evals can't answer "did the user get what they wanted?" across a multi-turn conversation. The product carves out "threads" (the full multi-turn exchange between user and agent) as the unit of evaluation, not individual runs.
-- **Two complementary loops:** Insights Agent answers *"what's happening in production"* (descriptive, offline, retrospective discovery), while Multi-turn Evals answer *"did the agent accomplish the goal"* (prescriptive, online, scored per thread). The pairing of unsupervised discovery + supervised scoring is the architecture worth stealing.
-- **Insights Agent = auto-clustering of traces.** Three modes: (1) *Group by usage patterns* — cluster on how users actually engage; (2) *Group by poor interactions* — cluster on "how your agent is messing up," grouping root causes of failure; (3) *Customize* — define your own categories, filter on attributes, and define new attributes to extract.
-- **Closing the loop into datasets:** from any discovered category you can "click into any category to explore the underlying traces and add them to datasets or annotation queues." This is the discovery→curation→eval-set pipeline that turns production traffic into eval data.
-- **Multi-turn Evals decompose goal-achievement into three judge dimensions:**
-  - *Semantic intent* — "What the user was actually trying to do" (infer the real goal, not the literal last message).
-  - *Semantic outcome* — "Whether the task was completed (and if not, why)" — note it captures the failure *reason*, not just pass/fail.
-  - *Agent trajectory* — "How the interaction unfolded, including tool calls and decisions made along the way" — i.e., process/path quality, not just final answer.
-- **Online + automatic + completion-triggered:** "Multi-turn evals run automatically once a conversation is complete, and you define the LLM-as-a-judge prompt to guide scoring." So it's a user-authored judge prompt, run online at thread-completion — not a batch offline harness.
-- **Scale motivation is explicit:** "Today's popular agents produce millions of traces per day—soon to be billions." This is the justification for automated clustering — manual review is "impossible at scale."
-- **Insights Agent processing is batch-ish:** runs take up to ~15 minutes depending on data volume; results are shown by category with latency, run counts, and eval scores attached.
-- **Availability split:** Insights Agent is GA for LangSmith Plus/Enterprise *cloud* customers; Multi-turn Evals are live for *all* LangSmith users.
-- **Roadmap signals where thread-level eval is heading:** "the first of several thread-level features" — coming: thread-level metrics and dashboards, automations to push threads into annotation queues/datasets, and SDK support to "programmatically pull and analyze threads."
+## 要点（5–12 条实质性内容）
+- **核心主张对应真实缺口：** 单追踪或单步骤评测无法回答多轮对话中“用户是否得到了想要的结果”。该产品把“线程”——用户与智能体之间的完整多轮交互——作为评测单元，而非单次运行。
+- **两个互补闭环：** Insights Agent 回答“生产环境中正在发生什么”（描述性、离线、回顾式发现）；多轮评测回答“智能体是否完成目标”（规范性、在线、逐线程评分）。无监督发现与监督式评分的组合是一种值得借鉴的架构。
+- **Insights Agent 即追踪自动聚类。** 三种模式包括：按使用模式分组，聚类用户实际如何使用系统；按不良交互分组，聚类智能体出错的根因；自定义，允许定义类别、按属性筛选并抽取新属性。
+- **闭环进入数据集：** 对任何发现的类别，用户都可进入查看底层追踪，并将其加入数据集或标注队列。这构成从发现到筛选再到评测集的流水线，把生产流量转化为评测数据。
+- **多轮评测把目标达成拆成三个裁判维度：**
+  - *语义意图*：用户真正想完成什么；推断真实目标，而非只看最后一条消息的字面意思。
+  - *语义结果*：任务是否完成；若未完成，还要判断原因，而非只给通过／失败标签。
+  - *智能体轨迹*：交互如何展开，包括工具调用和过程中的决策；它衡量过程与路径质量，而不只看最终答案。
+- **在线、自动、完成时触发：** 多轮评测会在对话结束时自动运行，用户通过自定义的大模型裁判提示词指导评分；它不是离线批处理工具。
+- **规模动机明确：** 当下流行智能体每天产生数百万条追踪，未来可能达到数十亿；人工审查无法扩展，因此需要自动聚类。
+- **Insights Agent 采用近似批处理：** 运行耗时随数据量变化，最长约 15 分钟；结果按类别展示，并附带延迟、运行次数和评测分数。
+- **可用范围不同：** Insights Agent 已向 LangSmith Plus/Enterprise 云客户正式发布；多轮评测面向所有 LangSmith 用户开放。
+- **路线图揭示线程级评测方向：** 这是若干线程级功能中的第一批，后续包括线程级指标与仪表板、自动把线程送入标注队列或数据集，以及通过 SDK 以编程方式拉取和分析线程。
 
-## Verified quotes (verbatim, from the URL above)
-1. "Until now, that's been tricky — most other evaluation platforms only focus on individual traces or steps, making it hard to understand whether the overall interaction achieved the user's goal."
-2. "Semantic intent: What the user was actually trying to do. Semantic outcomes: Whether the task was completed (and if not, why). Agent trajectory: How the interaction unfolded, including tool calls and decisions made along the way."
-3. "Multi-turn evals run automatically once a conversation is complete, and you define the LLM-as-a-judge prompt to guide scoring."
-4. "Today's popular agents produce millions of traces per day—soon to be billions."
+## 已核验引述（中文翻译）
+1. “此前这一直很棘手——多数其他评测平台只关注单条追踪或单个步骤，因此很难理解整体交互是否实现了用户目标。”
+2. “语义意图：用户真正想做什么。语义结果：任务是否完成，以及未完成的原因。智能体轨迹：交互如何展开，包括途中进行的工具调用和决策。”
+3. “多轮评测会在对话完成后自动运行，而你可以定义大模型裁判提示词来指导评分。”
+4. “当下流行的智能体每天会产生数百万条追踪，很快将达到数十亿条。”
 
-## What it adds / why it's good (non-BS practitioner value)
-The genuinely useful idea — and the reason this is worth a knowledge-base entry — is the **explicit three-way decomposition of "did the agent succeed across a whole conversation": intent vs. outcome vs. trajectory.** Most practitioner eval writing either evaluates the final answer (outcome-only) or scores trajectory/tool-correctness (process-only); separating *inferred intent* as its own dimension is the subtle move, because in multi-turn threads the user's real goal is rarely stated cleanly in any single message — you have to reconstruct it before you can judge outcome. Pairing that scored judge with an unsupervised **discovery** step (Insights Agent clustering failures and feeding them into datasets/annotation queues) sketches a complete production-eval flywheel: mine traffic → cluster failure modes → curate eval sets → score threads online → repeat. That said, it's a vendor announcement: no customer case studies, no judge-prompt examples, no agreement/calibration numbers, and the "soon to be billions" line is marketing. Treat it as a clean conceptual frame for thread-level eval design rather than a how-to with evidence.
+以上引述均来自：https://www.langchain.com/blog/insights-agent-multiturn-evals-langsmith
 
-## Themes
-- **9 agent-specific** — thread-level / multi-turn agent evaluation is the central subject.
-- **4 observability** — Insights Agent mines production traces; both features live in LangSmith's tracing/observability layer.
-- **1 why-evals** — frames *why* single-trace evals are insufficient and goal-achievement matters.
-- **8 judge/verifiers** — Multi-turn Evals are user-defined LLM-as-a-judge prompts scoring intent/outcome/trajectory.
-- **5 eval infra** — online completion-triggered eval runs, clustering pipeline, datasets/annotation queues, roadmap for SDK/dashboards.
+## 它带来了什么／为什么值得读（实践价值）
+这篇文章真正有用的思想，是明确把“智能体是否在完整对话中成功”拆成意图、结果和轨迹三个维度。多数实践文章要么只评最终答案，要么只评轨迹或工具调用是否正确；把推断出的意图单独列为一个维度尤其关键，因为多轮线程中，用户的真实目标往往不会在某一条消息中清晰表述，必须先重建目标，才能判断结果。再把这种评分裁判与无监督发现步骤配对——Insights Agent 聚类失败并将其送入数据集或标注队列——就形成完整的生产评测飞轮：挖掘流量、聚类失败模式、整理评测集、在线评分线程，再重复这一过程。不过它仍是厂商公告：没有客户案例、裁判提示词示例或一致性与校准数据，“很快达到数十亿”也带有营销色彩。更适合把它视为线程级评测设计的清晰概念框架，而非证据充分的操作教程。
+
+## 主题
+- **9 智能体专项：** 线程级／多轮智能体评测是中心主题。
+- **4 可观测性：** Insights Agent 挖掘生产追踪，两项功能都位于 LangSmith 的追踪与可观测层。
+- **1 为什么要评测：** 说明单追踪评测为何不足，以及目标是否达成的重要性。
+- **8 裁判／验证器：** 多轮评测使用用户定义的大模型裁判提示词，对意图、结果和轨迹评分。
+- **5 评测基础设施：** 对话完成时触发的在线评测、聚类流水线、数据集与标注队列，以及 SDK 和仪表板路线图。

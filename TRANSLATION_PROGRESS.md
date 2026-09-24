@@ -1,10 +1,10 @@
 # 深度笔记中文翻译进度
 
-进度：`[█████████████░░░░░░░] 64%（92/143）`
+进度：`[██████████████░░░░░░] 71%（101/143）`
 
-- 文章：33/68
+- 文章：37/68
 - 论文：28/28
-- 演讲与播客：31/47
+- 演讲与播客：36/47
 
 ## 翻译规则
 
@@ -107,3 +107,12 @@
 90. `notes/talks/talk-talk-hamel-shreya-build-evals-2026.md`
 91. `notes/talks/talk-wei-3-key-ideas-2025.md`
 92. `notes/talks/talk-wei-intuitions-about-llms.md`
+93. `notes/articles/han-lee-evaluation-and-alignment-seminal-papers.md`
+94. `notes/articles/langchain-insights-agent-multiturn-evals.md`
+95. `notes/articles/reliability-gap-agent-benchmarks-enterprise-simmering.md`
+96. `notes/articles/speedrunning-an-rl-environment-sidbin.md`
+97. `notes/talks/talk-brand-benchmarks-time-of-agents.md`
+98. `notes/talks/talk-khattab-systems-that-endure.md`
+99. `notes/talks/talk-mann-measuring-capabilities-rsp.md`
+100. `notes/talks/talk-pod-aitw16-compare-models.md`
+101. `notes/talks/talk-smith-strategies-for-llm-evals.md`

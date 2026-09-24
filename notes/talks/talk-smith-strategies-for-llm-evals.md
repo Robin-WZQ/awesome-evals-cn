@@ -1,40 +1,38 @@
-# Notes — "Strategies for LLM Evals (harnesses workshop)"
-**Speaker/Guest:** Taylor Jordan Smith · **Venue:** AI Engineer 2025 · **Type:** talk · **URL:** https://www.youtube.com/watch?v=89NuzmKokIk
+# 笔记——《LLM 评测策略：评测框架工作坊》
+**讲者/嘉宾：** Taylor Jordan Smith · **场合：** AI Engineer 2025 · **类型：** 演讲 · **链接：** https://www.youtube.com/watch?v=89NuzmKokIk
 
-## Summary (3-6 sentences — what it argues, why it matters for agent evals)
-This is a hands-on workshop (not a polished keynote) from a Red Hat AI developer advocate that frames evals as the discipline enterprises need to safely move LLMs into production. Its central organizing idea is an evaluation pyramid borrowed from the software-testing pyramid: start at the base with **system/inference performance** (latency, throughput, GPU utilization), then move up through **formatting**, **factual accuracy** (benchmarks like MMLU), and finally **safety/bias and custom evals**. It argues you should evaluate **incrementally and component-by-component** rather than trying to eval an entire multi-agent system end-to-end on day one, and that eval choice is dictated by system type (RAG → Ragas/chunk-retrieval evals; agents → function/tool-calling evals). It distinguishes benchmarking (controlled datasets/tasks for cross-model comparison, a *subcategory* of evaluation) from evaluation (comprehensive end-to-end assessment). The practical payload is a tour of three concrete open-source harnesses — GuideLLM, lm-evaluation-harness, and Promptfoo — each mapped to a pyramid layer. The recurring thesis is that evals belong in CI/CD, the same way unit tests do.
+## 摘要（3—6 句：核心论点及其对智能体评测的意义）
+这是一场由 Red Hat AI 开发者布道师主持的动手工作坊，主张企业若要把 LLM 安全投入生产，就必须建立评测纪律。核心框架是借鉴软件测试金字塔的“评测金字塔”：底层为**系统/推理性能**（延迟、吞吐量、GPU 利用率），向上依次为**格式**、**事实准确性**，顶层是**安全/偏见与定制评测**。多智能体系统不应第一天就端到端全测，而应按组件增量评估；评测选择取决于系统类型，例如 RAG 测检索，智能体测函数/工具调用。基准测试是用于跨模型比较的受控评测，只是综合评估的一个子类。实践部分介绍 GuideLLM、lm-evaluation-harness 和 Promptfoo，并把它们分别映射到金字塔层级；总论点是评测应像单元测试一样进入 CI/CD。
 
-## Key points (6-14 substantive bullets)
-- **The evaluation pyramid (the talk's core framework):** base = system performance (throughput, inter-token latency, GPU utilization); next = formatting (e.g. "religiously" valid JSON output for downstream apps); next = factual accuracy (e.g. MMLU, plus accuracy on fine-tuned proprietary data); top = safety, bias, and application-specific custom evals. Explicitly mirrors the unit → integration → UI/end-to-end software testing pyramid.
-- **Benchmark vs. eval definition:** "benchmarking is just a subcategory of evaluation." Benchmarking = controlled, specific datasets and tasks used to compare models against one another (latency scores across hardware, MMLU); evaluation = comprehensive end-to-end assessment of many components.
-- **Incremental, component-first strategy:** you *could* eval every single part of a system, but that's time/resource-expensive up front. Start narrow (e.g. just chunk retrieval in a RAG system, or just a latency/throughput benchmark on the LLM output), then branch out by priority into a full-system eval covering the integration layer and UI end-to-end.
-- **Eval choice follows system architecture:** RAG → Ragas-style retrieval evals; agents → function/tool-calling capability evals. Requires architecture scoping and planning in advance.
-- **Harness #1 — GuideLLM (system performance):** a newer project tied to the vLLM inference runtime. Flow: pick model, pick dataset, measure throughput / inter-token latency / time-to-first-token; visualize in a built-in UI. Primary knob is adjusting **input and output token counts** to match the use case (chatbot vs RAG). Outputs mean/median/P99 (P99 matters for SLOs) and can emit JSON.
-- **Harness #2 — lm-evaluation-harness (factual accuracy):** ran **MMLU Pro** (chosen because it took the *least* time — still ~10 minutes). The harness exposes many other benchmarks in the same framework.
-- **Harness #3 — Promptfoo (safety/bias + custom):** used for a safety-focused example; emphasized as the flexible "do all kinds of custom tests" tool with many examples in its repo.
-- **War-story: the Google "glue on pizza" AI Overview incident** — caused by satirical Reddit content surfacing without mitigation to detect satire. Used to motivate RAG mitigations and safeguarding triggers, ideally *before* release.
-- **War-story: "MAD" / model autophagy** — each model generation consumes more AI-generated synthetic data, drifting from the original human-anchored data, causing loss of output diversity and precision; accuracy evals are how you detect this.
-- **Bias example: Stable Diffusion** — Euro-centric/US-centric internet training data skews outputs; Google and the Stable Diffusion project added evaluation frameworks and bias-mitigation guardrails in response.
-- **Enterprise inference pain points:** manual setup of eval runs with many parameters; heavy compute cost of perf evals; dataset/model compatibility; right-sizing hardware for GPU investment; and cost estimation as "black magic" (you have to backwards-map inference performance to tokens).
-- **vLLM serving practicalities:** vLLM is safetensors-compatible (no model-format conversion like TRT requires), needs less config/space; reducing the max context window makes runs faster. Workshop served an IBM Granite (2B/8B) model on an L4 GPU.
-- **Enterprise maturity path:** orgs don't start with multi-agent frameworks — they progress chatbot → RAG → agents, and most are still in the first three phases. Evals must be a continuous CI process because "you're not going to catch everything."
-- **Audience Q&A → the missing concept:** an attendee asked what to call connecting offline prompt/dataset evals to live production performance; Smith's answer was that this is evals in a **CI/CD format** — eval tests wired into the pipeline the same way unit tests are.
+## 要点
+- **评测金字塔：** 底层为吞吐量、token 间延迟、GPU 利用率；其上是下游应用所需的严格 JSON 等格式；再上是 MMLU 及私有微调数据的事实准确性；顶层为安全、偏见和应用特定评测。
+- **基准与评测：** “基准测试只是评测的子类”。前者用受控数据集和任务比较模型，后者综合考察整个端到端系统。
+- **增量、组件优先：** 一开始评估所有部件耗时耗资源。应先测 RAG 的分块检索或 LLM 输出的延迟/吞吐量，再按优先级扩展到集成层和 UI 端到端评测。
+- **评测由系统架构决定：** RAG 可用 Ragas 类检索评测，智能体应测函数与工具调用；这要求事先界定架构。
+- **GuideLLM（系统性能）：** 与 vLLM 推理运行时相关，选择模型和数据集后测吞吐量、token 间延迟、首 token 时间，并可视化结果。主要调节输入/输出 token 数以贴合聊天或 RAG 场景，输出均值、中位数、P99 和 JSON；P99 对 SLO 很重要。
+- **lm-evaluation-harness（事实准确性）：** 工作坊运行 MMLU Pro，因为它耗时最短，但仍需约十分钟；同一框架支持很多其他基准。
+- **Promptfoo（安全/偏见与定制）：** 用于安全示例，也适合大量自定义测试，仓库中有丰富样例。
+- **“披萨加胶水”事故：** Google AI Overview 未识别讽刺性的 Reddit 内容，说明 RAG 防护和触发器应在发布前建立。
+- **模型自噬：** 后续模型不断吞食 AI 合成数据，逐渐偏离人类锚定数据，导致多样性和精度下降；准确性评测用于发现该问题。
+- **Stable Diffusion 偏见：** 欧美中心互联网数据使输出倾斜，促使 Google 和 Stable Diffusion 项目增加评测框架与缓解护栏。
+- **企业推理痛点：** 运行参数多、性能评测算力昂贵、数据集与模型兼容困难、GPU 投资需合理选型，成本估算像“黑魔法”，必须从推理性能反推 token。
+- **vLLM 实务：** 兼容 safetensors，无需像 TRT 那样转换格式，配置与空间需求更少；缩短最大上下文能加速。工作坊在 L4 GPU 上部署 IBM Granite 2B/8B。
+- **企业成熟路径：** 通常从聊天机器人到 RAG 再到智能体，多数仍处于前三阶段；评测必须成为持续 CI，因为“不可能抓住一切”。
+- **问答中的关键概念：** 把离线提示/数据集评测连接到线上表现，就是把评测测试接入 CI/CD，方式与单元测试相同。
 
-## Verified quotes
-- "benchmarking is just a subcategory of evaluation. Evaluation is a comprehensive process to assess a model end to end... Benchmarking is very specifically controlled specific data sets and specific tasks typically used to compare models against one another." [09:44]
-- "no matter how good your model is, if it's not fast, if it's not reliable, if it's not affordable, you're screwed a little bit from the get-go." [05:01]
-- "you could literally evaluate every single part of things but that's going to be time and resource extensive to set up immediately. So you likely want to take an incremental approach with these types of setups." [12:12]
-- "cost estimating is a little bit of a black magic thing... you have to like backwards math-map inference performance to tokens and it's a whole thing." [06:56]
-- "you should have a CI/CD framework that includes these evaluation tests just like for unit testing setups." [31:52]
-- "we kind of moved up the pyramid throughout the activity. So hopefully you get a sense of... how you can layer this approach when you're looking at and trying to plan for how to strategically implement evals across your entire system." [30:28]
+## 已核验引述（中文翻译）
+- [09:44] “基准测试只是评测的一个子类。评测是端到端衡量模型的综合过程……基准测试则使用非常具体、受控的数据集和任务，通常用于比较模型。”
+- [05:01] “无论模型多好，如果不快、不可靠、负担不起，你从一开始就有点完了。”
+- [12:12] “你当然可以评估每个部分，但立即完成设置会非常耗时耗资源，所以很可能应采用增量方法。”
+- [06:56] “成本估算有点像黑魔法……你得从推理性能倒推映射到 token，整件事很复杂。”
+- [31:52] “应建立包含这些评测测试的 CI/CD 框架，就像单元测试一样。”
+- [30:28] “整个活动中我们逐层攀上金字塔，希望你能理解：规划全系统评测的战略实施时，可以怎样分层。”
 
-*(Lightly fixed obvious ASR errors in quotes: "math-map" and "inference" were auto-captioned as "mathmap"/"imperence"; "GuideLLM" appears as "guide LLM"/"guide lm" and "lm-evaluation-harness" as "MLE valh harness" in the raw transcript. Wording is otherwise faithful.)*
+## 本演讲的独特增量
+- 把工具具体映射到金字塔：GuideLLM 测性能，lm-evaluation-harness/MMLU Pro 测准确性，Promptfoo 测安全与定制项目，并建议分叉 MMLU、换入私有微调数据。
+- 强调推理性能是评测底座：延迟、吞吐、首 token 时间、SLO 的 P99 和 GPU 选型，不应只是事后考虑。
+- 提供真实企业语境：成本估算的困难、客户从聊天到 RAG 再到早期智能体的阶段，以及模型使用政策约束。
+- 给出可重复的增量推广方式：单组件评测→按优先级扩展→完整集成/UI 端到端评测。
 
-## What it adds (non-obvious, talk-specific value vs canonical written sources)
-- A **concrete harness-to-pyramid mapping** that most written eval guides leave abstract: GuideLLM for the perf base, lm-evaluation-harness/MMLU Pro for accuracy, Promptfoo for safety/custom — all open-source and forkable, with the explicit suggestion to fork MMLU and swap in proprietary fine-tuning data for accuracy evals.
-- Strong emphasis on the **inference/performance layer as the foundation of evals** — latency, throughput, time-to-first-token, P99 for SLOs, GPU sizing — a layer the "LLM-as-judge / accuracy" eval literature usually ignores entirely. The talk insists perf is the base of the pyramid, not an afterthought.
-- The honest enterprise-operator texture: cost estimation as "black magic," most customers stuck in the chatbot→RAG→early-agent phases, policy restrictions on which models employees can even use — grounding evals in real adoption constraints rather than frontier-lab assumptions.
-- A clean, repeatable **incremental rollout recipe** (eval one component → branch out by priority → full-system integration/UI evals) that maps the testing pyramid onto eval program design.
-
-## Themes
-1 why-evals · 3 model/harness/skill · 4 observability · 5 eval infra · 6 benchmark-vs-eval · 8 judge/verifiers · 9 agent-specific · 10 safety
+## 主题
+1 为什么需要评测 · 3 模型/框架/技能 · 4 可观测性 · 5 评测基础设施 · 6 基准与评测 · 8 评审器/验证器 · 9 智能体特有问题 · 10 安全

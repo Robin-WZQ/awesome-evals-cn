@@ -1,40 +1,40 @@
-# Notes — "On Engineering AI Systems that Endure the Bitter Lesson"
+# 笔记——《构建经得起“苦涩教训”的 AI 系统》
 
-**Speaker/Guest:** Omar Khattab (DSPy) · **Venue:** AI Engineer 2025 · **Type:** talk · **URL:** https://www.youtube.com/watch?v=qdmxApz3EJI
+**讲者/嘉宾：** Omar Khattab（DSPy）· **场合：** AI Engineer 2025 · **类型：** 演讲 · **链接：** https://www.youtube.com/watch?v=qdmxApz3EJI
 
-## Summary (3-6 sentences — what it argues, why it matters for agent evals)
-Khattab argues that the AI-engineering treadmill — a new LLM, inference trick, or RL algorithm every week — is a symptom of building systems at the wrong level of abstraction, and reframes Sutton's "bitter lesson" as the software adage that premature optimization is the root of all evil. His central thesis: separate the *durable* parts of an AI system (the task spec, control flow, tools, and especially the **evals**) from the *swappable, fast-expiring* parts (the model, the inference strategy, the learning algorithm). Evals are the load-bearing piece of this separation, because they are the one artifact that encodes "what I actually care about" and survives every model swap — unlike prompts, which entangle the real task definition with over-fitted, model-specific hacks. The talk matters for agent evals because it positions evals not as a measurement afterthought but as the *specification mechanism* and the optimization target that lets a system learn and improve as a whole while its underlying components churn. It's essentially the conceptual argument behind DSPy: signatures + evals + optimizers, with the model treated as a hot-swappable adapter.
+## 摘要（3—6 句：核心论点及其对智能体评测的意义）
+Khattab 认为，AI 工程师每周都在追赶新 LLM、新推理技巧或新 RL 算法，是因为系统建立在错误的抽象层级上；他把 Sutton 的“苦涩教训”重新解释为软件工程中“过早优化是万恶之源”。核心主张是，把 AI 系统中**耐久**的部分——任务规范、控制流、工具，尤其是**评测**——与可替换、快速过期的模型、推理策略和学习算法分离。评测是这种分离的承重结构，因为它编码“我真正关心什么”，能历经每次模型替换而不变；提示词则把真实任务定义与针对某一模型的过拟合技巧纠缠在一起。对智能体评测而言，评测不是事后测量，而是规范机制和优化目标，使整个系统能在底层组件不断更迭时持续学习和改进。这也是 DSPy 的概念论证：签名 + 评测 + 优化器，模型只是可热插拔适配器。
 
-## Key points (6-14 substantive bullets)
-- **The treadmill is structural, not a discipline failure.** "Most likely you're scrambling every week. That's not if you're doing a bad job, that's if you're doing a good job." Model APIs even silently change the model under a fixed name, so you're *forced* to scramble. The existential question is whether you'll "even get to scramble for long" before the models eat your lunch.
-- **Re-reading the bitter lesson.** Sutton's claim (general methods leveraging search + learning beat hand-coded domain knowledge) is about *maximizing intelligence* — "the ability to figure things out in a new environment really fast." But we build software not because we lack AGI but because we already have 8 billion general intelligences that are unreliable; software exists to be "reliable, robust, controllable, scalable."
-- **Engineering = subtracting agency in exactly the right places.** Reliable systems and checks-and-balances are "about subtracting agency and subtracting intelligence in exactly the right places, carefully, and not restricting the intelligence otherwise" — a different axis from the bitter lesson.
-- **Bitter lesson, restated for software:** it's Knuth's "premature optimization is the root of all evil." Domain knowledge isn't harmful per se; it's harmful when applied *prematurely*, at a lower level of abstraction than you can justify, reflecting poor understanding.
-- **Operational definition of "premature":** "premature optimization is what is happening if and only if you're hard-coding stuff at a lower level of abstraction than you can justify." Only descend to a lower abstraction once you've demonstrated the higher one isn't good enough. (Illustrated with the fast-inverse-square-root bit-hack: machine-specific, brittle, and obscures what you actually wanted.)
-- **ML has a tight-coupling problem nobody names.** Tighter-than-necessary coupling is known-bad in software, but in ML "the name of the game... is like hey this latest thing came out let's rewrite everything." His 2024 tweet: the bitter lesson "is just an artifact of lacking high-level good ML abstractions" — after every paradigm shift the best systems reintroduce the same modular specializations that *should* have been reusable but aren't, "because we're writing bad code."
-- **A 2006 modular multilingual QA paper looks exactly like today's multi-agent frameworks** (execution manager, question analyzers, retrieval strategists). The architecture isn't even wrong — in normal software you'd just upgrade the machine and it'd still work. ML architectures break across model upgrades only "because they're not expressed in the right way."
-- **"A prompt is a horrible abstraction for programming."** Fine for *management* (like a Slack channel to a remote employee), but as a programming abstraction it's a "stringly-typed canvas" with no structure that entangles four separable concerns: (1) the fundamental task definition, (2) over-fitted model-specific hacks, (3) the inference-time strategy (agent vs chain-of-thought), and (4) formatting/parsing ("write XML, produce JSON"). "You are professor Einstein... I'll tip you $1,000 — that is just not engineering."
-- **The fix is separation of concerns into three durable artifacts:** (a) **natural-language definitions/specs** — "highly localized pieces of ambiguous stuff that could not have been said in any other way"; (b) **evals** — encode the criteria you're actually optimizing toward but often *aren't* telling the model; (c) **code** — for tools, structure, information-flow control (private data shouldn't flow to the wrong place), and function composition, "because LLMs are horrible at composition" while code composition is reliable by construction.
-- **Evals are what makes the spec model-independent.** "Evals say here's what I actually care about. Change the model. The evals are still what I care about. It's a fundamental thing." Specs can't be reduced to one thing — you need both natural-language instructions (following instructions is far easier than induction from data) *and* evals to define core behavior.
-- **Learning happens at the level of the whole system.** You want "the whole thing to work as a whole for my problem, not for some general default" — evals are the objective for that system-level learning, whether via RL or prompt optimization.
-- **"Good canvas" criteria:** lets you express spec + control-flow + code in a streamlined way, decoupled so you can *hot-swap* models, swap inference strategies (chain-of-thought → agent → Monte Carlo tree search), and swap learning algorithms (RL ↔ prompt optimization) — all at the abstraction level you're actually working at.
-- **DSPy as the embodiment:** three years old, decouples "writing the lower-level AI software" from the toolkit for learning/search/model-swapping (via adapters). One first-class concept to learn — **signatures**. Claims two abstractions (ColBERT, DSPy) have stayed fundamentally stable from `text-davinci-002` through `o4-mini` — "centuries in AI land."
-- **Closing baseline (his "safest bets"):** avoid hand-engineering at a lower level than today permits; models won't soon read specs off your mind or auto-collect your app-specific structure and tools, so invest in **signatures, essential control flow + tools, and evaluating by hand** — then "ride the wave" of swappable models, modules, and optimizers.
+## 要点
+- **这种疲于追赶是结构性问题，而非工作没做好。** 固定名称下的模型 API 也会静默变化，迫使团队不断调整；真正的问题是，模型取代你的工作前，你还能追赶多久。
+- **重读苦涩教训：** Sutton 所说依赖搜索和学习的通用方法胜过手工领域知识，目标是最大化“快速适应新环境、解决新问题的能力”。但人类已有 80 亿个不可靠的通用智能；软件存在的目的，是构造可靠、稳健、可控、可扩展的系统。
+- **工程是在正确位置精确削减自主性。** 可靠系统和制衡机制应谨慎限制必要部分的自主性，而不压制其余智能；这与苦涩教训处在不同轴线上。
+- **软件版苦涩教训：** 即 Knuth 的“过早优化是万恶之源”。领域知识本身无害，问题在于尚无依据就下沉到过低抽象层硬编码。
+- **“过早”的操作性定义：** 当且仅当你在低于当前证据所能支持的抽象层级上硬编码时，才是过早优化。只有证明高层抽象不足，才应下沉。
+- **ML 存在无人命名的紧耦合问题。** 软件工程早已知道不必要的紧耦合有害，ML 却习惯每出新范式就重写一切。Khattab 认为苦涩教训只是缺乏良好高层 ML 抽象的结果；每次范式变化后，最佳系统都会重新引入本应复用的模块化专长。
+- **2006 年模块化多语问答系统与当今多智能体框架极其相似。** 架构未必错；问题在于表达方式不对，导致模型升级时整套 ML 架构失效。
+- **“提示词是糟糕的编程抽象。”** 它适合管理，像给远程员工发 Slack 消息；但作为编程抽象，它只是无结构的字符串画布，把四件事混在一起：基本任务定义、模型特定的过拟合技巧、推理时策略，以及 XML/JSON 等格式与解析要求。“你是爱因斯坦教授……我会给你 1,000 美元小费”不是工程。
+- **解决办法是把关注点分成三类耐久工件：** 自然语言定义/规范；编码真实优化标准但不一定直接告诉模型的评测；以及用于工具、结构、信息流控制和可靠组合的代码。
+- **评测使规范与模型解耦。** 自然语言指令与评测缺一不可：遵循指令比从数据归纳容易，而评测则定义真正关心的行为，换模型也不变。
+- **学习发生在整个系统层面。** 无论 RL 还是提示优化，都应让整套系统针对具体问题协同工作，而评测就是系统级学习目标。
+- **“好画布”的标准：** 能顺畅表达规范、控制流和代码，并让模型、推理策略（思维链、智能体、蒙特卡洛树搜索）及学习算法（RL、提示优化）彼此解耦、可热插拔。
+- **DSPy 是这一理念的实现：** 它把底层 AI 软件的编写与学习、搜索、换模型工具包分离，核心一等概念是**签名**。Khattab 称 ColBERT 与 DSPy 从 `text-davinci-002` 到 `o4-mini` 一直保持基本稳定。
+- **最稳妥的投入：** 避免在低于当下能力允许的层级手工设计；模型短期内不会读心，也不会自动收集应用专属结构和工具，因此应投资于**签名、必要控制流与工具、人工评估**，再借可替换模型、模块和优化器之势前进。
 
-## Verified quotes (VERBATIM, with [mm:ss])
-- "Most likely you're scrambling every week. That's not if you're doing a bad job, that's if you're doing a good job." [03:05]
-- "We program software not because we lack AGI but because we want reliable, robust, controllable, scalable systems." [06:02] *(lightly de-disfluenced from "Um so we program software not because we lack AGI but because we want reliable, robust, controllable uh scalable systems"; wording faithful.)*
-- "Premature optimization is what is happening if and only if you're hard-coding stuff at a lower level of abstraction than you can justify." [09:59] *(ASR repeated "that you can than you can justify"; collapsed the stutter, wording otherwise verbatim.)*
-- "A prompt is a horrible abstraction for programming and this needs to be fixed ASAP." [12:24]
-- "Evals say here's what I actually care about. Change the model. The evals are still what I care about. It's a fundamental thing." [15:20] *(transcript reads "eval"/"the eval" throughout due to ASR dropping the plural -s; restored to "evals", wording otherwise verbatim.)*
-- "You are professor Einstein, a wise expert in the field of... I'll tip you $1,000, right? Like that is just not engineering, guys." [14:18]
+## 已核验引述（中文翻译，含时间戳）
+- [03:05] “你很可能每周都在手忙脚乱。这不是因为工作做得差；恰恰说明你做得好。”
+- [06:02] “我们编写软件，不是因为缺少 AGI，而是因为需要可靠、稳健、可控且可扩展的系统。”
+- [09:59] “当且仅当你在低于自己能够合理证明的抽象层级上硬编码时，过早优化才正在发生。”
+- [12:24] “提示词是糟糕的编程抽象，这件事必须尽快修正。”
+- [15:20] “评测说明我真正关心什么。换掉模型，评测所代表的关切仍然不变。这是根本性的。”
+- [14:18] “你是该领域睿智的爱因斯坦教授……我会给你 1,000 美元小费。各位，这根本不是工程。”
 
-## What it adds (non-obvious, talk-specific value vs canonical written sources)
-- **A precise, testable definition of "premature optimization" for AI systems** — the "lower level of abstraction than you can justify" framing — which is sharper than the usual hand-wavy invocation of either the bitter lesson or Knuth, and gives engineers an actual decision rule.
-- **The strongest single articulation of *why evals are the durable artifact*:** not as QA/measurement but as the model-independent encoding of intent that survives every swap. Most eval writing treats evals as a feedback loop; Khattab treats them as the *specification* and the *optimization objective* simultaneously, which reframes their priority in the stack.
-- **The "four things a prompt entangles" decomposition** (task def / model-specific hacks / inference strategy / formatting) is a clean diagnostic lens for auditing why a prompt-centric system is brittle — and pinpoints exactly which slice the eval is supposed to own.
-- **The historical mirror** (2006 modular QA paper ≈ 2025 multi-agent framework; fast-inverse-square-root as a prompt analogy) makes the "bad expression, not bad architecture" argument concrete and memorable.
-- A clear statement that **the eval is the unit at which whole-system learning (RL or prompt optimization) is defined** — connecting evals directly to the capability/RL-environment axis rather than leaving them as a separate measurement concern.
+## 本演讲的独特增量
+- 给出可检验的“过早优化”定义：在低于证据所能支持的抽象层级上硬编码，为工程师提供实际决策规则。
+- 最有力地说明了**为何评测是耐久工件**：它既是跨模型的意图编码，也是优化目标。
+- 将提示词纠缠的问题拆成任务定义、模型特定技巧、推理策略、格式四类，便于诊断提示中心系统为何脆弱。
+- 通过 2006 年模块化问答与现代多智能体框架的历史镜像，以及快速平方根倒数类比，把“问题在表达而非架构”讲得具体。
+- 明确指出，整个系统的学习单元由评测界定，从而把评测直接连到能力与 RL 环境。
 
-## Themes
-2 eval⇄capability⇄RL-env · 3 model/harness/skill · 1 why-evals · 9 agent-specific
+## 主题
+2 评测⇄能力⇄RL 环境 · 3 模型/框架/技能 · 1 为什么需要评测 · 9 智能体特有问题

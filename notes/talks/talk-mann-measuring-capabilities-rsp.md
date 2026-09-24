@@ -1,40 +1,40 @@
-# Notes — "Measuring Agent Capabilities and Anthropic's RSP"
-**Speaker/Guest:** Ben Mann (Anthropic) · **Venue:** Berkeley LLM Agents MOOC F24 · **Type:** lecture · **URL:** https://www.youtube.com/watch?v=6y2AnWol7oo
+# 笔记——《衡量智能体能力与 Anthropic 的 RSP》
+**讲者/嘉宾：** Ben Mann（Anthropic）· **场合：** Berkeley LLM Agents MOOC F24 · **类型：** 讲座 · **链接：** https://www.youtube.com/watch?v=6y2AnWol7oo
 
-## Summary (3-6 sentences — what it argues, why it matters for agent evals)
-Mann (Anthropic co-founder, ex-OpenAI GPT-3 author) argues that measurement is the single most important and hardest problem in safe AI development, and that it gets dramatically harder once models become agents that take real-world actions. The core wrinkle is *elicitation*: a model's "true" capability isn't fixed — a new prompting trick (chain-of-thought, better harness) can suddenly unlock latent ability, so any capability claim must hold even against future elicitation breakthroughs. He frames Anthropic's Responsible Scaling Policy (RSP) as a precommitment device — modeled on biosafety levels (ASL-1 through ASL-5) — that ties capability thresholds ("yellow line" / "red line" tests) to required safety measures before training or deploying. He makes a concrete, eval-centric point that benchmarks saturate almost the instant they're defined and that the *environment/harness* matters as much as the underlying model (Claude 3.5 Sonnet beats o1-preview on agentic coding because it can execute and iterate, not just reason). The talk ties measurement, agentic task-horizon forecasting, and defense-in-depth safety into one argument: you can't deploy what you can't reliably measure.
+## 摘要（3—6 句：核心论点及其对智能体评测的意义）
+Mann（Anthropic 联合创始人、前 OpenAI GPT-3 作者）认为，测量是安全 AI 开发中最重要也最困难的问题，而模型成为能在现实世界行动的智能体后，难度会陡增。关键变量是**能力引出**：模型的“真实”能力并非固定，新提示技巧、思维链或更好的框架可能突然释放潜在能力，因此任何能力结论都应经得住未来引出技术的突破。他把 Anthropic 的负责任扩展政策（RSP）描述为一种预先承诺机制，仿照生物安全等级设置 ASL-1 至 ASL-5，并把能力阈值（“黄线”“红线”测试）与训练或部署前必须采取的安全措施绑定。基准几乎一经定义就趋于饱和，环境/框架与底层模型同样重要；例如 Claude 3.5 Sonnet 在智能体编码中胜过 o1-preview，并非推理更强，而是能执行、观察并迭代。整场演讲把测量、智能体任务时长预测和纵深防御统一起来：无法可靠测量，就不能安全部署。
 
-## Key points (6-14 substantive bullets)
-- **Elicitation is the central measurement problem.** Capability is not a fixed property — chain-of-thought ("think step by step") is "one tiny change in how you're prompting" that produces "a dramatic change in the model's output." A capability claim must remain true "even if somebody finds some breakthrough new technique for elicitation."
-- **Agents raise the stakes for measurement** because models can now buy/sell things, talk to humans, and change production environments via software — so a wrong capability estimate has real-world blast radius.
-- **Benchmarks saturate almost instantly once defined.** Citing an Our World in Data / Kiela et al. 2023 chart: across codegen, reasoning, speech, NLU, image recognition, reading comprehension, benchmarks "start almost at the bottom and then very, very rapidly get past" human-level. "Just by defining a benchmark, we suddenly make massive advances in that area" — which makes it hard to build a smoothly-scaling difficulty ramp up to the capability levels you actually care about.
-- **Task-time-horizon as a capability metric.** An Aug 2024 Anthropic eval measured agentic task completion in human-time-equivalent: Claude 3 Sonnet ~5 min, Opus ~10 min, old Claude 3.5 Sonnet ~30 min. Extrapolating the line, horizons grow to hours → days → months of autonomous work; build for the capability arriving in a few years, not today's.
-- **Environment/harness beats raw reasoning.** Per the OpenAI o1 model card, Claude 3.5 Sonnet — "despite having much weaker reasoning capabilities" — beat o1-preview on agentic coding. The reason: o1 was effectively "writing the code on a piece of paper" (no execution), while Sonnet writes code, runs it, sees if it passes, and iterates. Feedback from the environment is what makes a model agentic.
-- **RSP = precommitment ("Odysseus to the mast").** Publicly committing to safety thresholds before a model is ready removes the incentive to ship without proper testing. Each new model ships with a published testing report; the policy is iterated in public because it's a "brand new science."
-- **ASL ladder (modeled on biosafety levels):** ASL-1 = no societal risk (GPT-1/2, small Llamas); ASL-2 = today's frontier, early signs of dangerous capability but not above what a search engine / expert already provides; ASL-3 = meaningfully raises misuse risk and shows early autonomous-replication signs; ASL-4 = expert-human-level across many domains, can autonomously execute key research steps (forecast ~2028-2030 per Aschenbrenner, "with a very large grain of salt"); ASL-5 = surpasses the best humans/organizations.
-- **Domain-expert red-teaming for bio.** Anthropic hired biologists skilled in biological weapons to evaluate model uplift, and testified to the US Senate on bio capabilities — concrete eval staffing, not just automated benchmarks.
-- **Deception / autonomous-replication evals.** They explicitly test whether a model told "don't break out of your box" will say "I wouldn't do that" yet act otherwise given the chance; so far no evidence of this in the wild, which is part of the case that they're not yet at ASL-3.
-- **Yellow-line / red-line test structure.** Claude 3.5 Sonnet is "close to the edge of ASL-2"; the next generation could cross the "yellow line" toward ASL-3. Yellow-line tests tripping triggers red-line tests and possibly the full ASL-3 suite. The Oct 15 2024 RSP update moved to a six-month post-training window (from three) and added capability thresholds that force more testing even below the 4x-compute-multiplier threshold.
-- **Safety can force a pause.** If ASL-3 is feasible in ~2 years but safety measures take ~3, deployment is delayed ~1 year; in extreme cases capabilities outrun safety enough to require pausing all model development. Mann argues AI forecasts should price in pausing as a real possibility.
-- **Computer-use shipped as a sandboxed reference impl, not a product** — because "nobody really knows how to make computer use safe yet." Built by prompting the model with tool descriptions (mouse move, keyboard, chords like Cmd-C via PyAutoGUI, screenshots), telling it to screenshot after every action so it can bootstrap, then letting it practice in a sandbox. Result: state-of-the-art on the OSWorld benchmark in the screenshots-only category.
-- **Prompt-injection threat model + Swiss-cheese defense.** Concrete attack: near-white text on white background tells the agent to exfiltrate credentials, plus an injected "ignore all previous instructions" to neutralize a babysitter/classifier model. Defense in depth: (1) sandbox VM with no real credentials, (2) instruction hierarchy (privileged system prompt; data-channel instructions like "add five smiley emojis" should not be followed), (3) scalable oversight so the babysitting/classifier models can be trusted to catch jailbreaks.
-- **Good benchmarks are hard; named desiderata:** reproducibility (both SWE-bench Verified and OSWorld now run from Docker containers for easy setup), generality/breadth (OSWorld = hundreds of task instances across apps; SWE-bench = many languages and repos), and realism. Live-internet evals would be most realistic but hammer small site owners — suggests building fake sites (e.g., a fake Airbnb with fake listings) instead.
+## 要点
+- **能力引出是核心测量难题。** “逐步思考”这样微小的提示变化就能显著改变输出；能力结论必须在未来出现全新引出技术时仍成立。
+- **智能体提高了误测代价，** 因为它们能够买卖物品、与人交流并通过软件改变生产环境。
+- **基准定义后几乎立刻饱和。** 代码生成、推理、语音、NLU、图像识别和阅读理解的基准常从低分迅速越过人类水平；定义基准本身会推动该领域进步，因此很难构造平滑延伸到目标能力的难度阶梯。
+- **任务时间跨度是一种能力指标。** 2024 年 8 月的 Anthropic 评测按人类等效工作时间衡量智能体任务：Claude 3 Sonnet 约 5 分钟、Opus 约 10 分钟、旧 Claude 3.5 Sonnet 约 30 分钟。趋势可能扩展到小时、天乃至月，应为几年后会到来的能力建设，而非只看今天。
+- **环境/框架胜过裸推理。** o1-preview 像“在纸上写代码”，而 Sonnet 能写代码、运行、检查通过与否并迭代；环境反馈使模型成为智能体。
+- **RSP 是“奥德修斯缚于桅杆”式预先承诺。** 在模型准备就绪前公开安全阈值，可削弱无充分测试便发布的诱因；每个新模型都随测试报告发布，政策也因这是一门新科学而公开迭代。
+- **ASL 阶梯：** ASL-1 无社会风险；ASL-2 是当前前沿，有危险能力苗头但不超过搜索引擎或专家；ASL-3 会显著提升滥用风险并出现早期自主复制；ASL-4 在多个领域达到专家水平并能自主执行关键研究步骤；ASL-5 超越最佳个人和组织。
+- **生物领域采用专家红队。** Anthropic 聘请熟悉生物武器的生物学家评估模型带来的能力增益，并就生物能力向美国参议院作证。
+- **欺骗与自主复制评测：** 测试模型被告知“不要逃离盒子”后，是否口头承诺却伺机采取相反行动；目前尚无野外证据支持这种行为，因此仍未达到 ASL-3。
+- **黄线/红线机制：** Claude 3.5 Sonnet 已接近 ASL-2 边缘，下一代可能跨越通向 ASL-3 的黄线；触发黄线后启动红线乃至完整 ASL-3 测试。2024 年 10 月 15 日更新把训练后窗口从三个月改为六个月，并加入即便未达到 4 倍算力阈值也会强制更多测试的能力触发项。
+- **安全要求可以迫使暂停。** 若两年后可达 ASL-3，而安全措施需三年，就应推迟部署一年；极端情况下应暂停全部模型开发。
+- **计算机使用仅以沙箱参考实现发布，** 因为没人真正知道如何保证安全。系统通过提示告知鼠标、键盘、快捷键和截图等工具，并要求每次操作后截图，再在沙箱中练习；其在仅截图类别的 OSWorld 上达到领先水平。
+- **提示注入与瑞士奶酪式防御：** 近白色文字可诱导智能体外泄凭据，并用“忽略此前指令”绕过看护分类器。防御包括无真实凭据的沙箱 VM、区分高权限系统指令与数据通道指令的指令层级，以及可扩展监督。
+- **好基准的要求：** 可复现（SWE-bench Verified、OSWorld 均容器化）、广泛且真实。直接访问实时互联网最真实但会压垮小站点，因此可构造带虚假房源等内容的仿真网站。
 
-## Verified quotes (verbatim, with [mm:ss])
-- "I hope if there's one thing that you leave this room, remembering, it's that measurement is really, really important." [02:16]
-- "when we release a model with a certain capability ... we need to have some confidence that will remain true even if somebody finds some breakthrough new technique for elicitation." [02:56]
-- "basically, just by defining a benchmark, we suddenly make massive advances in that area." [24:08]
-- "our Claude 3.5 Sonnet, despite having much weaker reasoning capabilities, does better than OpenAI's o1 preview ... what Claude 3.5 Sonnet is doing is it's actually writing the code, running it. And seeing if it passes and able to iterate." [24:22 / 26:57]
-- "we can tie our own hands or like Odysseus to the mast when he's like going by the sirens." [13:34]
-- "It's very, very hard to make a good benchmark. And things like reproducibility are some of the properties that we look for." [41:54]
+## 已核验引述（中文翻译，含时间戳）
+- [02:16] “如果你们离开这个房间时只记得一件事，我希望那就是：测量真的、真的很重要。”
+- [02:56] “当我们发布具有某种能力的模型时……必须有把握：即使有人找到突破性的全新能力引出技术，这一判断依然成立。”
+- [24:08] “基本上，仅仅定义一个基准，我们就会突然在该领域取得巨大进步。”
+- [24:22 / 26:57] “我们的 Claude 3.5 Sonnet 尽管推理能力弱得多，却优于 OpenAI 的 o1-preview……因为它真的会写代码、运行、检查是否通过并继续迭代。”
+- [13:34] “我们可以绑住自己的手，就像奥德修斯驶过塞壬时把自己绑在桅杆上一样。”
+- [41:54] “构造好基准非常非常困难；可复现性正是我们关注的性质之一。”
 
-## What it adds (non-obvious, talk-specific value)
-- A practitioner's framing that **capability is a moving target set by elicitation**, not a property you measure once — and that this is *why* eval claims must be robustness claims about future prompting/harness improvements, not point estimates.
-- A crisp, quotable demonstration that **harness > raw model** using the o1-preview vs Claude 3.5 Sonnet agentic-coding result, with the "writing code on paper vs running it" analogy — a concrete data point for the model/harness/skill decomposition.
-- The **task-time-horizon eval** with actual minute numbers (5/10/30) and the design argument that you should build for the horizon arriving in years, not the one you can measure today.
-- Operational detail on **how an agentic capability gets bootstrapped via prompting** (tell the model its tools + "screenshot after every action," then sandbox practice) before any post-training — useful for anyone building RL environments for tool use.
-- Concrete **benchmark-design desiderata tied to real benchmarks** (Docker-based reproducibility for SWE-bench Verified and OSWorld; fake-website environments to avoid hammering real sites) — practical guidance that's more specific than the written RSP.
-- The **yellow-line/red-line tiered test mechanism** and the Oct 2024 RSP update specifics (six-month window, sub-threshold capability triggers) connect abstract policy to the actual gating evals.
+## 本演讲的独特增量
+- 把能力定义为随引出技术变化的移动目标，因此能力结论应是对未来提示/框架进步稳健的结论，而非一次点估计。
+- 用 o1-preview 与 Claude 3.5 Sonnet 的“纸上写代码”对“实际运行代码”，具体说明框架可胜过裸模型。
+- 提供任务时间跨度的 5/10/30 分钟数字，并主张为几年后的跨度建设。
+- 展示仅靠工具说明、“每次操作后截图”和沙箱练习即可启动智能体能力的过程。
+- 把 Docker 可复现、仿真网站等基准设计要求落到具体实践。
+- 说明黄线/红线分层测试和六个月窗口如何把抽象政策转化为能力门控评测。
 
-## Themes
-1 why-evals · 2 eval⇄capability⇄RL-env · 3 model/harness/skill · 6 benchmark-vs-eval · 7 RL environments · 8 judge/verifiers · 9 agent-specific · 10 safety
+## 主题
+1 为什么需要评测 · 2 评测⇄能力⇄RL 环境 · 3 模型/框架/技能 · 6 基准与评测 · 7 RL 环境 · 8 评审器/验证器 · 9 智能体特有问题 · 10 安全

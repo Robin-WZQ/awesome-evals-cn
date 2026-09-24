@@ -1,35 +1,35 @@
-# Notes — "The Reliability Gap: Agent Benchmarks for Enterprise"
-**Author:** Paul Simmering · **URL:** https://simmering.dev/blog/agent-benchmarks/ · **Type:** blog · **Found:** true
+# 笔记——《可靠性鸿沟：面向企业的智能体基准》
+**作者：** Paul Simmering · **网址：** https://simmering.dev/blog/agent-benchmarks/ · **类型：** 博客 · **已找到：** 是
 
-## Summary
-A practitioner-facing blog post (published 2026-01-04) arguing that the bottleneck for enterprise agent deployment is *reliability*, not peak capability. Its central technical move is to reframe the success metric from pass@k (passing at least once in k tries) to **pass^k** ("pass wedge k") — the probability of passing *all* k runs of the same task — which is the metric that actually maps to production. It surveys ~50+ benchmarks and keeps four (GAIA, BFCL V3, τ²-bench, Vending-Bench 2) after applying a hard filter, the strictest clause of which is "must have a public leaderboard with up-to-date models." It uses concrete failure transcripts (Vending-Bench meltdowns, τ²-bench communication failures) to show that top models with high pass@1 still fail catastrophically and unpredictably across repeated runs. The deployment takeaway: stage agents by blast radius (internal tools now, customer-facing with monitoring, long-running autonomy not yet), and engineer for catastrophic-failure rate rather than average accuracy.
+## 摘要
+这篇面向实践者的博客发表于 2026 年 1 月 4 日，主张企业部署智能体的瓶颈是可靠性，而非峰值能力。其核心技术转变是将成功指标从 pass@k（k 次尝试中至少成功一次）改为 **pass^k**（读作“pass wedge k”），即同一任务的 k 次运行全部成功的概率；后者才真正对应生产需求。文章考察了 50 多个基准，经严格筛选后保留 GAIA、BFCL V3、τ²-bench 和 Vending-Bench 2；其中最严格的一项要求是必须有包含最新模型的公开排行榜。文中使用具体失败记录，如 Vending-Bench 的失控行为和 τ²-bench 的沟通失败，说明即使顶尖模型具有较高 pass@1，也会在重复运行中发生灾难性且不可预测的失败。部署建议是按照影响半径分级推进：内部工具可立即使用，面向客户的应用需要严密监控，长时间自主运行尚未准备就绪；工程上应关注灾难性失败率，而非平均准确率。
 
-## Key points
-- **pass^k > pass@k as the deployment-relevant metric.** "pass^k (pronounced 'pass wedge k'): the probability of passing on all k runs of the same task." Most benchmarks only report pass^1, hiding the consistency gap the article cares about.
-- **Consistency, not capability, is the gap.** A model can solve a task once at high rate but fail the same task on a re-run; τ²-bench is cited as the best demonstrator, with strong pass@1 (~80–85%; Gemini 3 Pro ~85%) collapsing under higher pass^k.
-- **Four-part benchmark filter** applied to 50+ benchmarks: (1) relevance to business use cases, (2) genuinely agentic (multi-turn, tool use), (3) best-in-class, (4) **public leaderboard with current models** — the last clause "disqualifies the majority of benchmarks." This is an integrity/trust filter, not just a relevance one.
-- **Four survivors:** GAIA (general multi-tool reasoning, ~90%, near saturation), BFCL V3 (function-calling, ~77.5% Opus 4.5), τ²-bench (multi-turn customer support with policies), Vending-Bench 2 (long-horizon business sim).
-- **Long-horizon meltdowns are qualitative, not gradual.** "When this happens, agents don't degrade gradually. They melt down." Examples: Claude 3.5 Haiku escalating a supplier dispute into demands for "QUANTUM NUCLEAR LEGAL INTERVENTION"; Claude trying to report a $2 daily fee to the FBI as "ONGOING CYBER FINANCIAL CRIME."
-- **High variance even at the top.** Vending-Bench: best performer (Claude 3.5 Sonnet) succeeded in only 3 of 5 runs, worst run made $0; on Vending-Bench 2, Gemini 3 Pro reached ~$5,478 vs a human ceiling ~$63k.
-- **Root cause is not context length.** "The original paper found no correlation between failures and context window limits (r = 0.167)." Coherence loss persists despite scratchpads, key-value stores, and vector databases — the agent fails to "hold its own state together" across a long, growing context.
-- **τ²-bench failure mode is communication.** An ablation giving the support agent access to all tools raised success substantially, "indicating that user-agent communication is a common failure mode" — i.e., the agent-user dialogue, not raw tool capability, is where it breaks.
-- **Deployment readiness tiers by blast radius:** internal tools (research, data analysis, coding) ready now; customer-facing tools need tight monitoring; long-running autonomous work not ready.
-- **Enterprise mitigations:** circuit breakers for anomalous behavior, periodic human checkpoints, external state management, and building skepticism into agent interactions with external parties — design for "how often does it fail catastrophically," not average accuracy.
+## 要点
+- **pass^k 比 pass@k 更贴近部署。** pass^k 指同一任务的 k 次运行全部成功的概率。多数基准只报告 pass^1，掩盖了文章所关注的一致性鸿沟。
+- **缺口在一致性而非能力。** 模型可能以很高概率解决一次任务，却在重跑同一任务时失败。τ²-bench 是最典型例子：强模型 pass@1 约 80%–85%，Gemini 3 Pro 约 85%，但在更高 k 的 pass^k 下显著下降。
+- **对 50 多个基准应用四项筛选：** 与业务用例相关；真正具备智能体特征，即多轮并使用工具；同类最佳；有包含当前模型的公开排行榜。最后一项会淘汰多数基准，它不仅衡量相关性，也是在做完整性与可信度筛选。
+- **四个入选基准：** GAIA 衡量通用多工具推理，约 90%，接近饱和；BFCL V3 衡量函数调用，Opus 4.5 约 77.5%；τ²-bench 衡量遵循政策的多轮客服；Vending-Bench 2 是长时程商业模拟。
+- **长时程失控是质变而非缓慢退化。** 例子包括 Claude 3.5 Haiku 把供应商争议升级成要求“量子核法律干预”的邮件，以及 Claude 试图把每日 2 美元费用作为“持续进行的网络金融犯罪”报告给 FBI。
+- **顶尖模型仍有高方差。** Vending-Bench 中，最佳模型 Claude 3.5 Sonnet 也只在 5 次运行中成功 3 次，最差一次收入为 0；Vending-Bench 2 中，Gemini 3 Pro 约获 5,478 美元，而人类上限约为 63,000 美元。
+- **根因不是上下文长度。** 原论文发现失败与上下文窗口限制之间无相关性（r = 0.167）。即使使用暂存区、键值存储和向量数据库，一致性丢失仍然存在；智能体无法在不断增长的长上下文中维持自身状态。
+- **τ²-bench 的失败模式在沟通。** 一项消融实验让客服智能体访问全部工具后，成功率大幅提高，表明用户与智能体沟通是常见失败模式；真正崩溃的是对话，而非原始工具能力。
+- **按影响半径划分部署成熟度：** 研究、数据分析、编程等内部工具已可使用；面向客户的工具需要严密监控；长时间自主工作尚未成熟。
+- **企业缓解措施：** 为异常行为设置熔断器、定期加入人工检查点、使用外部状态管理，并让智能体对外部参与方保持审慎。系统应围绕“灾难性失败多久发生一次”来设计，而非只看平均准确率。
 
-## Verified quotes
-- "**pass^k** (pronounced "pass wedge k"): the probability of passing on all k runs of the same task." — https://simmering.dev/blog/agent-benchmarks/
-- "A benchmark needs a public leaderboard with up-to-date models listed. This disqualifies the majority of benchmarks." — https://simmering.dev/blog/agent-benchmarks/
-- "When this happens, agents don't degrade gradually. They melt down." — https://simmering.dev/blog/agent-benchmarks/
-- "For enterprise reliability, the relevant question isn't 'can it succeed?' but 'how often does it fail catastrophically?'" — https://simmering.dev/blog/agent-benchmarks/
-- "In one example, Claude 3.5 Haiku escalated a supplier dispute into increasingly unhinged emails demanding 'QUANTUM NUCLEAR LEGAL INTERVENTION.'" — https://simmering.dev/blog/agent-benchmarks/
-- "The original paper found no correlation between failures and context window limits (r = 0.167)." — https://simmering.dev/blog/agent-benchmarks/
+## 已核验引述（中文翻译）
+- “**pass^k**（读作‘pass wedge k’）：同一任务的 k 次运行全部通过的概率。”——https://simmering.dev/blog/agent-benchmarks/
+- “一个基准必须拥有列出最新模型的公开排行榜。这会淘汰大多数基准。”——https://simmering.dev/blog/agent-benchmarks/
+- “发生这种情况时，智能体不是逐渐退化，而是直接失控。”——https://simmering.dev/blog/agent-benchmarks/
+- “对企业可靠性而言，关键问题不是‘它能否成功’，而是‘它多长时间会发生一次灾难性失败’。”——https://simmering.dev/blog/agent-benchmarks/
+- “在一个例子中，Claude 3.5 Haiku 把供应商争议升级成越来越失控的邮件，要求进行‘量子核法律干预’。”——https://simmering.dev/blog/agent-benchmarks/
+- “原论文发现失败与上下文窗口限制之间不存在相关性（r = 0.167）。”——https://simmering.dev/blog/agent-benchmarks/
 
-## What it adds / why it's good
-The non-BS value is the **pass^k reframing made operational**: not just "agents are unreliable," but a specific, named metric (probability of passing *all* k runs) plus the observation that nearly every benchmark only publishes pass^1, which is why leaderboards systematically overstate deployability. The **public-leaderboard-with-current-models filter** is a sharp, reusable integrity heuristic — it cheaply kills the long tail of one-shot academic benchmarks that never track frontier models, and it's a criterion an eval library can adopt verbatim. The piece also resists the usual abstraction by grounding claims in concrete transcripts (the "QUANTUM NUCLEAR LEGAL INTERVENTION" / FBI meltdowns) and a counterintuitive negative result (failures don't correlate with context length, r=0.167), which redirects blame from context windows to state-coherence — a more actionable diagnosis. Versus the obvious sources (the τ²-bench and Vending-Bench papers themselves), this synthesizes across them with an explicit enterprise-deployment lens and a blast-radius staging model.
+## 它带来了什么／为什么值得读
+本文最扎实的价值是把 pass^k 的重新定义落到实际操作：它不只说智能体不可靠，而是给出一个明确命名的指标——k 次运行全部通过的概率——并指出几乎所有基准都只公布 pass^1，这正是排行榜系统性高估可部署性的原因。要求公开排行榜包含最新模型，也是一项尖锐且可复用的基准完整性启发式规则：它能低成本淘汰大量从未追踪前沿模型的一次性学术基准，评测库可以直接采用。文章还用具体记录和一个反直觉的否定结果来支撑观点：失败与上下文长度无关，r=0.167。这把归因从上下文窗口转向更可操作的状态一致性问题。相较于 τ²-bench 和 Vending-Bench 各自的原论文，本文从企业部署角度完成跨基准综合，并提供按影响半径分级的部署模型。
 
-## Themes
-- **1 why-evals** — argues reliability/consistency is the real deployment barrier and that current eval reporting hides it.
-- **6 benchmark-vs-eval/integrity** — the four-part filter, especially the public-leaderboard-with-current-models clause, is a trust/integrity heuristic for benchmarks.
-- **9 agent-specific** — multi-turn, tool-use, long-horizon agent failure modes (τ²-bench, Vending-Bench) are the core subject.
-- **4 observability/surfaces** — recommends circuit breakers, human checkpoints, and anomaly monitoring as deployment surfaces.
-- **10 safety/adversarial** (secondary) — catastrophic-meltdown behavior and "build skepticism into external interactions" touch on agent-safety failure modes.
+## 主题
+- **1 为什么要评测：** 可靠性与一致性才是部署障碍，而当前评测报告方式会掩盖它。
+- **6 基准与评测／完整性：** 四项筛选，特别是要求包含当前模型的公开排行榜，是评估基准可信度的启发式方法。
+- **9 智能体专项：** 多轮、工具使用和长时程失败模式是核心主题。
+- **4 可观测性／界面：** 建议使用熔断器、人工检查点和异常监控。
+- **10 安全／对抗**（次要）：灾难性失控行为和对外部交互保持审慎涉及智能体安全失败模式。

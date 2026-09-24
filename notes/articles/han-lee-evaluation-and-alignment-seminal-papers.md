@@ -1,35 +1,35 @@
-# Notes — "Evaluation and Alignment: The Seminal Papers"
+# 笔记——《评测与对齐：奠基性论文》
 
-**Author:** Han-Chung Lee · **URL:** https://www.manning.com/books/evaluation-and-alignment-the-seminal-papers · **Type:** course (Manning MEAP book, in progress) · **Found:** true
+**作者：** Han-Chung Lee · **网址：** https://www.manning.com/books/evaluation-and-alignment-the-seminal-papers · **类型：** 课程（Manning MEAP 图书，撰写中）· **已找到：** 是
 
-## Summary
-A Manning MEAP (Early Access) book by Han-Chung Lee — Senior Director of Data and AI at Moody's — that walks the field's evaluation/alignment canon paper-by-paper, from n-gram metrics (BLEU, ROUGE) through semantic metrics (BERTScore, COMET), LLM-as-a-judge, hallucination detection, RLHF, Constitutional AI, and red teaming. Each chapter takes one pivotal research paper and explains its historical context, core innovation, and practical implications, tracing the arc from surface-level text matching to semantic similarity to judgment-based evaluation. The organizing thesis is that evaluation should be treated as a *design constraint*: you "work backwards" from what the system must get right, and iterate a `define > evaluate > analysis > align` cycle. It is pitched at AI engineers and LLM practitioners with no assumed background in NLP metrics, RL, or alignment research. As of mid-2026 it is ~36% complete (4 of 11 chapters), publication estimated Fall 2026.
+## 摘要
+这是 Moody's 数据与 AI 高级总监 Han-Chung Lee 撰写的一本 Manning MEAP（抢先阅读）图书。它逐篇梳理评测与对齐领域的经典论文：从 n-gram 指标（BLEU、ROUGE）到语义指标（BERTScore、COMET），再到大模型裁判、幻觉检测、RLHF、Constitutional AI 和红队测试。每章选择一篇关键论文，解释其历史背景、核心创新和实际影响，勾勒从表层文本匹配到语义相似性，再到基于判断的评测演进。全书的组织主张是把评测视为一种设计约束：从系统必须做对什么出发“反向设计”，并反复运行 `定义 > 评测 > 分析 > 对齐` 循环。目标读者是 AI 工程师和大模型实践者，不要求具备 NLP 指标、强化学习或对齐研究背景。截至 2026 年年中，本书完成约 36%（11 章中的 4 章），预计 2026 年秋季出版。
 
-## Key points
-- **The loop is the spine.** The whole book is structured around a `define > evaluate > analysis > align` cycle, framed as "working backwards" from what the system must get right rather than starting from whatever metric is convenient. Evaluation is positioned as a design constraint, not an afterthought.
-- **Paper-by-paper pedagogy.** Each chapter == one seminal paper, covering historical context + core innovation + practical implications. This is a guided reading of the canon, not a from-scratch tutorial — the value is the synthesis into "a single, coherent narrative."
-- **The evaluation arc:** lexical/text-matching (BLEU, ROUGE) → semantic similarity (BERTScore, COMET) → judgment-based (LLM-as-a-judge). The explicit framing is that capability ceilings of each generation of metric forced the next.
-- **BLEU/ROUGE chapter** makes a sharp point that lexical metrics' *design patterns* outlive the metrics themselves: modified n-gram precision, geometric-mean aggregation, and brevity penalty are anti-gaming mechanisms (block repetition and truncation) that remain useful as cheap regression/sanity checks. ROUGE deliberately shifts emphasis from precision (BLEU, translation) to recall (summarization) because a summary must capture reference content even when phrased differently.
-- **Hallucination** gets its own treatment as a measurement problem ("How do we measure hallucination?") — detection and quantification, not just hand-waving.
-- **Alignment half** covers RLHF, Constitutional AI, and red teaming — connecting the eval methods to how models are actually steered toward helpfulness/safety/brand-voice tradeoffs.
-- **Audience-calibrated:** explicitly no prerequisite in NLP metrics, RL, or alignment research; aimed at practitioners shipping production GenAI who need to "diagnose faults and refine systems to align with business needs."
-- **Error analysis as a first-class step** in the loop (the "analysis" stage between evaluate and align) — the practitioner reads failures, not just aggregate scores, before deciding how to align.
-- **Distinct from Lee's other output.** This is primary, structured authored work, separate from his newsletter/blogroll curation — a sustained narrative rather than link aggregation.
+## 要点
+- **循环是全书主线。** 全书围绕 `定义 > 评测 > 分析 > 对齐` 循环组织，强调从系统必须做对什么反向设计，而不是先选一个方便的指标。评测被置于设计约束的位置，而非事后补充。
+- **逐篇论文教学。** 每章对应一篇奠基性论文，涵盖历史背景、核心创新和实际影响。它是对经典文献的导读，而非从零开始的教程；价值在于把论文整合成一条连贯叙事。
+- **评测演进路线：** 词汇／文本匹配（BLEU、ROUGE）→语义相似性（BERTScore、COMET）→基于判断的评测（大模型裁判）。书中明确指出，每一代指标的能力上限推动了下一代出现。
+- **BLEU/ROUGE 章节**指出，词汇指标的设计模式比指标本身更长寿：修正 n-gram 精确率、几何平均聚合和简短惩罚都是防投机机制，可阻止重复和截断，至今仍适合作为低成本回归检查或健全性检查。ROUGE 有意把重点从 BLEU 面向翻译的精确率转向面向摘要的召回率，因为摘要即使措辞不同，也必须覆盖参考文本内容。
+- **幻觉**被作为测量问题独立讨论：重点是“如何测量幻觉”，即检测与量化，而非泛泛而谈。
+- **对齐部分**涵盖 RLHF、Constitutional AI 和红队测试，并将评测方法与模型如何在有用性、安全性及品牌语调之间接受引导联系起来。
+- **贴合受众：** 明确不要求 NLP 指标、强化学习或对齐研究基础，面向正在交付生产级生成式 AI、需要诊断故障并让系统符合业务需求的实践者。
+- **错误分析是一等步骤：** 它位于评测与对齐之间；实践者先阅读失败样例而非只看汇总分数，再决定如何对齐。
+- **区别于 Lee 的其他内容。** 这是结构化的原创著述，不同于其新闻简报或博客链接汇编；它提供的是持续展开的完整叙事。
 
-## Verified quotes
-- "How do we know if this answer is correct? How do we measure hallucination? How do we ensure our AI system behaves the way we want?" — https://livebook.manning.com/book/evaluation-and-alignment-the-seminal-papers/welcome
-- "Each chapter walks through a pivotal research paper, explaining its historical context, core innovation, and practical implications." — https://livebook.manning.com/book/evaluation-and-alignment-the-seminal-papers/welcome
-- "BLEU was designed for machine translation, where the core proxy is that a better translation should share more words and phrases with professional human references." — https://www.manning.com/preview/evaluation-and-alignment-the-seminal-papers/chapter-2
-- "ROUGE adapted the same general idea for summarization, but shifted the emphasis from precision to recall because summaries should capture the important information from a reference, even when phrased differently." — https://www.manning.com/preview/evaluation-and-alignment-the-seminal-papers/chapter-2
-- "AI engineers who can diagnose faults and refine systems to align with business needs are in high demand." — https://www.manning.com/books/evaluation-and-alignment-the-seminal-papers
-- "BLEU, ROUGE, BERTScore, COMET, and LLM-as-a-judge methods" (What's Inside) — https://www.manning.com/books/evaluation-and-alignment-the-seminal-papers
+## 已核验引述（中文翻译）
+- “我们如何知道这个答案是否正确？如何测量幻觉？又如何确保 AI 系统按照我们希望的方式行事？”——https://livebook.manning.com/book/evaluation-and-alignment-the-seminal-papers/welcome
+- “每一章都会讲解一篇关键研究论文，说明其历史背景、核心创新与实际影响。”——https://livebook.manning.com/book/evaluation-and-alignment-the-seminal-papers/welcome
+- “BLEU 是为机器翻译设计的，其核心代理假设是：更好的译文应与专业人工参考译文共享更多词语和短语。”——https://www.manning.com/preview/evaluation-and-alignment-the-seminal-papers/chapter-2
+- “ROUGE 将同一基本思路用于摘要，但把重点从精确率转向召回率，因为即便措辞不同，摘要也应覆盖参考文本中的重要信息。”——https://www.manning.com/preview/evaluation-and-alignment-the-seminal-papers/chapter-2
+- “能够诊断故障、改进系统并使其符合业务需求的 AI 工程师需求旺盛。”——https://www.manning.com/books/evaluation-and-alignment-the-seminal-papers
+- “BLEU、ROUGE、BERTScore、COMET 与大模型裁判方法”（内容简介）——https://www.manning.com/books/evaluation-and-alignment-the-seminal-papers
 
-## What it adds / why it's good
-Most eval writing is either (a) a single blog post on one technique or (b) the raw papers themselves. This is the rare resource that reads the *entire historical canon as a connected story* and ties each method back to a practitioner loop you can actually run — its stated goal is to let you "spend less time reading papers and more time building systems that work." The lasting value is less the metric definitions (available everywhere) and more the framing: evaluation-as-design-constraint, working backwards from required behavior, and the explicit `define → evaluate → analyze → align` cycle that bridges eval and alignment as one continuous practice rather than two separate fields. The BLEU/ROUGE chapter's insight — that the anti-gaming *design patterns* (brevity penalty, modified n-gram precision) matter more than the metrics — is a genuinely non-obvious, transferable takeaway. Caveat for the non-BS bar: it's a MEAP at ~36%, so the alignment/red-teaming chapters are not yet fully verifiable, and as a practitioner survey it's synthesis rather than novel research.
+## 它带来了什么／为什么值得读
+多数评测资料要么是只谈一种技术的单篇博客，要么就是原始论文。难得的是，本书把整个历史经典文献视为相互连接的故事，并将每种方法落回一套实践者真正可以运行的循环。其目标是让读者少花时间逐篇啃论文，多花时间构建真正有效的系统。它的持久价值不只是随处可查的指标定义，更在于评测即设计约束、从所需行为反向设计，以及明确的 `定义 → 评测 → 分析 → 对齐` 循环；这套框架把评测与对齐连成一项持续实践，而非两个分离领域。BLEU/ROUGE 章节关于防投机设计模式比指标本身更重要的见解，也具有不直观却可迁移的价值。需要注意的是，这本 MEAP 仅完成约 36%，因此对齐与红队章节尚无法完整核验；而且作为实践者综述，它主要提供综合整理，并非原创研究。
 
-## Themes
-- **1 why-evals** — central; evaluation framed as a design constraint and the reason systems "behave the way we want."
-- **2 eval⇄capability⇄RL-env** — the metric-generation arc (lexical → semantic → judge) is explicitly capability-driven, and the second half ties eval to RLHF/alignment.
-- **6 benchmark-vs-eval/integrity** — the anti-gaming design patterns (brevity penalty, modified n-gram precision) are exactly about metric integrity/gaming.
-- **8 judge/verifiers** — dedicated LLM-as-a-judge coverage.
-- **10 safety/adversarial** — RLHF, Constitutional AI, red teaming, and hallucination quantification.
+## 主题
+- **1 为什么要评测：** 核心主题；评测被视作设计约束，也是系统按预期行动的保障。
+- **2 评测⇄能力⇄强化学习环境：** 从词汇到语义再到裁判的指标演进由能力推动，后半部分又把评测连接到 RLHF 与对齐。
+- **6 基准与评测／完整性：** 简短惩罚、修正 n-gram 精确率等防投机设计直接关乎指标完整性。
+- **8 裁判／验证器：** 专门讨论大模型裁判。
+- **10 安全／对抗：** 涵盖 RLHF、Constitutional AI、红队测试和幻觉量化。
