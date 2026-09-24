@@ -1,40 +1,39 @@
-# Notes — "CS336 Lecture 12: Evaluation"
-**Speaker/Guest:** Hashimoto & Liang · **Venue:** Stanford CS336 2025 · **Type:** lecture · **URL:** https://www.youtube.com/watch?v=x-R5l2HsXqM
+# 笔记——《CS336 第 12 讲：评估》
+**讲者/嘉宾：** Hashimoto 与 Liang · **场合：** Stanford CS336 2025 · **类型：** 讲座 · **链接：** https://www.youtube.com/watch?v=x-R5l2HsXqM
 
-## Summary (3-6 sentences)
-A whirlwind survey of LLM evaluation, framed around one thesis: "there is no one true evaluation — it depends on the question you're trying to answer" (purchase decision vs. research progress vs. policy vs. dev feedback loop). The lecture decomposes any eval into four design choices — inputs (prompts), how you call the model, how you assess outputs, and how you interpret results — and shows how each leaks variance and gameability. It walks the canonical knowledge benchmarks (MMLU → MMLU-Pro → GPQA → HLE), open-ended/instruction-following evals (Chatbot Arena, IFEval, AlpacaEval, WildBench), agent benchmarks (SWE-bench, Cybench, MLE-bench), ARC-AGI, and safety/jailbreak evals. The recurring war-story is Goodhart's law: once a metric becomes a target (MMLU saturation, the Chatbot Arena "leaderboard illusion," AlpacaEval length-gaming) it stops measuring what you wanted. For agent evals specifically, the key reframing is that we have shifted from evaluating *methods* (fixed train/test, controlled) to evaluating whole *systems* (model + scaffolding, "anything goes"), which breaks the old validity guarantees.
+## 摘要（3—6 句）
+这是一场快速而全面的 LLM 评估综述，核心命题是：“不存在唯一正确的评估；它取决于你要回答的问题”，例如采购决策、研究进展、政策判断或开发反馈循环。任何评测都可拆成四项设计选择：输入、模型调用方式、输出评判方式和结果解释方式，而每项都会引入方差与被钻空子的空间。课程依次讨论知识基准（MMLU→MMLU-Pro→GPQA→HLE）、开放式与指令遵循评测（Chatbot Arena、IFEval、AlpacaEval、WildBench）、智能体基准（SWE-bench、Cybench、MLE-bench）、ARC-AGI，以及安全/越狱评测。反复出现的教训是古德哈特定律：指标一旦成为目标，就会停止衡量原本想测的东西。对智能体尤其关键的是，领域已从在固定训练/测试集上评估**方法**，转向“模型 + 脚手架、什么都可用”的整套**系统**评估，旧有有效性保证因此瓦解。
 
-## Key points
-- **Four-part eval framework.** Every eval = (1) inputs/prompts — which use cases, do they cover the tails, are they adapted to the model; (2) how you call the model — zero/few-shot, CoT, tool use, RAG, and crucially *what is the object of evaluation: the model or the whole system*; (3) output assessment — reference quality, pass@1 vs pass@10, cost, judge; (4) interpretation — is 91 "good," and confronting train/test overlap.
-- **"Adapt the eval to the model" is a tradeoff, not a rule.** Multi-turn chat *must* adapt (a static scripted assistant puts the model in weird off-distribution spots); red-teaming *should* adapt (rare tail events are inefficient to hit with generic prompts); but adapting breaks cross-model comparability.
-- **Perplexity defense.** Hashimoto puts in "a plug for perplexity": it is smoother than task accuracy (per-token logprobs vs binary correct/wrong), is what scaling laws are fit on, is "universal" (attends to every token, harder to game when train/test are separate), and you can still get an answer "correct but for the wrong reasons" on gameable task data. Caveat for leaderboards: perplexity requires *trusting the provider* — if they only expose next-token prob (not full logits), a buggy provider assigning 0.8 to everything can't be verified to sum to one.
-- **Decontamination is leaky.** Standard practice removes test docs with ≥13-gram overlap, but near-duplicate paraphrases, quoted test sets (false positives), and cross-language math translations (no n-gram overlap, but the model "translates in its head") all slip through. HellaSwag/LAMBADA-style cloze tasks are essentially perplexity and have been "obliterated"; HellaSwag was mined from WikiHow, and WikiHow itself is on the web.
-- **The benchmark escalation ladder.** MMLU (2020, 57 subjects, multiple-choice, knowledge not "language understanding," GPT-3 got ~45%) → MMLU-Pro (10 choices instead of 4 to undo saturation) → GPQA ("Google-proof" PhD questions: experts ~65%, non-experts with Google ~30%; GPT-4 39% → o3 75%) → Humanity's Last Exam (multimodal, prize-pool + co-authorship to solicit questions, frontier models used to filter out "too easy" ones; o3 ~20%).
-- **MMLU is actually a *good* base-model eval.** If a base model does well on MMLU "without studying for the exam" (i.e., not curating those 57 subjects into training), that signals genuine general capability; but curate-to-the-benchmark and your real generality is far below your MMLU score — interpretation depends on the *training set*, not just the number.
-- **Open-ended eval is unsolved.** Chatbot Arena (live, dynamic, pairwise ELO, accommodates new models) suffered the "leaderboard illusion" (privileged access, multiple submissions). IFEval only checks *verifiable constraints* (word/sentence counts, banned commas) not semantics — a "partial eval." AlpacaEval (LLM-judge win-rate vs a reference) was gamed by *longer responses* fooling GPT-4, fixed with a length-corrected variant. WildBench uses LLM-judge + checklist. Notably, the "eval of evals" in this space is *correlation with Chatbot Arena*.
-- **Three agent benchmarks (model + scaffolding).** SWE-bench: codebase + GitHub issue → submit a patch that makes unit tests pass. Cybench: capture-the-flag, agent runs commands to hack a server and retrieve a key; tasks tagged by human "first-solve time" — longest took humans 24h, o3 now solves a task that took humans 42 min; overall accuracy ~20%. MLE-bench: 75 Kaggle competitions, agent writes/trains/debugs/submits — best models still sub-20% for earning "any medal."
-- **Standard agent loop.** Cybench's architecture is "fairly standard": LLM thinks → makes a plan → generates a command → command executed → updates agent memory → iterate until task solved or time/budget runs out.
-- **ARC-AGI factors out knowledge.** 2019, pre-LLM, pure visual pattern induction with no language/description — meant to isolate reasoning from memorized facts. GPT-4o ≈ 0%; o3 does well but at "a few hundred dollars" per task (compute-for-accuracy).
-- **Safety: capability vs propensity.** Capability = can the model do harm at all; propensity = will it (alignment reduces this). For API models only propensity matters (you can't access a refused capability); for open-weight models capability matters too because "you can just turn off the safety fairly easily by fine-tuning." Safety isn't just refusal — reducing hallucinations in medical/high-stakes settings makes a system *both more capable and more safe*. Dual-use: Cybench cyber-capability is a risk for attackers but useful for pen-testing. Safety leaderboards must be paired with a capabilities eval, or a model that refuses everything "wins."
-- **Jailbreaks transfer.** An automatically optimized adversarial suffix (gibberish appended to "step-by-step plan to destroy humanity") was optimized on open Llama and *transferred to GPT-4*. Pre-deployment testing via US/UK safety institutes is *voluntary, non-binding* early-access evaluation.
-- **Realism vs the benchmarks.** Standardized exams are far from real use; real traffic is partly spam/people "messing with you." Distinction: *quizzing* (user knows the answer, testing the system) vs *asking* (user doesn't know, wants the answer) — asking is the realistic, value-producing distribution. Anthropic's Clio-style clustering of real Cloud traffic shows coding among the top uses. MedHELM: 29 clinicians defined 121 real clinical tasks — but realism and privacy are at odds (patient data can't be hosted publicly).
-- **Validity erosion.** Old world: benchmark designer split train/test → you evaluate *methods* (controlled). New world: trained on the whole internet, undisclosed data → you evaluate *systems* where "anything goes." Detection route 1: probe whether the model favors an order that correlates with the dataset's order. Route 2: norms — most providers still don't report whether they checked test-set contamination. Many benchmarks have label noise (MATH/GSM8K ~90%+ partly because ~half the "hard" misses were just wrong labels; fixing labels raises scores). Method-evaluation still survives in nanoGPT speedrun and DataComp.
+## 要点
+- **四部分框架：** 输入/提示覆盖哪些用例与尾部、是否适配模型；如何调用模型，包括零/少样本、思维链、工具、RAG，以及评的是模型还是系统；如何评判输出，包括参考答案、pass@1/pass@10、成本与评审器；如何解释成绩，包括 91 分是否算好及训练/测试重叠。
+- **“让评测适配模型”是权衡，不是规则。** 多轮聊天必须适配，否则脚本式助手会把模型带入分布外状态；红队也应适配，以高效找到罕见尾部事件；但适配会破坏跨模型可比性。
+- **为困惑度辩护：** 它用逐 token 对数概率，比二元任务准确率平滑，是扩展定律拟合对象，也更“通用”且较难被投机。缺点是排行榜必须信任提供商；若只给下一 token 概率而非完整 logits，就无法验证概率和为一。
+- **去污染并不可靠。** 删除与测试文档存在至少 13-gram 重叠的数据，仍挡不住近义改写、引用测试集造成的误报，以及无 n-gram 重叠但模型可“在脑中翻译”的跨语言数学题。HellaSwag/LAMBADA 类完形任务几乎已被彻底攻克，而 HellaSwag 来源 WikiHow，本就存在于网络。
+- **基准升级阶梯：** MMLU（2020，57 学科、四选一，GPT-3 约 45%）→MMLU-Pro（十个选项缓解饱和）→GPQA（博士级、“Google 也难搜”，专家约 65%，非专家加 Google 约 30%，GPT-4 39%→o3 75%）→Humanity's Last Exam（多模态、奖金和共同署名征题，并用前沿模型过滤简单题，o3 约 20%）。
+- **MMLU 实际上是好的基础模型评测。** 若模型未针对 57 学科“备考”仍表现好，说明一般能力强；若训练数据按基准定制，分数就会高估泛化能力。解释成绩必须结合训练集。
+- **开放式评估尚未解决。** Chatbot Arena 动态、两两 ELO，但出现特权访问和重复提交的“排行榜幻觉”；IFEval 只检查字数、句数、禁逗号等可验证约束，不测语义；AlpacaEval 的 GPT-4 评审可被冗长回答欺骗，后以长度校正版修复；WildBench 使用 LLM 评审 + 清单。此类“评测的评测”通常仍看与 Chatbot Arena 的相关性。
+- **三类智能体基准：** SWE-bench 要求根据代码库和 GitHub issue 提交能通过测试的补丁；Cybench 让智能体运行命令攻击服务器并取得密钥，最难题人类首解需 24 小时，o3 已能解决人类需 42 分钟的题，总准确率约 20%；MLE-bench 含 75 个 Kaggle 比赛，最佳模型获得任何奖牌的比例仍低于 20%。
+- **标准智能体循环：** LLM 思考→制定计划→生成命令→执行命令→更新记忆→迭代至解决或耗尽时间/预算。
+- **ARC-AGI 排除知识因素。** 2019 年、早于 LLM，纯视觉模式归纳且无语言描述；GPT-4o 约 0%，o3 成绩较好，但每题需数百美元，体现用计算换准确率。
+- **安全中的能力与倾向：** 能力是模型是否做得到伤害，倾向是它是否愿意做。API 模型只需考虑倾向，因为用户无法使用被拒绝的能力；开放权重模型还必须考虑能力，因为微调很容易关闭安全机制。医疗等高风险场景减少幻觉会同时提升能力和安全；Cybench 既能帮助攻击者，也能服务渗透测试。安全榜必须配能力评测，否则拒绝一切的模型会“获胜”。
+- **越狱具有迁移性。** 在开放 Llama 上优化的乱码式对抗后缀可迁移到 GPT-4。美国/英国安全机构的部署前早期访问测试目前是自愿且无约束力的。
+- **真实使用与基准不同。** 标准考试远离真实流量，实际用户还会发垃圾或捣乱内容。应区分用户知道答案、用于测试系统的“出题”，与用户不知道答案、真正寻求帮助的“提问”；后者才是创造价值的分布。Anthropic Clio 式真实流量聚类显示编码是主要用途之一。MedHELM 由 29 名临床医生定义 121 项真实任务，但真实度与隐私相冲突。
+- **有效性正在侵蚀。** 旧范式由设计者划分训练/测试、比较受控方法；新范式在全网未知数据上训练、比较“什么都可用”的系统。可通过模型对选项顺序偏好与数据集原顺序的相关性探测污染，也需行业规范，但多数提供商仍不报告检查结果。MATH/GSM8K 的部分高分来自标签噪声，约一半“难题错误”其实是错标签，修正后成绩更高。nanoGPT speedrun 和 DataComp 仍保留方法评估范式。
 
-## Verified quotes
-- "the answer is that there is no one true evaluation. It depends on what question you're trying to answer." [06:02]
-- "perplexity in some sense is you know universal ... you pay attention to every token ... whereas task accuracy you might miss some nuances ... you can get an answer correct but for the wrong reasons especially if your data set is gameable." [24:46] *(lightly de-ASR'd: "downtask" omitted)*
-- "every one of these data set graphs looks like this. Previous benchmarks the LMs do well. My new benchmark LMs do poorly." [50:09] *(ASR "they they LMS" → "the LMs")*
-- "if you ... once you are able to measure something it gets sort of hacked" [54:57] *(re Goodhart's law and Chatbot Arena; ASR "good arts law" = "Goodhart's law")*
-- "I think it's an important distinction that we're not evaluating methods, we're evaluating systems where sort of anything goes." [79:48]
-- "capabilities is the ability for a language model to do it at all, propensity is whether it's been ... can refuse not to do things." [73:13] *(ASR "mango language model" → "language model")*
+## 已核验引述（中文翻译）
+- [06:02] “答案是：不存在唯一正确的评估。它取决于你想回答什么问题。”
+- [24:46] “困惑度在某种意义上是通用的……它关注每个 token；任务准确率却可能漏掉细微差别……尤其当数据集容易被钻空子时，答案可能正确但理由错误。”
+- [50:09] “每张数据集图都长这样：语言模型在旧基准上很好，我的新基准上很差。”
+- [54:57] “一旦某件事能够被测量，它就会以某种方式被攻破。”
+- [79:48] “一个重要区别是：我们不是在评估方法，而是在评估一个几乎什么都可以做的系统。”
+- [73:13] “能力是语言模型是否能够做到某件事；倾向则是它是否会去做，或者是否会拒绝。”
 
-## What it adds
-- **The "object of evaluation" lens applied to agents.** Beyond the usual model-vs-system point, the lecture nails *why the split matters by stakeholder*: a model developer wants to evaluate the *model* (scaffolding is just a means to a metric), while the user "doesn't care what language model you're using... just cares about the system as a whole." This reframes agent eval disputes (harness vs model) as a question of *whose goal you're serving*.
-- **A clean capability⇄safety⇄regime taxonomy** (capability vs propensity × API vs open-weight) that explains *when* each axis matters — sharper than most written safety-eval overviews, and directly relevant to agent dual-use (Cybench as both risk and pen-test tool).
-- **Concrete gameability war-stories with the *fix*:** AlpacaEval length bias → length-corrected variant; MMLU saturation → MMLU-Pro's 4→10 choices; Chatbot Arena "leaderboard illusion." Shows the eval→game→patch→game cycle as a lived process, not an abstraction.
-- **The perplexity-as-leaderboard trust problem** (provider can't be verified to return a valid distribution unless full logits are exposed) is a practical infra gotcha rarely stated in written sources.
-- **Quizzing vs asking** is a crisp, reusable distinction for judging whether *any* eval distribution (including agent traffic) reflects real value.
-- **"Tasks have errors"** with a counterintuitive payoff: high scores on MATH/GSM8K partly reflect *label noise*, and fixing labels *raises* model scores — a caution against treating headline accuracy as ground truth.
+## 本讲的独特增量
+- 用“评测对象”解释智能体争议：模型开发者关心模型，用户只关心整套系统；框架与模型之争本质上取决于服务谁的目标。
+- 给出“能力/倾向 × API/开放权重”的安全分类，说明各轴在何种部署制度下重要。
+- 把 AlpacaEval 长度偏差→校正、MMLU 饱和→十选一、Arena 排行榜幻觉串成“评测→博弈→修补→再博弈”的循环。
+- 指出困惑度排行榜依赖提供商可信度；若不暴露完整 logits，就无法验证概率分布。
+- 通过错误标签使 MATH/GSM8K 看似饱和，提醒评测者在把头条准确率当真值前先审计数据。
 
-## Themes
-1 why-evals · 2 eval⇄capability⇄RL-env · 3 model/harness/skill · 6 benchmark-vs-eval · 8 judge/verifiers · 9 agent-specific · 10 safety
+## 主题
+1 为什么需要评测 · 2 评测⇄能力⇄RL 环境 · 3 模型/框架/技能 · 6 基准与评测 · 8 评审器/验证器 · 9 智能体特有问题 · 10 安全

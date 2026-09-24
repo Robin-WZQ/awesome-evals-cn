@@ -1,41 +1,41 @@
-# Notes — "Evals are the new PRD for AI products"
-**Speaker/Guest:** Ankur Goyal (How I AI) · **Venue:** How I AI · **Type:** podcast · **URL:** https://www.youtube.com/watch?v=QE_1hRLsehM
+# 笔记——“评测是 AI 产品的新 PRD”
+**讲者/嘉宾：** Ankur Goyal（How I AI） · **出处：** How I AI · **类型：** 播客 · **链接：** https://www.youtube.com/watch?v=QE_1hRLsehM
 
-## Summary (3-6 sentences — what it argues, why it matters for agent evals)
-Goyal (CEO of Braintrust) argues that evals are the modern PRD: a spec written largely in prose plus quantified examples that states *what* success looks like and hands the *how* to a model. His central frame is that machine learning shifts programming from defining the "how" to defining the "what" — and the same move applies both to building AI products and to hard "traditional" engineering (database performance, schema migrations) once you can write a hard enough eval/benchmark and let a coding agent iterate against it in the background. He insists there's "no excuse" not to have rigor anymore, because an agent will run more rigorous benchmarks across more algorithms than any staff engineer would by hand. For AI products specifically, he frames an engineering team's number-one job as building a feedback loop that "summons real-world data from the ether" and turns it into evals — not prompt engineering or framework choice. He also models a human-taste-in-the-loop workflow (the "David vibe check") where evals capture an expert's taste so it scales to more outputs, raising the quality bar rather than replacing the expert.
+## 摘要（3—6 句：核心主张及其对智能体评测的意义）
+Goyal（Braintrust CEO）认为评测就是现代 PRD：它主要用文字加上量化示例描述成功的**目标**，再把实现**方法**交给模型。他的核心框架是，机器学习把编程重心从定义“怎么做”转向定义“做什么”；只要能编写足够困难的评测/基准并让编码智能体在后台迭代，这一转变既适用于 AI 产品，也适用于数据库性能、模式迁移等困难的“传统”工程。他坚持如今已经“没有借口”缺乏严谨性，因为智能体会跨更多算法运行更严格的基准，超过任何高级工程师的手工能力。对 AI 产品而言，工程团队的首要工作是建立反馈循环，“从真实世界数据的虚空中召唤”样本并转成评测，而非提示词工程或框架选择。他还展示了人类品味在环的“David 感觉检查”：评测捕获专家品味并将其扩展到更多输出，提高质量门槛，而不是取代专家。
 
-## Key points (6-14 substantive bullets)
-- **Evals = the modern PRD.** A PRD states success in prose; evals also use prose but supplement it with examples/user stories *encoded so they can be quantified*, then let a model figure out the how while you focus on the what (`[25:18]`–`[26:02]`).
-- **The "what vs how" thesis generalizes.** ML moves programming from how to what (regression: you give the points/what, it solves slope+intercept; transformers: you give next-token-prediction as the "what" and GPUs find the how). Use that as inspiration for *any* AI work, including non-LLM engineering (`[23:47]`–`[25:10]`).
-- **Hard non-AI engineering as an eval problem.** He spends time making product queries faster (e.g. finding ~5,000 matching traces in billions over a 90-day window). Approach: detect slow query patterns, reproduce them, and point a coding agent at database literature — "exhaustively trying every open-source column store format … and every column store execution engine … computing the matrix" (`[04:00]`–`[06:08]`).
-- **Concrete win — Bloom filters.** A fancy index added to Braintrust used Bloom filters; they found this "after running like a week of continuous experiments with different types of indexes." Bloom filters have a bad rep but proved effective here (`[09:46]`–`[10:05]`).
-- **Benchmark blind-spot caught by rigor.** They benchmarked how much faster the index made queries but not how much *slower* it made indexing — found they were "doing a terrible job at indexing it efficiently" and fixed it. The point: agents remove the excuse to skip the tedious benchmarks humans cherry-pick (`[10:46]`–`[11:05]`, `[10:07]`–`[10:33]`).
-- **Practical vs theoretical quality.** Goyal concedes models may be weaker at highly concurrent / performance-sensitive code, but argues practical quality *rises* because agents run harder, longer, and more consistently than humans who lose context and attention over days (`[11:03]`–`[12:34]`).
-- **You can run experiments on production (or near-production) data** "with the right engineering in place," and it's often *safer* than humans testing on prod "because no one's looking at it" (`[08:48]`–`[09:03]`).
-- **Tooling/harness specifics.** Uses Codex + GPT models as "the only setup where I've been able to set up [the outcome-driven] process"; values Codex because "it's currently the only model that will disagree with you regularly" — important for hard problems (`[06:51]`–`[07:04]`, `[17:31]`–`[18:00]`). Runs 4–6 foreground agents in tmux sessions (named Brain Trust 1–4), plus remote agents for data-heavy work (e.g. testing real EC2↔S3 latency at ~4,000 concurrent reads) that would melt a laptop (`[15:30]`–`[17:16]`).
-- **The "agent line."** Re-evaluate how you spend time: if you could hand the same info to an agent and it would solve the problem, that work is "below the agent line." The line keeps rising, and good people push it up by writing skills/integrations (`[14:15]`–`[14:54]`).
-- **Eval-building demo (Braintrust playground).** Task: a prompt for an agent answering Braintrust-docs questions. Workflow: collect real user questions into a dataset (CSV upload or autogenerate), write a basic prompt, optionally attach an MCP server (Braintrust MCP / Context7 for doc indexing) or test the model's bare knowledge. Then *ask a model to write the scoring function* against loose criteria ("concise code snippets, only one language, avoiding em dashes") rather than reading outputs by hand, and score in aggregate (`[26:08]`–`[30:21]`).
-- **Agents in sandboxed eval environments.** The scoring agent runs in "unhinged mode" but inside the playground with only data/prompts — low blast radius vs. an agent with bash on your machine. He expects more products to embed agents in safe environments (`[28:01]`–`[28:55]`).
-- **The "David" taste-in-the-loop loop.** Vibe checks matter but lead to whack-a-mole; instead he runs many evals to quantitatively improve, then takes results to David (the taste-maker designer) ~every few days for a vibe check. When David "destroys everything," he captures David's feedback back into the scorers — iteratively "quantifying David" so he doesn't repeat mistakes. Net effect: David's palette scales to more outputs and the quality bar rises (`[30:52]`–`[33:13]`).
-- **Team's #1 job = the feedback loop.** "Build a feedback loop … a pipeline that allows you to summon from the ether of real-world data and turn that into evals." Not prompt engineering, not picking a framework, not rewriting the DB. CI is "that same idea applied to software engineering" — invest in CI to earn the right to move faster (`[35:38]`–`[37:00]`, `[36:56]`–`[37:00]`).
-- **Evals on your own internal agent usage.** Cites the Intercom team running evals on their internal Claude Code use to find where engineers hit pain points, give up, or trigger permission escalations (`[37:17]`–`[37:30]`).
-- **Failure-mode prompting strategy.** When a tab/eval fails the David test: "Close the session … then I improve the evals and then I try from scratch again." War story: a vibe-coded eval script ballooned to "3,000 lines of complete trash" with junk scoring functions and got stuck; on Saturday he hand-wrote the eval (no copilot/autocomplete) to rebuild understanding, and "by the end of Sunday the problem was solved" — but he hand-wrote *only the eval*, not the solution (`[37:33]`–`[39:08]`).
+## 要点（6—14 条实质性内容）
+- **评测 = 现代 PRD。** PRD 用文字描述成功；评测也使用文字，但补充被编码为可量化形式的示例/用户故事，让模型解决方法，而人专注目标。[25:18–26:02]
+- **“目标与方法”的论点可以泛化。** 机器学习把编程从方法转向目标：回归中给出数据点，算法求斜率和截距；Transformer 中给出“预测下一 token”的目标，GPU 找出方法。这可启发所有 AI 工作，包括非 LLM 工程。[23:47–25:10]
+- **把困难的非 AI 工程视为评测问题。** 他优化产品查询，如从 90 天内数十亿条记录中找到约 5,000 条匹配轨迹：检测慢查询模式、复现，再让编码智能体阅读数据库文献，“穷举所有开源列存储格式……和所有列存储执行引擎……计算整个矩阵”。[04:00–06:08]
+- **具体成果——Bloom filter。** Braintrust 增加的复杂索引使用 Bloom filter；这是“连续运行约一周、试验不同索引”后得到的结论。Bloom filter 名声不佳，但在此处有效。[09:46–10:05]
+- **严谨性发现基准盲点。** 团队测了索引加快查询的程度，却没测它使索引构建变慢多少，最终发现索引效率“糟透了”并修复。智能体消除了人类跳过繁琐基准、挑着做测试的借口。[10:07–11:05]
+- **实践质量与理论质量。** Goyal 承认模型在高并发/性能敏感代码上可能较弱，但智能体能比会在数日后丢失上下文与注意力的人类运行更难、更久、更一致的实验，因此实践质量反而提升。[11:03–12:34]
+- **工程得当时可在生产或近生产数据上试验，**而且往往比“没人盯着”的人类生产测试更安全。[08:48–09:03]
+- **工具与执行框架：**他使用 Codex + GPT，称其为唯一能建立结果驱动流程的组合；重视 Codex 是因为“目前只有它会经常反驳你”，这对难题很重要。[06:51–07:04, 17:31–18:00] 他在命名为 Brain Trust 1—4 的 tmux 会话中运行 4—6 个前台智能体，并把数据密集工作交给远程智能体，例如以约 4,000 并发读取测试真实 EC2↔S3 延迟，否则会压垮笔记本。[15:30–17:16]
+- **“智能体线”。** 如果把相同信息交给智能体，它就能解决问题，那么这项工作位于“智能体线以下”。这条线不断上升，优秀人才通过编写技能和集成继续推高它。[14:15–14:54]
+- **评测构建演示（Braintrust playground）：**任务是让智能体回答 Braintrust 文档问题。流程为：把真实用户问题汇成数据集（上传 CSV 或自动生成）；编写基础提示词；可接入 MCP 服务器（Braintrust MCP/Context7 文档索引），也可测试模型裸知识；随后不要手工逐项阅读，而让模型依据宽松标准（“代码片段简洁、只用一种语言、避免长破折号”）编写评分函数，并汇总评分。[26:08–30:21]
+- **沙箱评测环境中的智能体。** 评分智能体在 playground 中以“无拘束模式”运行，但只能访问数据和提示词；与能在本机使用 bash 的智能体相比，影响半径很小。他预计更多产品会把智能体嵌入安全环境。[28:01–28:55]
+- **“David”品味在环循环。** 感觉检查很重要，但会导致打地鼠式修补。他先运行大量评测进行量化改进，再每隔几天把结果交给设计品味把关者 David 检查。当 David“把一切批得体无完肤”时，再将反馈写回评分器，不断“量化 David”，避免重复犯错。结果是 David 的品味能覆盖更多输出，质量门槛也提高。[30:52–33:13]
+- **团队首要工作是反馈循环。** “建立反馈循环……一条能从真实世界数据的虚空中召唤材料并转成评测的流水线。”首要工作不是提示词工程、选择框架或重写数据库。CI 是“同一理念在软件工程中的应用”；投资 CI 才获得快速行动的资格。[35:38–37:00]
+- **评测内部智能体使用。** Intercom 团队评估内部 Claude Code 使用情况，查找工程师的痛点、放弃位置和触发权限升级的时刻。[37:17–37:30]
+- **针对失败模式的提示策略。** 某标签页/评测未通过 David 检查时：“关闭会话……改进评测，再从头尝试。”一次感觉编程写出的评测脚本膨胀到“3,000 行垃圾”，包含无用评分函数且陷入停滞；周六他在没有 copilot/自动补全的情况下手写评测以重建理解，“到周日结束时问题就解决了”——但手写的**只有评测**，不是解决方案。[37:33–39:08]
 
-## Verified quotes (verbatim, with timestamps; light ASR fixes noted)
-- "In my opinion, EVELs are actually the modern version of a PRD." `[25:21]` *(ASR: "EVELs" = evals)*
-- "the difference with evals is you encode those user stories in a way that can be quantified to some extent and then … you let a model or whatever figure out the how and … you are really focused on the what." `[26:00]`
-- "there's no staff engineer who is running as many rigorous benchmarks and trying out different algorithms and analyzing ideas manually than someone who's using an agent. And even that baseline is just incredible." `[09:30]`
-- "if you're an engineering team and you're building an AI product, the number one job for you is to build a feedback loop. Meaning you have a pipeline that allows you to summon from the ether of real world data and turn that into eval." `[37:04]`
-- "I run a ton of evals to try to quantitatively improve things and then when I feel like the evals are good and my own less sophisticated pallet thinks that the results are good, I will go to David and ask him for a vibe check." `[31:38]` *(ASR: "pallet" = palate)*
-- "I just I partly to improve my own understanding of the problem I hand wrote the eval. And by the end of Sunday the problem was solved." `[38:53]`
+## 已核验引述（中文翻译）
+- [25:21] “在我看来，评测实际上就是现代版 PRD。”（自动语音识别中的 `EVELs` 指 evals。）
+- [26:00] “评测的不同之处，在于你把那些用户故事编码成某种程度上可量化的形式，然后……让模型或其他系统解决怎么做，而你真正专注于做什么。”
+- [09:30] “没有哪个高级工程师会比使用智能体的人手工运行更多严格基准、尝试更多不同算法并分析更多想法。仅这个基线就已经非常惊人。”
+- [37:04] “如果你是构建 AI 产品的工程团队，首要工作就是建立反馈循环，也就是拥有一条能从真实世界数据的虚空中召唤材料并将其转为评测的流水线。”
+- [31:38] “我会运行大量评测，尝试以量化方式改进；等我觉得评测已经不错、我自己不那么精致的品味也认为结果不错时，就会找 David 做感觉检查。”（自动语音识别中的 `pallet` 应为 `palate`。）
+- [38:53] “一部分是为了加深自己对问题的理解，我亲手写了评测。到周日结束时，问题就解决了。”
 
-## What it adds (non-obvious, talk-specific value vs canonical written sources)
-- **Evals-as-PRD as a *product* framing, not just an ML-ops one** — reframes the eval as the spec/source-of-truth that replaces prose requirements, which lands the "what vs how" idea for PMs and engineering leaders, not just ML engineers.
-- **Evals applied to plain backend performance work** (column-store matrices, Bloom-filter indexes, EC2↔S3 latency) — most written eval guidance is LLM-output-centric; Goyal generalizes "hard eval + agent in the loop" to database internals and schema migrations, with concrete war stories.
-- **The "quantify David" loop** is a crisp, reusable pattern for capturing expert taste into LLM-judge scorers iteratively, plus the counter to the "I'm building my own replacement" fear: the expert's reach and the quality bar both go *up*.
-- **The sandboxed-agent eval environment** ("unhinged mode" but only data+prompts, low blast radius) is a concrete safety/observability point about *where* agents run during eval authoring.
-- **Operational specifics** rarely written down: Codex valued specifically because it "will disagree with you regularly"; let a model *write the scoring function* rather than hand-authoring criteria; running evals on your own internal coding-agent usage (Intercom example); and CI as the software-engineering twin of the eval feedback loop.
-- **The "close the session, fix the eval, restart; hand-write only the eval" failure recipe** — a memorable, specific debugging discipline that treats a bad eval (not a bad prompt) as the root cause.
+## 独特增量（相较于规范资料，本演讲提供的非显然价值）
+- **把评测视为产品 PRD，而非仅是机器学习运维工具：**评测成为取代文字需求的规格和事实来源，让产品经理与工程负责人也能理解“目标与方法”的转移。
+- **把评测用于普通后端性能工作：**列存储矩阵、Bloom filter 索引、EC2↔S3 延迟等案例把“困难评测 + 智能体循环”从 LLM 输出扩展到数据库内部与模式迁移。
+- **“量化 David”循环**是捕获专家品味并逐步写入 LLM 裁判评分器的可复用模式；它也反驳“正在打造自己的替代者”的担忧，因为专家影响范围和质量门槛都会提升。
+- **沙箱智能体评测环境**（“无拘束模式”但仅有数据和提示词，影响半径很小）具体说明了编写评测时智能体应在何处运行。
+- 少见的运营细节：Codex 因“经常反驳你”而有价值；让模型**编写评分函数**而非手写标准；评估内部编码智能体使用情况；以及把 CI 视为评测反馈循环的软件工程对应物。
+- **“关闭会话、修复评测、重新开始；只手写评测”**是令人难忘的调试纪律，它把根因定位为坏评测，而非坏提示词。
 
-## Themes
-1 why-evals · 2 eval⇄capability⇄RL-env · 4 observability · 5 eval infra · 6 benchmark-vs-eval · 8 judge/verifiers · 9 agent-specific
+## 主题
+1 为何评测 · 2 评测⇄能力⇄强化学习环境 · 4 可观测性 · 5 评测基础设施 · 6 基准与评测 · 8 裁判/验证器 · 9 智能体特有

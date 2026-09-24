@@ -1,41 +1,39 @@
-# Notes — "Open-Source and Science in the Era of Foundation Models"
-**Speaker/Guest:** Percy Liang · **Venue:** Berkeley LLM Agents MOOC F24 · **Type:** lecture · **URL:** https://www.youtube.com/watch?v=f3KKx9LWntQ
+# 笔记——《基础模型时代的开源与科学》
+**讲者/嘉宾：** Percy Liang · **场合：** Berkeley LLM Agents MOOC F24 · **类型：** 讲座 · **链接：** https://www.youtube.com/watch?v=f3KKx9LWntQ
 
-## Summary (3-6 sentences — what it argues, why it matters for agent evals)
-Liang's thesis is that "access shapes research" — the level at which you can touch a model (black-box API, open weights, or full open source) determines which questions you can even ask, and openness has "plummeted almost symmetrically" as capability has skyrocketed. He descends a three-layer "layer cake" of access, and for agent evals the relevant payload sits in the API layer: a single reusable agent architecture (perceive → memory stream → retrieve → act/reflect/plan) reused across radically different benchmarks. He walks through three concrete agent benchmarks built on this recipe — MLAgentBench (ML engineering), a cybersecurity capture-the-flag benchmark, and generative/simulation agents — each with quantified, verifiable evaluation and explicit human-vs-model gaps. The cybersecurity benchmark doubles as a safety/risk-assessment instrument, framing evals as the quantified bridge between capability measurement and AI policy. The deeper argument for eval-builders: static prompted agents are at the "AlphaGo before RL" stage, and turning an agent loose in an environment with a reward signal is the next axis of self-improvement — making good environments and verifiable scoring the bottleneck.
+## 摘要（3—6 句：核心论点及其对智能体评测的意义）
+Liang 的论点是“访问权限塑造研究”：能以黑盒 API、开放权重还是完整开源方式接触模型，决定了研究者甚至能提出哪些问题；随着能力飙升，开放程度却近乎对称地下跌。他沿访问权限的三层“千层蛋糕”向下展开，而与智能体评测最相关的是 API 层：一个感知→记忆流→检索→行动/反思/规划的通用架构，可复用于差异极大的基准。他介绍 ML 工程、网络安全夺旗和生成/社会模拟三类智能体基准，它们都有量化、可验证评估及明确的人机差距。网络安全基准同时也是安全风险评估工具，说明评测是连接能力测量与 AI 政策的量化桥梁。更深层的主张是，静态提示智能体仍处在“AlphaGo 使用 RL 之前”的阶段；让智能体在带奖励信号的环境中行动，将成为下一条自我改进轴线，优质环境与可验证评分由此成为瓶颈。
 
-## Key points (6-14 substantive bullets)
-- **One agent architecture, reused everywhere:** observation → perceive → **memory stream** (stores everything, "no reason to forget") → **retrieve** relevant context → one of three actions: **act** (tool use / grounding), **reflect** (summarize/verify past), **plan** (future). Liang stresses the API is a *controller of execution* — it decides what the program does next, not just a leaf primitive. This same recipe drives ML-engineering, cybersecurity, and simulation agents.
-- **MLAgentBench (ICML, w/ student Qian):** agent gets data, starter code, and a test-accuracy evaluator; loop = write code → run → read log → reflect → revise. The prompt explicitly forces *reflect → plan → fact-check (to guard against hallucination) → think → propose action*. 13 benchmarks; prompt feeds only the **last three elements** of the memory stream as context.
-- **MLAgentBench results were "mixed":** best model was **Claude 3**; strong on classic Kaggle competitions (likely training-data contamination — "it probably has seen some of this") but "completely fails" on newer tasks like **BabyLM** — deliberately chosen to sit "at the cusp" of agent capability.
-- **Self-improvement framing of evals:** MLAgentBench is "not any agent benchmark" — solving the task yields better algorithms, which improve the model, which solves the task better. An eval that, if beaten, feeds back into capability.
-- **Cybersecurity CTF benchmark (SciBench/Cybench):** agent gets a server (port 80), a local copy of the server code, and a Bash shell; goal is to find + exploit a vulnerability and retrieve a secret **flag** (clean, verifiable evaluation). Optional **sub-questions** decompose the task to measure partial progress.
-- **CTF results / human-model gap:** best model **Claude 3.5** solved **17.5%** of benchmarks. Hardest task humans solved took a team of experienced competitors **24 hours**; the hardest task the best model could solve took humans **11 minutes** — a large but "shrinking" gap.
-- **Evals as risk assessment / dual use:** the same benchmark is a *quantified risk-assessment tool* for AI policymakers (can frontier agents "break the internet?") and a productivity tool for security teams building **penetration-testing tools**.
-- **Generative / simulation agents (Smallville, w/ Joon Sung Park):** 25 LM-powered agents; retrieval scored on three factors — **recency, importance, relevance**; **reflection** abstracts low-level memories ("reading about urban design") into higher-level traits ("highly dedicated researcher"). Information-diffusion (Isabella's Valentine's party spreading and returning) emerges from multi-agent interaction.
-- **Simulating *real* people via interviews (new arXiv paper, w/ Joon):** 1,000 demographically diverse US participants each did a **2-hour audio interview** with an LM agent; the transcript seeds the agent's memory. Evaluation = run the *same* social-science surveys/games/experiments on humans and agents and compare.
-- **The skyline/ceiling result is the eval insight:** humans only match *themselves* **81%** of the time on retest two weeks later (a noise ceiling, not 100%); **GPT-4o** agents hit **~69%**, i.e. ~85% of attainable accuracy vs a ~20s baseline. Dropping the interview seed degrades performance — interviews carry the signal. A reminder to bound eval scores by human self-consistency, not perfection.
-- **Open-weight evals/forensics:** model **independence testing** (w/ students) — given two weight sets, were they trained independently? Crude cosine similarity gives no threshold/guarantee; their fix builds a real **p-value** via weight-permutation symmetries as counterfactual "retrainings." Validated on Llama-2 replicas (p-values uniform under null, "underflowing" when dependent); confirmed **Miqu** as leaked Mistral/Llama, **StripedHyena** from Mistral, and reverse-engineered which **Llama 3.1-8B layers** built the 3B model (info not in Meta's blog post).
-- **Interpretability needs open weights:** Transluce's per-neuron summaries explain why Llama-3.1-8B says "9.11 > 9.8" — the "11" fires a *September-11th date* neuron. Adversarial GCG-style suffixes optimized on Llama via gradients **transfer to GPT-4**, showing open-weight access reveals things about closed models.
-- **Compute as the open-source eval bottleneck:** three remedies — (1) run **scaling laws in reverse** ("work at small scale but with a mindset of scaling up"); (2) **decentralized compute** despite ~100x worse interconnect (their paper: 1B-param training only 2x slower; cites DiLoCo, Prime Intellect's 10B-param pooled run); (3) **ask for more money** (NAIRR), invoking Human Genome / JWST / LHC as public-research infrastructure precedents.
+## 要点
+- **一种架构，多处复用：** 观察→感知→存储一切的**记忆流**→检索相关上下文→行动（工具/落地）、反思（总结/验证过去）或规划（面向未来）。API 是执行控制器，而非固定程序叶节点；同一配方用于 ML 工程、网络安全和模拟。
+- **MLAgentBench：** 智能体获得数据、初始代码和测试准确率评估器，循环执行写代码→运行→读日志→反思→修改。提示强制“反思→规划→事实核验→思考→提出动作”，13 个基准，且上下文只输入记忆流最后三项。
+- **结果喜忧参半：** Claude 3 最佳；经典 Kaggle 任务表现强，可能因训练污染；在较新的 BabyLM 等刻意位于能力边缘的任务上完全失败。
+- **评测与自我改进：** MLAgentBench 不只是基准；解决任务会得到更好算法，算法改进模型，模型又能更好地解决任务，因此战胜评测本身会反馈到能力。
+- **网络安全 CTF（SciBench/Cybench）：** 智能体获得 80 端口服务器、本地服务器代码和 Bash，目标是发现并利用漏洞、取回秘密 flag，评分清晰可验证；可选子问题用来衡量部分进度。
+- **人机差距：** Claude 3.5 最佳，解决 17.5% 任务。最难的人类题由经验丰富团队花 24 小时完成；最佳模型所能完成的最难题，人类仅需 11 分钟，差距很大但在缩小。
+- **双重用途：** 同一基准既可量化前沿智能体是否能“攻破互联网”，供政策制定者评估风险，也可帮助安全团队构建渗透测试工具。
+- **生成/模拟智能体 Smallville：** 25 个 LLM 智能体；检索按新近性、重要性、相关性评分；反思把“阅读城市设计”等低层记忆抽象成“高度投入的研究者”等高层特征。Isabella 情人节聚会的信息传播与回流由多智能体互动涌现。
+- **访谈模拟真人：** 1,000 名人口结构多样的美国参与者各与 LLM 智能体完成两小时音频访谈，以转录稿初始化记忆；随后让真人和智能体完成相同社会科学问卷、博弈和实验并比较。
+- **人类噪声上限：** 真人隔两周重测与自己仅 81% 一致，这才是上限而非 100%；GPT-4o 智能体约 69%，相当于可达到准确率的约 85%，而约 20 秒资料的基线更低。移除访谈种子会退化，说明访谈携带信号。
+- **开放权重取证：** 模型独立性检验使用权重置换对称性构造类似“重训练”的反事实并获得真实 p 值；在 Llama-2 副本上验证后，确认 Miqu 泄自 Mistral/Llama、StripedHyena 源自 Mistral，并逆向发现 Llama 3.1-8B 的哪些层构成 3B 模型。
+- **可解释性依赖开放权重：** Transluce 的神经元摘要发现 Llama-3.1-8B 判断“9.11 > 9.8”时，“11”激活了九一一日期神经元。在 Llama 上以梯度优化的 GCG 后缀还能迁移到 GPT-4，说明开放权重研究可揭示闭源模型问题。
+- **算力是开源评测瓶颈：** 三种缓解方式是反向使用扩展定律、以可扩展心态在小规模工作；采用去中心化算力，尽管互联约差 100 倍但 1B 训练仅慢两倍；以及通过 NAIRR 等争取公共资金，类比人类基因组、JWST 和 LHC。
 
-## Verified quotes (verbatim, with [mm:ss])
-- "the capabilities of these models have simply skyrocketed. But what's less appreciated is that the openness and access to these models has plummeted almost symmetrically." [00:13]–[00:25]
-- "access shapes research. This is something that I don't think we think about very much, because most of the time we have our heads down." [00:48]–[00:53]
-- "we want to think about the API as a controller of execution. So it's not the case that you have just a fixed program and then all you're doing is calling out to an API at the leaves as primitives. But in fact, the API actually controls the execution flow." [04:13]–[04:31]
-- "The hardest benchmark in our task in our SciBench took a team of humans 24 hours to solve... And the hardest task that the best model was able to solve to date took humans 11 minutes." [12:56]–[13:21]
-- "if you ask humans to do these surveys and then you ask them two weeks later, they are only 81% of the time matching themselves. So that's a skyline of how far you can guess. And now, you have these agents based on GPT-4o... They get around 69%." [22:02]–[22:27]
-- "once you have an agent that's operating somewhere in the environment, it can presumably get some sort of reward signal. And with that reward signal... now you're off to the races in terms of improving the agent." [24:36]–[25:12]
+## 已核验引述（中文翻译，含时间戳）
+- [00:13–00:25] “这些模型的能力一路飙升，但较少有人意识到，模型的开放性和可访问性几乎对称地下跌。”
+- [00:48–00:53] “访问权限塑造研究。我们往往只顾埋头做事，因此很少思考这一点。”
+- [04:13–04:31] “应把 API 看作执行控制器，而不是让固定程序只在叶节点调用 API 原语；事实上，API 会控制执行流。”
+- [12:56–13:21] “SciBench 中最难的题，人类团队花了 24 小时……截至当时，最佳模型能解的最难题，人类只需 11 分钟。”
+- [22:02–22:27] “人们两周后重做同一问卷时，只有 81% 与自己一致，这就是上限；基于 GPT-4o 的智能体约为 69%。”
+- [24:36–25:12] “一旦智能体在环境中行动，就大概能获得某种奖励信号；有了奖励信号，改进智能体的竞赛就真正开始了。”
 
-*(ASR fixes: the transcript's "agent bench" / "SciBench" likely refer to the Cybench cybersecurity benchmark, and "student Jian" is Qian Huang and "June/Joon" is Joon Sung Park — names kept as spoken in quotes, corrected in prose.)*
+## 本讲的独特增量
+- “访问权限塑造研究”统一解释 API 行为评测、开放权重可解释/独立性检验与从头训练研究是不同科学仪器。
+- 同一感知/记忆/检索/行动-反思-规划循环跨越 ML、安全和社会模拟，说明智能体框架与评测脚手架可跨域复用。
+- 汇集 Claude 3.5 的 17.5%、24 小时对 11 分钟、81%/69% 等关键校准数字。
+- 强调人类重测一致性才是上限，应报告可达到表现的比例，而非只报原始准确率。
+- 明确说明 CTF 评测既是政策风险量化工具，也是渗透测试生产力工具。
+- 用“RL 之前的 AlphaGo”定位当前静态智能体，指出环境与奖励信号是下一阶段评测/能力前沿。
 
-## What it adds (non-obvious, talk-specific value vs canonical written sources)
-- **A unifying eval lens — "access shapes research":** reframes the benchmark-vs-eval question as *what level of model access your evaluation requires*. API-level evals (behavioral, agentic) vs open-weight evals (interpretability, independence testing, jailbreak transfer) vs open-source evals (data-mixture, optimizer, architecture studies needing from-scratch training) are different scientific instruments — a framing the individual papers don't state.
-- **The single-architecture claim as a design principle:** the same perceive/memory/retrieve/act-reflect-plan loop spans ML-engineering, security exploitation, and society simulation — evidence that agent harnesses generalize across task domains, and that an eval suite can share scaffolding.
-- **Concrete, load-bearing numbers in one place:** Claude 3.5 at 17.5% on Cybench, the 24h-vs-11min human-model gap, and the 81%/69%/20s human-consistency triplet — usable calibration anchors for talking about "hard" agent benchmarks and human noise ceilings.
-- **The human self-consistency ceiling (81%) as an eval methodology point:** rarely emphasized in capability leaderboards — your achievable score is bounded by human test-retest agreement, so report fraction-of-attainable, not raw accuracy.
-- **Evals as dual-purpose policy instruments:** the explicit framing that a CTF benchmark *is* the quantified risk-assessment artifact policymakers want, and simultaneously a pentest productivity tool — connecting eval design to AI governance.
-- **The "AlphaGo before RL" positioning:** names today's static prompted agents as pre-RL, making the case that environments + reward signals (RL environments) are the next eval/capability frontier — directly relevant to the eval⇄capability⇄RL-env theme.
-
-## Themes
-1 why-evals · 2 eval⇄capability⇄RL-env · 3 model/harness/skill · 6 benchmark-vs-eval · 7 RL environments · 9 agent-specific · 10 safety
+## 主题
+1 为什么需要评测 · 2 评测⇄能力⇄RL 环境 · 3 模型/框架/技能 · 6 基准与评测 · 7 RL 环境 · 9 智能体特有问题 · 10 安全

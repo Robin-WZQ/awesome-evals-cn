@@ -1,40 +1,40 @@
-# Notes — "Shaping AI Benchmarks (HELM)"
-**Speaker/Guest:** Percy Liang (Gradient Dissent) · **Venue:** Gradient Dissent · **Type:** podcast · **URL:** https://www.youtube.com/watch?v=kwkdKirqi6s
+# 笔记——“塑造 AI 基准（HELM）”
+**讲者/嘉宾：** Percy Liang（Gradient Dissent） · **出处：** Gradient Dissent · **类型：** 播客 · **链接：** https://www.youtube.com/watch?v=kwkdKirqi6s
 
-## Summary
-Percy Liang (Stanford, co-founder of Together AI, creator of HELM) walks through why language models forced a rethink of benchmarking: a text-in/text-out object is too broad to score on a single task, so HELM (2022) instead filled a matrix of ~30 models × 7 metrics × 40+ scenarios under standardized prompts for apples-to-apples comparison. The throughline is interpretability and reproducibility over raw leaderboard numbers — HELM caches the exact prompt sent to each API so results have a full audit trail. Liang argues the real danger isn't overt test-set copying (easy to detect, some providers filter) but the slippery slope of train/test overlap that quietly inflates "zero-shot" claims, and that leaderboard rank matters less than building a downstream eval you trust so models stay swappable. On agents, his key framing is that benchmarking an agent system has the same input→output type signature as benchmarking a model, so HELM "already" evaluates agent systems; the binding constraints are model capability (long-range planning), trust/observability of multi-step autonomy, and unsolved prompt-injection security. For agent evals this is a foundational source on standardization, audit trails, and the benchmark-vs-eval distinction.
+## 摘要
+Percy Liang（斯坦福、Together AI 联合创始人、HELM 创建者）解释了语言模型为何迫使人们重新思考基准：文本输入/文本输出对象的范围太广，无法用单项任务评分，因此 HELM 在 2022 年使用标准化提示词填充了约 30 个模型 × 7 项指标 × 40 多种场景的矩阵，以实现同条件比较。核心原则是让可解释性和可复现性优先于排行榜数值；HELM 会缓存发送给每个 API 的精确提示词，形成完整审计轨迹。Liang 认为，真正的危险不是公然复制测试集（容易检测，部分提供商也会过滤），而是训练/测试重叠的滑坡效应，它悄然夸大“零样本”声明；排行榜名次不如构建可信的下游评测重要，因为这样才能随时替换模型。关于智能体，他认为智能体系统与模型基准具有相同的输入→输出类型签名，所以 HELM “已经”在评估智能体系统；关键约束是模型的长程规划能力、多步自治的可信度与可观测性，以及尚未解决的提示注入安全问题。对智能体评测而言，这是关于标准化、审计轨迹以及基准与评测之区别的基础资料。
 
-## Key points
-- **HELM's matrix design (2022):** ~30 models (via API or open weights) × 7 metrics (accuracy plus bias, calibration, robustness, fairness, etc.) × 40+ scenarios (data sets), with deliberately standardized prompts and methodology across all cells for apples-to-apples comparison. [03:00–03:48]
-- **Reproducibility as a first-class feature:** you can drill into the website to see actual model predictions, and further down to the exact prompt passed to the API — which they cache — giving a full audit trail of how a benchmark result was produced. [03:51–04:27]
-- **HELM evolved from benchmark to platform/framework:** others can contribute their own benchmarks (ML Commons AISafety/AILuminate working group, HEIM for text-to-image, multimodal generation, instruction following). [04:39–05:13]
-- **Contamination — the nuance:** overt copying is "easy to detect" and some providers filter benchmarks; HELM runs a standard train/test-overlap script with model developers. There's "no smoking gun" of models trained literally on test sets. [05:52–06:54]
-- **The harder problem is interpretation, not cheating:** "zero-shot summarization" may not be zero-shot if other summarization data sets gave it the capability; the slippery slope is targeting MMLU-covered topics or synthetic multiple-choice without realizing you're overfitting. The fix is contextualizing results and calibrating how surprised you should be. [06:54–09:16]
-- **Even well-meaning researchers overfit (Kaggle analogy):** Liang agrees with Anthony Goldbloom's observation that competitors with every incentive not to overfit still score higher on the testable holdout than the one-shot final set; with LLMs it's worse because overfitting can happen at the task level, not just instance/distribution level. [09:16–10:50]
-- **Leaderboards are a guide, not an answer:** among top models, general leaderboard rank "doesn't matter as much" — reliability, cost, and fine-tunability matter more; never just grab the top model without asking who made it and what's in its data. HELM is best understood as a base-model (few-shot) evaluation that gets over-optimistic once heavy instruction tuning is layered on. [10:50–14:00]
-- **The portable-eval principle:** design your application so models are swappable — own a downstream eval tailored to your task, then swap models in and measure, because a new model will land in ~3 months and you want to trust the upgrade. Liang notes how many people lack an eval framework yet still want to experiment. [16:03–16:57]
-- **"Backward arrow" idea:** he wants HELM to aggregate what people actually wish LLMs would do, so model developers optimize toward real use cases; optimizing at the task level (not the test set) is "actually pretty productive." Contributing a benchmark is just a PR with a YAML/JSON file — no code for classification-style tasks. [16:59–18:54]
-- **Generation eval is unsolved:** HELM offers four evaluators — Mechanical Turk, Scale (human), plus model-based judges (GPT-4, Claude) — and a recent blog post comparing the four neural evaluators for open-ended generation found "they're all kind of different." [18:54–19:53]
-- **Agent benchmarking, two framings:** (1) benchmark the LM inside an agent context, or (2) benchmark the agent system. For (2) "not that much has to change" because HELM benchmarks an API of inputs→outputs — tools, tree-of-thought, self-consistency can all hide behind the API as long as a string comes back; so HELM "already" evaluates agent systems (though data sets should be upgraded to be harder/more recent). [23:58–25:09]
-- **MLAgentBench war-story:** their benchmark gives an LM an ML-engineering task (e.g., "raise this Kaggle accuracy 10%," with a shell and Python). Strongest agents keep a research log — inspect code/data, plan, change architecture, execute, read the log, spot overfitting, adjust a hyperparameter. "Unreliable but exciting"; chosen selfishly because accelerating ML research means "you're off to the races." [25:30–27:34]
-- **HELM keeps models prompted simply by design:** Gemini's high MMLU numbers come from "a lot of stuff that happens" (fancy prompting, ~10× ensembling), whereas HELM uses plain five-shot with light Chain-of-Thought — the stance being it's the model developer's job to make a better model, not push 10× tokens/cost onto the user. [29:56–31:33]
-- **What holds agents back:** (a) LMs aren't good enough at long-range planning/sophisticated actions; (b) a trust/UI problem — how do you inspect an agent taking 100 autonomous steps; (c) under-discussed security — an email-reading assistant is "an obvious way for your account to get hacked" via prompt injection, and "we don't even have a way of guarding against this right now." Headroom lies in agent-specific training data, not hoping a raw LM "magically figures it out." [31:33–35:23]
+## 要点
+- **HELM 的矩阵设计（2022）：**约 30 个模型（API 或开放权重）× 7 项指标（准确率以及偏差、校准、鲁棒性、公平性等）× 40 多种场景（数据集），所有单元格都使用刻意标准化的提示词与方法，以便公平比较。[03:00–03:48]
+- **把可复现性作为一等特性：**网站可逐层查看模型实际预测，进一步看到并缓存下来的 API 精确提示词，从而完整审计基准结果如何产生。[03:51–04:27]
+- **HELM 从基准演化为平台/框架：**其他人可贡献自己的基准，如 ML Commons AISafety/AILuminate 工作组、面向文生图的 HEIM、多模态生成与指令遵循。[04:39–05:13]
+- **污染问题的细微之处：**公然复制“容易检测”，部分提供商会过滤基准；HELM 与模型开发者一起运行标准训练/测试重叠脚本，目前没有模型直接用测试集训练的“确凿证据”。[05:52–06:54]
+- **更难的是解释，而非作弊：**若模型通过其他摘要数据集获得能力，“零样本摘要”可能并非真正零样本。针对 MMLU 覆盖主题或合成多选题优化，很容易在不自知中走向过拟合。解决方法是给结果补充语境，并校准自己究竟应当多惊讶。[06:54–09:16]
+- **善意研究者也会过拟合（Kaggle 类比）：**Liang 赞同 Anthony Goldbloom 的观察：即使参赛者有充分动机避免过拟合，在可反复测试的留出集上仍会比一次性最终集得分更高。LLM 更严重，因为过拟合可发生在任务层面，而不只是样本或分布层面。[09:16–10:50]
+- **排行榜是指南，不是答案：**顶级模型间的总榜名次“没那么重要”，可靠性、成本和可微调性更关键；不能不问开发者和训练数据就直接选择榜首。HELM 更适合作为基础模型的少样本评估；叠加强指令微调后会过于乐观。[10:50–14:00]
+- **可移植评测原则：**应用设计应允许模型互换——拥有针对自身任务且可信的下游评测，再替换模型并测量。约三个月后就会有新模型，你需要能够信任升级结果。许多人没有评测框架，却仍想试验模型。[16:03–16:57]
+- **“反向箭头”构想：**HELM 应汇总人们真正希望 LLM 完成的任务，让开发者朝真实用例优化；任务层面的优化（而非测试集层面）“其实很有生产力”。贡献分类任务基准只需提交含 YAML/JSON 文件的 PR，无需代码。[16:59–18:54]
+- **生成评估尚未解决：**HELM 提供 Mechanical Turk、Scale 两种人工评估器，以及 GPT-4、Claude 等模型裁判。比较四个神经评估器的近期博客发现，“它们彼此都颇为不同”。[18:54–19:53]
+- **智能体基准的两种框架：**（1）在智能体语境中评估 LM；（2）评估整个智能体系统。后者“不需要改变太多”，因为 HELM 评测的就是输入→输出 API；工具、思维树、自洽性都可隐藏在 API 后，只要最终返回字符串。因此 HELM “已经”能评估智能体系统，但数据集应更新得更难、更新。[23:58–25:09]
+- **MLAgentBench 实战：**基准给 LM 一个机器学习工程任务（如“用 shell 和 Python 将 Kaggle 准确率提高 10%”）。最强智能体会维护研究日志：检查代码/数据、规划、修改架构、执行、阅读日志、发现过拟合并调整超参数。它“并不可靠但令人兴奋”；之所以选择该任务，也因为加速机器学习研究意味着“一切都会起飞”。[25:30–27:34]
+- **HELM 有意保持简单提示：**Gemini 的高 MMLU 分数背后有“很多操作”（复杂提示、约 10 倍集成），而 HELM 使用普通五样本加轻量思维链；其立场是改进模型是开发者的责任，不应把 10 倍 token/成本转嫁给用户。[29:56–31:33]
+- **阻碍智能体的因素：**（a）LM 尚不擅长长程规划和复杂行动；（b）信任/界面问题——如何检查智能体自主执行的 100 步；（c）讨论不足的安全问题——读取邮件的助手是提示注入劫持账户的“显而易见途径”，且“目前根本没有防护方法”。提升空间在智能体专用训练数据，而不是期待原始 LM “神奇地自己学会”。[31:33–35:23]
 
-## Verified quotes
-- "behind the API is your the model developers business — they can go make use tools, do some crazy chain of, tree of thought and aggregation and self-consistency or whatever, as long as the string is returned at the end. So you can think about HELM as evaluating agent systems already." [24:30] *(light ASR cleanup; wording preserved)*
-- "you design your application to basically make all these models really swappable — you have your own evaluation that you trust downstream which is tailored to your task, and then you can swap in a different model and then see how well it does." [16:03] *(light ASR cleanup)*
-- "if it's really close to what you've seen then that's fine, but you shouldn't be surprised; whereas if it's very far and is working really well, then you should be more surprised and impressed." [09:06] *(light ASR cleanup)*
-- "it's a pretty slippery slope before you're really overfitting to the benchmark without maybe even realizing it, because who doesn't want better benchmark numbers." [07:45] *(light ASR cleanup)*
-- "an agent that's your assistant that reads your email for you and performs some task — that's an obvious way for your account to get hacked. Someone just sends you an email with some payload and it just takes over your agent, and we don't even have a way of guarding against this right now." [33:19] *(light ASR cleanup)*
-- "we don't really, as a community, know how to do generation evaluation reliably." [19:10] *(light ASR cleanup)*
+## 已核验引述（中文翻译）
+- [24:30] “API 背后是模型开发者自己的事——他们可以使用工具，做疯狂的思维链、思维树、聚合、自洽性或任何技术，只要最后返回一个字符串。因此，可以认为 HELM 已经在评估智能体系统。”（轻微清理自动语音识别错误。）
+- [16:03] “你应把应用设计成可轻松替换这些模型：拥有一个针对自身任务、值得信任的下游评测，然后换入不同模型，观察表现。”
+- [09:06] “如果它与见过的内容非常接近，表现好也没问题，但你不该惊讶；如果相距很远却表现极好，那才更令人惊讶和赞叹。”
+- [07:45] “在你可能甚至没有意识到时，就会沿着相当危险的滑坡走向对基准的真正过拟合；毕竟谁不想要更好的基准分数呢？”
+- [33:19] “一个替你读邮件并执行任务的助手智能体，显然会成为账户被黑的途径。别人只要发来带载荷的邮件就能接管你的智能体，而我们现在甚至没有防御办法。”
+- [19:10] “作为一个共同体，我们确实还不知道如何可靠地评估生成任务。”
 
-## What it adds
-- **The "same type signature" reframe for agent evals** — that a model and an agent system are both just input→output APIs, so a standardized harness evaluates either, with all the tool-use/reasoning machinery hidden behind the API. This is a cleaner mental model than most written agent-benchmark papers state outright, and it reframes the model/harness/skill boundary as a contract question, not an architecture question.
-- **HELM's caching-the-prompt audit trail** as a concrete reproducibility primitive — written HELM materials describe transparency abstractly; here Liang names the exact mechanism (drill from result → prediction → cached API prompt) that makes a benchmark auditable.
-- **The "deliberately simple prompting" stance** as a benchmarking design choice — HELM's choice to use plain five-shot rather than chase Gemini-style 10× ensembling reframes leaderboard gaps as a cost/responsibility allocation question (developer's job vs. user's burden), which is rarely articulated this directly.
-- **The "backward arrow"** vision — turning an eval aggregator into a demand-signal mechanism so developers optimize toward real use cases — and the claim that task-level optimization (vs. test-set) is productive, not harmful.
-- **A practitioner's calibration heuristic** — judge a result by how surprised you should be given train/test proximity — which is a usable interpretation rule, not the binary "contaminated/clean" framing common in papers.
-- **Security as the under-discussed agent blocker**, with prompt injection named as currently un-defended, grounding the safety theme in a concrete attack rather than abstract risk.
+## 独特增量
+- **智能体评测的“相同类型签名”重构：**模型与智能体系统都是输入→输出 API，标准化框架可评估两者；所有工具和推理机制隐藏在 API 后。这把模型/框架/技能边界变成契约问题，而非架构问题。
+- **HELM 缓存提示词的审计轨迹**是具体的可复现原语：从结果下钻到预测，再到缓存的 API 提示词，让基准真正可审计。
+- **有意使用简单提示**是一项基准设计选择：采用普通五样本而非追逐 Gemini 式 10 倍集成，把榜单差距重新解释为成本与责任由谁承担的问题。
+- **“反向箭头”**把评测聚合器变成需求信号机制，使开发者朝真实用例优化，并认为任务层面的优化有益而非有害。
+- **实践性校准启发式：**根据训练与测试的接近程度，判断自己对结果应有多惊讶；它比“污染/干净”的二元框架更实用。
+- **安全是被低估的智能体障碍，**提示注入目前缺乏防御；这里以具体攻击而非抽象风险支撑安全主题。
 
-## Themes
-1 why-evals · 3 model/harness/skill · 6 benchmark-vs-eval · 8 judge/verifiers · 9 agent-specific · 10 safety
+## 主题
+1 为何评测 · 3 模型/执行框架/技能 · 6 基准与评测 · 8 裁判/验证器 · 9 智能体特有 · 10 安全

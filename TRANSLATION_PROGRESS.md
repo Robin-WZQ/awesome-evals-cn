@@ -1,10 +1,10 @@
 # 深度笔记中文翻译进度
 
-进度：`[███████████████░░░░░] 76%（108/143）`
+进度：`[████████████████░░░░] 78%（112/143）`
 
 - 文章：40/68
 - 论文：28/28
-- 演讲与播客：40/47
+- 演讲与播客：44/47
 
 ## 翻译规则
 
@@ -123,3 +123,7 @@
 106. `notes/talks/talk-pod-gd-gonzalez-chatbot-arena.md`
 107. `notes/talks/talk-song-safe-secure-agentic.md`
 108. `notes/talks/talk-tang-fuzzing-genai.md`
+109. `notes/talks/talk-cs336-lec12-evaluation.md`
+110. `notes/talks/talk-liang-opensource-science-fms.md`
+111. `notes/talks/talk-pod-gd-liang-helm.md`
+112. `notes/talks/talk-pod-howiai-goyal-evals-new-prd.md`
