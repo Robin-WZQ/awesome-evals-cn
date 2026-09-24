@@ -1,37 +1,42 @@
-# Notes — "AgentRewardBench: Evaluating Automatic Evaluations of Web Agent Trajectories"
+# 笔记——《AgentRewardBench：评估 Web 智能体轨迹的自动化评估方法》
 
-**Author:** Xing Han Lù, Amirhossein Kazemnejad, Nicholas Meade, Arkil Patel, Dongchan Shin, Alejandra Zambrano, Karolina Stańczak, Peter Shaw, Christopher J. Pal, Siva Reddy (Mila Quebec AI Institute / McGill / ServiceNow Research / Google DeepMind) · **URL:** https://arxiv.org/abs/2504.08942 · **Type:** paper · **Found:** true
+**作者：** Xing Han Lù、Amirhossein Kazemnejad、Nicholas Meade、Arkil Patel、Dongchan Shin、Alejandra Zambrano、Karolina Stańczak、Peter Shaw、Christopher J. Pal、Siva Reddy（Mila Quebec AI Institute / McGill / ServiceNow Research / Google DeepMind） · **链接：** https://arxiv.org/abs/2504.08942 · **类型：** 论文 · **已找到：** 是
 
-## Summary
-A meta-evaluation that turns the LLM-judge lens back on itself: instead of using judges to score web agents, it asks how good the judges actually are. The authors build AgentRewardBench, the first benchmark for assessing LLM judges of web-agent trajectories — 1,302 trajectories from 4 agent LLMs across 5 web benchmarks, each reviewed by expert annotators on three axes (success, side effects, repetition). They then run 12 LLM judges (plus the official rule-based evaluators) against the expert labels. The headline finding is a two-sided calibration failure: LLM judges systematically *over-credit* success and no judge clears 70% precision, while the rule-based evaluators built into benchmarks systematically *under-report* success (55.9% recall) because they demand exact-match configurations and reject valid alternative solutions. The takeaway for anyone using automatic web-agent scoring: both the popular options are miscalibrated, and you need to know in which direction before you trust a reported success rate.
+## 摘要
 
-## Key points
-- **The object of study is the evaluator, not the agent.** AgentRewardBench measures judges (LLM-as-judge and rule-based) against expert ground truth, comparing predicted "success" to human-labeled success. This is the inversion the source was flagged for.
-- **Scale and provenance:** 1,302 trajectories (196 dev / 1,106 test), 4 agent backbones — GPT-4o, Claude 3.7 Sonnet, Llama-3.3-70B, Qwen2.5-VL — across 5 benchmarks: WebArena, VisualWebArena, AssistantBench, WorkArena, WorkArena++ (351 unique tasks, 8 environments, 66 websites). 3,906 binary annotations total.
-- **Annotation rigor:** 6 expert annotators with web-agent research background, custom UI showing screenshots + actions + reasoning, disagreements resolved by discussion. Inter-annotator agreement on success = **89.3%** — a credible ground-truth floor.
-- **Three annotation dimensions, not just pass/fail:** Success (did it achieve the goal?), Side Effect (did it take unnecessary actions with unintended consequences, e.g. buying extra items?), Repetition Cycle (did it loop without progress, e.g. repeatedly clicking a disabled button?). The latter two are reward/penalty signals for RL and inference-time steering.
-- **No judge breaks 70% precision.** Best overall is GPT-4o simplified judge at **69.8 precision** (Claude 3.7 Sonnet 68.8). That means ~30% of trajectories a judge calls successful are actually failures — poison if you filter trajectories for rejection-fine-tuning or RL reward.
-- **Precision is the chosen metric, deliberately.** For RFT and reward modeling you care about true positives as training signal and want to suppress false positives (noise in the loss); recall/F1 are reported only as auxiliary sample-efficiency metrics.
-- **Rule-based eval is the opposite failure mode.** Official rule-based evaluators get high precision (83.8) but **recall of only 55.9%** — they reject valid trajectories that don't exact-match the expected configuration (the canonical example: agent answers "Acadia National Park" but rules require an exact match to that string).
-- **Both directions quantified (Table 3):** Against expert annotations, the GPT-4o judge *over*estimates agent success rate (e.g. +16.7% on WebArena, +18.5% on VWA), while rule-based eval consistently *under*estimates it. Direction of bias flips depending on which automatic evaluator you use.
-- **Ranking distortion is the real danger:** rule-based eval ranks Qwen2.5-VL above GPT-4o on WebArena/WorkArena++, but experts prefer GPT-4o everywhere (>14% higher on VWA). Miscalibrated evaluators don't just shift absolute numbers — they reorder the leaderboard.
-- **No single judge wins across benchmarks** — judge choice has to be matched to task category, undercutting any "just use GPT-4o as judge" default.
-- **Input representation matters and more is not better:** for their simplified judge, screenshots-only gives high precision, accessibility-tree-only gives higher recall, and feeding *both* underperforms screenshot-only — "more information distracts rather than assists the judge."
-- **Qualitative failure taxonomy (§6):** grounding mismatch (judge trusts agent's claim about a page it misread), misleading agent reasoning (judge echoes a confident-but-wrong reasoning chain), missed instruction details (agent finds the cereal but never buys it; judge says "identified and purchased"), and misunderstanding action intents. Judges "easily agree with the agent's reasoning even when it is wrong."
+这项元评估把 LLM 裁判的审视目光转向裁判自身：它不再用裁判给 Web 智能体打分，而是追问这些裁判本身究竟有多可靠。作者构建了 AgentRewardBench，这是首个用于评估 Web 智能体轨迹之 LLM 裁判的基准。该基准收录 4 个智能体 LLM 在 5 个 Web 基准上产生的 1,302 条轨迹，并由专家标注员从成功、附带影响和重复三个维度逐一审查。随后，研究将 12 个 LLM 裁判（以及各基准官方的基于规则的评估器）与专家标签对照。最醒目的发现是一种双向校准失败：LLM 裁判系统性地高估成功，没有任何裁判的精确率超过 70%；与此同时，基准内置的规则评估器又系统性地少报成功（召回率仅 55.9%），因为它们要求与预设配置完全匹配，会拒绝有效的替代解法。对于所有采用自动 Web 智能体评分的人，核心结论是：两种常用方案都存在校准偏差，在相信某个报告的成功率之前，必须先弄清其偏差方向。
 
-## Verified quotes
-- "Using our benchmark, we evaluate 12 LLM judges and find that no single LLM excels across all benchmarks. We also find that the rule-based evaluation used by common benchmarks tends to underreport the success rate of web agents, highlighting a key weakness of rule-based evaluation and the need to develop more flexible automatic evaluations." — https://arxiv.org/abs/2504.08942
-- "We notice that no judge achieves above 70% precision, which means that 30% of trajectories are erroneously marked as successful. This severely limits the usefulness of the judges for downstream applications, such as using the filtered trajectories for finetuning an agent, as the agent will learn to generate incorrect trajectories for a substantial portion of the tasks." — https://arxiv.org/pdf/2504.08942
-- "We notice a stark difference between the judge and rule-based approach: whereas the LLM judge tends to overestimate the success rate of every agent (with two exceptions in WorkArena++), rule-based methods consistently underestimate it." — https://arxiv.org/pdf/2504.08942
-- "Overall, current LLM judges are limited by their capability to detect nuanced issues within trajectories, as shown by the judge missing details and misunderstanding an action. Moreover, they will easily agree with the agent's reasoning even when it is wrong." — https://arxiv.org/pdf/2504.08942
-- "As a result, the rule-based approach achieves a recall of 55.9%, indicating a higher rate of false negatives compared to LLM judges. Overall, a substantial precision gap exists between rule-based methods and LLM judges, but rule-based methods severely underestimate the true performance of web agents, highlighting the need for more flexible automatic evaluation." — https://arxiv.org/pdf/2504.08942
+## 要点
 
-## What it adds / why it's good
-Most "LLM-as-judge" papers validate a judge on chatbot-preference or coding tasks and call it correlated-enough with humans. This paper does the harder, more useful thing: it builds expert ground truth for *agentic web trajectories* (multi-step, screenshot/DOM-grounded, with side-effects and loops) and shows that the two automatic evaluators the field actually relies on are both miscalibrated — in opposite directions. The non-BS value is threefold: (1) it gives a concrete number — no judge above 70% precision — that quantifies how unsafe it is to filter trajectories for RFT/RL using current judges; (2) it documents that rule-based "ground truth" in WebArena-family benchmarks is itself biased (55.9% recall), which means published web-agent success rates are too low and the leaderboard ordering can be wrong; and (3) it surfaces *why* judges fail (they trust the agent's own reasoning), which is actionable for building better verifiers. The side-effect and repetition dimensions also go beyond binary success, giving the kind of signal you'd actually want for reward shaping. It's a genuine integrity/calibration result, not a benchmark land-grab.
+- **研究对象是评估器，而不是智能体。** AgentRewardBench 以专家真值衡量裁判（LLM-as-judge 与基于规则的方法），比较预测的“成功”与人工标注的成功。这正是该来源值得关注的反向评估视角。
+- **规模与来源：** 共 1,302 条轨迹（开发集 196 条，测试集 1,106 条），来自 4 个智能体骨干模型——GPT-4o、Claude 3.7 Sonnet、Llama-3.3-70B、Qwen2.5-VL——覆盖 5 个基准：WebArena、VisualWebArena、AssistantBench、WorkArena、WorkArena++（351 个独立任务、8 个环境、66 个网站）。二元标注总数为 3,906 个。
+- **严谨标注：** 6 名具有 Web 智能体研究背景的专家标注员使用定制界面查看截图、动作和推理，分歧通过讨论解决。成功维度的标注员间一致率达到 **89.3%**，构成可信的真值基础。
+- **三个标注维度，而不仅是通过或失败：** 成功（是否达成目标？）、附带影响（是否执行了会产生意外后果的不必要动作，例如多买了商品？）、重复循环（是否陷入毫无进展的循环，例如反复点击已禁用的按钮？）。后两个维度也可作为 RL 和推理时引导中的奖励或惩罚信号。
+- **没有任何裁判的精确率突破 70%。** 总体最佳者是简化版 GPT-4o 裁判，精确率为 **69.8**（Claude 3.7 Sonnet 为 68.8）。也就是说，被裁判判为成功的轨迹中约有 30% 实际失败；若用它筛选轨迹以开展拒绝式微调或作为 RL 奖励，这种误差会污染训练信号。
+- **刻意选择精确率作为核心指标。** 对 RFT 和奖励建模而言，真正例才是有用的训练信号，需要尽量压制假正例所造成的损失噪声；召回率和 F1 仅作为样本效率的辅助指标报告。
+- **规则评估呈现相反的失败模式。** 官方规则评估器具有较高精确率（83.8），但**召回率仅 55.9%**；它们会拒绝那些未与预期配置完全匹配的有效轨迹。典型示例是：智能体给出“Acadia National Park”这一正确答案，但规则要求答案必须与该字符串严格一致。
+- **两种偏差方向均被量化（表 3）：** 与专家标注相比，GPT-4o 裁判会*高估*智能体成功率（例如 WebArena 上高估 16.7%，VWA 上高估 18.5%），而规则评估始终会*低估*成功率。自动评估器的选择会直接翻转偏差方向。
+- **真正的危险是排名失真：** 在 WebArena/WorkArena++ 上，规则评估把 Qwen2.5-VL 排在 GPT-4o 之前；专家却在所有场景中都更认可 GPT-4o，在 VWA 上差距超过 14%。校准失准的评估器不只是整体平移绝对数值，还会改变排行榜次序。
+- **没有单一裁判能在所有基准上取胜**，必须让裁判选择与任务类别匹配，这否定了“默认直接用 GPT-4o 当裁判”的做法。
+- **输入表示很重要，信息并非越多越好：** 对简化版裁判而言，仅提供截图可获得较高精确率，仅提供无障碍树则能获得较高召回率；同时提供二者的效果反而不如只给截图——“更多信息会分散裁判注意力，而非帮助它。”
+- **定性失败分类（第 6 节）：** 定位不匹配（裁判相信智能体对其误读页面的自述）、误导性智能体推理（裁判附和自信但错误的推理链）、遗漏指令细节（智能体找到了麦片却没有购买，裁判仍称其“已识别并购买”），以及误解动作意图。裁判“即使智能体的推理错误，也很容易赞同它”。
 
-## Themes
-- **1 why-evals** — argues automatic evals are load-bearing for measuring agent progress and for generating RL/RFT training signal.
-- **6 benchmark-vs-eval/integrity** — core contribution: rule-based "ground truth" under-reports and reorders rankings; reported web-agent success rates are systematically biased.
-- **8 judge/verifiers** — direct meta-evaluation of 12 LLM judges; precision ceiling, over-crediting, failure taxonomy.
-- **9 agent-specific** — entirely about multi-step web-agent trajectories (success, side effects, repetition), not single-turn outputs.
-- **2 eval⇄capability⇄RL-env** — frames judges as reward models for RFT/RL and shows the false-positive rate that would corrupt that loop.
+## 已核验引述（中文翻译）
+
+- “借助我们的基准，我们评估了 12 个 LLM 裁判，发现没有任何单个 LLM 能在所有基准上表现出色。我们还发现，常见基准所采用的规则评估往往会少报 Web 智能体的成功率，这凸显了规则评估的一项关键弱点，也说明有必要开发更灵活的自动评估方法。”——https://arxiv.org/abs/2504.08942
+- “我们注意到，没有任何裁判的精确率超过 70%，这意味着有 30% 的轨迹被错误标记为成功。这严重限制了裁判对下游应用的用途，例如使用筛选后的轨迹微调智能体，因为智能体会在相当一部分任务上学习生成错误轨迹。”——https://arxiv.org/pdf/2504.08942
+- “我们注意到裁判方法与规则方法之间存在鲜明差异：LLM 裁判往往会高估每个智能体的成功率（WorkArena++ 中有两个例外），而规则方法则始终低估成功率。”——https://arxiv.org/pdf/2504.08942
+- “总体而言，当前 LLM 裁判检测轨迹中细微问题的能力有限，具体表现为遗漏细节和误解动作。此外，即使智能体的推理是错误的，它们也很容易表示赞同。”——https://arxiv.org/pdf/2504.08942
+- “因此，规则方法的召回率为 55.9%，表明它比 LLM 裁判具有更高的假负例率。总体来看，规则方法与 LLM 裁判之间存在显著的精确率差距，但规则方法会严重低估 Web 智能体的真实表现，这凸显了开发更灵活自动评估方法的必要性。”——https://arxiv.org/pdf/2504.08942
+
+## 本文新增了什么／为何出色
+
+大多数“LLM-as-judge”论文只在聊天机器人偏好或编码任务上验证裁判，发现它与人工具有足够相关性便宣告成功。这篇论文完成了更困难也更有价值的工作：为*智能体式 Web 轨迹*建立专家真值。此类轨迹包含多步骤、以截图或 DOM 为依据的交互，还涉及附带影响和循环。研究表明，该领域实际依赖的两种自动评估器都存在校准偏差，而且方向相反。它的实质价值有三点：（1）给出一个具体数字——没有裁判的精确率超过 70%——量化了利用现有裁判筛选 RFT/RL 轨迹有多不安全；（2）证明 WebArena 系列基准中基于规则的“真值”本身存在偏差（召回率 55.9%），这意味着已发表的 Web 智能体成功率偏低，排行榜次序也可能错误；（3）揭示裁判失败的原因——它们会相信智能体自身的推理——为构建更好的验证器提供了可操作依据。附带影响和重复维度也超越了二元成功标准，提供了奖励塑形真正需要的信号。这是一项扎实的完整性与校准研究，而不是单纯抢占一个新基准名号。
+
+## 主题
+
+- **1 为何需要评测**——说明自动评测是衡量智能体进展、生成 RL/RFT 训练信号时不可或缺的承重环节。
+- **6 基准与评测／完整性**——核心贡献：基于规则的“真值”会少报结果并改变排名；所报告的 Web 智能体成功率存在系统性偏差。
+- **8 裁判／验证器**——直接元评估 12 个 LLM 裁判，包括精确率上限、高估成功倾向与失败分类。
+- **9 智能体特有问题**——全部围绕多步骤 Web 智能体轨迹（成功、附带影响、重复），而非单轮输出。
+- **2 评测⇄能力⇄RL 环境**——将裁判视为 RFT/RL 的奖励模型，并展示会破坏这一循环的假正例率。

@@ -1,38 +1,43 @@
-# Notes (workflow) — Shunyu Yao, "The Second Half" (essay), ysymyth.github.io, April 10, 2025
+# 工作流笔记——Shunyu Yao，《下半场》（随笔），ysymyth.github.io，2025 年 4 月 10 日
 
-**Author:** Shunyu Yao
-**URL:** https://ysymyth.github.io/The-Second-Half/
-**Found:** true
+**作者：** Shunyu Yao
+**链接：** https://ysymyth.github.io/The-Second-Half/
+**已找到：** 是
 
-## Summary
-Shunyu Yao (author of ReAct, WebShop, tau-bench) argues that AI has reached "halftime." In the "first half," progress came from inventing training methods and models; evaluation and benchmarks were secondary, derivative work — you proposed a benchmark mainly so you could beat it. That era is ending because a general "recipe" — massive language pre-training + scale (data/compute) + reasoning-as-action with RL — now reliably crushes benchmarks. Crucially, Yao argues the most important ingredient turned out to be the priors from language pre-training (which give generalization via reasoning), not the RL algorithm or environment, which are comparatively trivial/standardized. Once the recipe generalizes, a clever task-specific method might add 5% while the next frontier model adds 30%, so method-invention has sharply diminishing returns. The "second half," starting now, shifts focus "from solving problems to defining problems": evaluation becomes more important than training. The central motivating gap is the "utility problem" — AI beats champions at chess/Go and saturates benchmarks, yet GDP/the real world hasn't changed much, because our evaluation setups differ from real-world setups in basic ways. Yao calls to "fundamentally re-think evaluation," questioning two baked-in assumptions: (1) evaluation should be autonomous/no-human-in-loop (reality: agents must engage humans throughout a task), and (2) evaluation should be i.i.d. (reality: tasks are solved sequentially, and an agent should accumulate familiarity, e.g., a SWE agent working many issues in one repo). The new game loop: develop novel evaluation setups/tasks for real-world utility, solve them with the recipe (or augment it), repeat. Truly game-changing research now comes from creating new assumptions that break the recipe; the winners build useful products and large companies out of intelligence. He frames this as needing a mindset closer to a product manager. Concludes: "Welcome to the second half!"
+## 摘要
 
-## Key points
-- Thesis: AI is at 'halftime.' The first half was about methods/models with evaluation as a secondary afterthought; the second half shifts focus 'from solving problems to defining problems,' where 'evaluation becomes more important than training.'
-- The driver is a generalizing 'recipe': massive language pre-training + scale (data/compute) + reasoning-and-acting with RL. Once it generalizes, incremental task-specific methods are dominated by the next frontier model (the '5% vs 30%' point), so method invention has diminishing returns.
-- Yao's surprising emphasis: the most important part of RL is the PRIORS from language pre-training, not the RL algorithm or environment. 'Language generalizes through reasoning in agents' — reasoning is an open-ended, combinatorially infinite action space that enables strong zero-shot/transfer behavior.
-- The 'utility problem' is named the most important problem in AI: superhuman benchmark/game performance has not translated into real-world economic impact because 'our evaluation setups are different from real-world setups in many basic ways.'
-- Two flawed evaluation assumptions to break: (1) autonomous/no-human-in-the-loop eval — real agents must engage a human throughout the task; (2) i.i.d. eval — real tasks are sequential and the agent should accumulate familiarity/context (e.g., a SWE agent across many issues in one repo).
-- The new research loop: 'We develop novel evaluation setups or tasks for real-world utility. We solve them with the recipe or augment the recipe with novel components. Continue the loop.' Game-changing work comes from 'new assumptions that break the recipe.'
-- Benchmarks saturate fast ('3 years later it's saturated'; tasks get 'solved by the recipe' increasingly soon) — strong evidence for eval rot/saturation. The proposed mindset shift is toward thinking like a product manager about real-world utility.
-- Author credibility/standing: Shunyu Yao is behind ReAct (reasoning+acting), WebShop, and tau-bench (human-in-the-loop, stateful agent eval) — so the essay is the conceptual umbrella under which several of our cited agent benchmarks sit.
+ReAct、WebShop 和 tau-bench 的作者 Shunyu Yao 认为，AI 已来到“中场”。在“上半场”，进步源于训练方法与模型的发明；评估和基准只是次要的衍生工作——提出一个基准，主要是为了再由自己击败它。这个时代正在结束，因为一套通用“配方”如今已能稳定碾压各类基准：海量语言预训练 + 规模扩张（数据／算力）+ 以 RL 实现推理即行动。关键在于，Yao 指出最终最重要的成分是语言预训练所提供的先验，它使模型能够通过推理实现泛化；相比之下，RL 算法和环境都较为简单且标准化。当这套配方能够泛化时，聪明的任务专用方法可能只增加 5%，而下一个前沿模型会直接增加 30%，所以发明方法的边际回报已急剧下降。从现在开始的“下半场”会把重心“从解决问题转向定义问题”：评估将比训练更重要。核心动机是“效用问题”——AI 已在国际象棋和围棋中战胜冠军，各种基准也趋于饱和，但 GDP 和现实世界并未发生太大变化，原因是我们的评估设置在许多基本方面不同于现实设置。Yao 呼吁“从根本上重新思考评估”，并质疑两个根深蒂固的假设：（1）评估应当完全自主、不含人在环；现实中，智能体必须在整个任务过程中与人互动。（2）评估应当满足独立同分布；现实中，任务是按顺序解决的，智能体应不断积累熟悉度，例如 SWE 智能体连续处理同一代码库中的多个问题。新的循环是：为现实效用开发新颖的评估设置或任务，以通用配方解决它们（或用新组件扩展配方），然后不断重复。真正改变游戏规则的研究来自创造能够打破通用配方的新假设；胜者会用智能构建实用产品和大型公司。他认为，这要求研究者拥有更接近产品经理的思维方式。文章以“欢迎来到下半场！”收尾。
 
-## Verified quotes
-- "tldr: We're at AI's halftime." — Shunyu Yao (https://ysymyth.github.io/The-Second-Half/)
-- "The second half of AI — starting now — will shift focus from solving problems to defining problems." — Shunyu Yao (https://ysymyth.github.io/The-Second-Half/)
-- "In this new era, evaluation becomes more important than training." — Shunyu Yao (https://ysymyth.github.io/The-Second-Half/)
-- "Instead of just asking, 'Can we train a model to solve X?', we're asking, 'What should we be training AI to do, and how do we measure real progress?'" — Shunyu Yao (https://ysymyth.github.io/The-Second-Half/)
-- "I call this the utility problem, and deem it the most important problem for AI." — Shunyu Yao (https://ysymyth.github.io/The-Second-Half/)
-- "our evaluation setups are different from real-world setups in many basic ways" — Shunyu Yao (https://ysymyth.github.io/The-Second-Half/)
-- "But in reality, an agent has to engage with a human throughout the task — you don't just text customer service a super long message, wait for 10 minutes, then expect a detailed response to settle everything." — Shunyu Yao (https://ysymyth.github.io/The-Second-Half/)
-- "We develop novel evaluation setups or tasks for real-world utility. We solve them with the recipe or augment the recipe with novel components. Continue the loop." — Shunyu Yao (https://ysymyth.github.io/The-Second-Half/)
-- "The general recipe would just crush your incremental methods, unless you create new assumptions that break the recipe. Then you get to do truly game-changing research." — Shunyu Yao (https://ysymyth.github.io/The-Second-Half/)
-- "Welcome to the second half!" — Shunyu Yao (https://ysymyth.github.io/The-Second-Half/)
+## 要点
 
-## What it adds
-A higher-altitude WHY for the entire book. Our 16 principles are mostly mechanics of HOW to build good agent evals; Yao supplies the field-level thesis for WHY this work is now the central work of AI: the marginal value has moved from methods to defining and measuring the right tasks ('evaluation becomes more important than training'). Three specific additions our principles don't yet articulate: (1) The 'utility problem' — a sharp, quotable name for the gap between benchmark saturation and real-world impact, which is the economic justification for an entire book on evals. (2) The 'i.i.d. assumption is wrong' critique — real agents work tasks sequentially and should accumulate familiarity/context across tasks (a SWE agent over many issues in one repo). Our evals (and P13's pass^k) implicitly assume independent episodes; Yao argues that statefulness/accumulation across a session or repo is itself part of real utility and should be evaluated, which none of our principles currently captures. (3) The 'human-in-the-loop is not optional' framing as a first-class evaluation design constraint (the conceptual root of his tau-bench), reinforcing P10 with an authority. It also reframes P16 (evals rot): Yao gives the mechanism — a generalizing recipe saturates any clean benchmark 'increasingly soon,' so eval design must continuously target new real-world assumptions.
+- 核心论点：AI 已到“中场”。上半场以方法和模型为中心，评估只是事后的次要环节；下半场的重心将“从解决问题转向定义问题”，此时“评估将比训练更重要”。
+- 推动力是一套能够泛化的“配方”：海量语言预训练 + 规模扩张（数据／算力）+ 使用 RL 进行推理与行动。一旦它可以泛化，增量式的任务专用方法就会被下一个前沿模型压倒，也就是“5% 对 30%”的对比，因此方法发明的边际回报不断下降。
+- Yao 出人意料地强调：RL 最重要的部分是语言预训练提供的**先验**，而不是 RL 算法或环境。“语言通过智能体中的推理实现泛化”——推理是一种开放、组合上近乎无限的动作空间，可以支持强大的零样本和迁移行为。
+- “效用问题”被称为 AI 最重要的问题：超越人类的基准和游戏成绩尚未转化为现实经济影响，因为“我们的评估设置在许多基本方面不同于现实设置”。
+- 需要打破的两个错误评估假设：（1）自主、无人在环的评估——现实智能体必须在整个任务中与人互动；（2）独立同分布评估——现实任务按顺序发生，智能体应积累熟悉度和上下文，例如 SWE 智能体连续处理同一代码库中的多个问题。
+- 新的研究循环：“我们为现实效用开发新颖的评估设置或任务。我们用通用配方解决它们，或以新组件扩展配方。继续循环。”改变游戏规则的工作来自“能够打破通用配方的新假设”。
+- 基准很快就会饱和（“三年后它就饱和了”；任务越来越快地“被通用配方解决”），这为评测腐化或饱和提供了有力证据。对应的思维转变是像产品经理一样思考现实效用。
+- 作者的可信度与地位：Shunyu Yao 是 ReAct（推理 + 行动）、WebShop 和 tau-bench（人在环、有状态智能体评估）的主要作者，因此这篇文章提供了一个概念总纲，统摄本书引用的多个智能体基准。
 
-**Touches principles:** 1, 2, 7, 10, 13, 16
+## 已核验引述（中文翻译）
 
-## Integration proposal
-Use 'The Second Half' as the book's opening epigraph and thesis anchor in the introduction. Lead with 'evaluation becomes more important than training' and the 'utility problem' to justify the book's existence, then position the 16 principles as the practitioner's answer to Yao's call to 'fundamentally re-think evaluation' — he names the problem; we supply the method. Concretely: (1) Intro/epigraph: quote 'tldr: We're at AI's halftime,' 'shift focus from solving problems to defining problems,' and 'evaluation becomes more important than training.' (2) Tie directly to P1 (The Process Is the Product) — Yao's 'defining problems' over 'solving problems' is the same move as 'define success first.' (3) Use his two broken assumptions to strengthen two principles: feed 'human-in-the-loop throughout the task' into P10 (cite as the tau-bench rationale), and introduce his i.i.d. critique as evidence in P13 and possibly as the seed of a NEW principle on cross-task/stateful accumulation (agents should carry and reuse context across a session/repo, and evals must measure that) — this is a genuine gap in the current 16. (4) Use the 'utility problem' + 'increasingly soon... saturated' as a named anchor in P16 (Evals Rot), giving the rot a causal mechanism: a generalizing recipe saturates clean benchmarks, forcing continuous re-targeting at real-world assumptions. (5) Credit Yao's pedigree (ReAct, WebShop, tau-bench) when citing, since several benchmarks the book leans on descend from this worldview. Keep quotes verbatim with the URL https://ysymyth.github.io/The-Second-Half/ (April 10, 2025).
+- “太长不看版：我们正处于 AI 的中场。”——Shunyu Yao（https://ysymyth.github.io/The-Second-Half/）
+- “AI 的下半场——从现在开始——会把重心从解决问题转向定义问题。”——Shunyu Yao（https://ysymyth.github.io/The-Second-Half/）
+- “在这个新时代，评估将比训练更重要。”——Shunyu Yao（https://ysymyth.github.io/The-Second-Half/）
+- “我们不再只是问：‘能否训练一个模型来解决 X？’而是要问：‘我们应当训练 AI 做什么，又该如何衡量真正的进步？’”——Shunyu Yao（https://ysymyth.github.io/The-Second-Half/）
+- “我把它称为效用问题，并认为它是 AI 最重要的问题。”——Shunyu Yao（https://ysymyth.github.io/The-Second-Half/）
+- “我们的评估设置在许多基本方面不同于现实世界的设置。”——Shunyu Yao（https://ysymyth.github.io/The-Second-Half/）
+- “但在现实中，智能体必须在整个任务过程中与人互动——你不会只给客服发一条超长消息，等上十分钟，然后指望对方用一条详尽回复解决所有事情。”——Shunyu Yao（https://ysymyth.github.io/The-Second-Half/）
+- “我们为现实效用开发新颖的评估设置或任务。我们用通用配方解决它们，或以新组件扩展配方。继续循环。”——Shunyu Yao（https://ysymyth.github.io/The-Second-Half/）
+- “除非你创造出能够打破通用配方的新假设，否则通用配方会直接碾压你的增量方法。做到这一点，你才能开展真正改变游戏规则的研究。”——Shunyu Yao（https://ysymyth.github.io/The-Second-Half/）
+- “欢迎来到下半场！”——Shunyu Yao（https://ysymyth.github.io/The-Second-Half/）
+
+## 本文新增了什么
+
+它从更高层次回答了整本书的“为什么”。本书的 16 项原则大多是在讲“如何”构建良好的智能体评测；Yao 则给出领域层面的论点，说明“为什么”这项工作如今已成为 AI 的中心工作：边际价值已经从发明方法转向定义和衡量正确的任务，即“评估将比训练更重要”。它补充了本书原则尚未明确表达的三点：（1）“效用问题”——这是基准饱和与现实影响之间差距的一个精准且易于引用的名称，也为整本评测著作提供了经济层面的理由。（2）对“独立同分布假设错误”的批评——现实智能体会按顺序处理任务，并应跨任务积累熟悉度和上下文，例如 SWE 智能体处理同一代码库中的多个问题。我们的评测（以及 P13 的 pass^k）隐含地把每个回合视为相互独立；Yao 则认为，会话或代码库内的有状态性与跨任务积累本身就是现实效用的一部分，应纳入评估，而现有原则均未覆盖这一点。（3）把“人在环不是可选项”视为一等评估设计约束；这是 tau-bench 的概念根源，也以权威观点强化了 P10。文章还重新解释了 P16（评测会腐化）：Yao 给出其机制——通用配方会“越来越快地”使任何干净基准饱和，所以评估设计必须持续瞄准新的现实假设。
+
+**涉及原则：** 1、2、7、10、13、16
+
+## 整合建议
+
+将《下半场》作为全书开篇题词和引言中的论点锚点。先以“评估将比训练更重要”和“效用问题”说明本书存在的必要性，再把 16 项原则定位为对 Yao“从根本上重新思考评估”号召的实践回答——他命名问题，我们提供方法。具体而言：（1）引言／题词：引用“太长不看版：我们正处于 AI 的中场”“把重心从解决问题转向定义问题”以及“评估将比训练更重要”。（2）直接连接 P1（过程就是产品）——Yao 强调“定义问题”胜过“解决问题”，与“先定义成功”是同一转变。（3）用他指出的两个错误假设强化两项原则：把“整个任务过程都需要人在环”写入 P10（作为 tau-bench 的理由并加以引用）；在 P13 中引入他对独立同分布的批评，并可将其作为一项**新原则**的起点，讨论跨任务／有状态积累——智能体应在会话或代码库中携带并复用上下文，评测也必须衡量这一能力。这是现有 16 项原则的真实缺口。（4）在 P16（评测会腐化）中，把“效用问题”与“越来越快……趋于饱和”作为命名锚点，为腐化提供因果机制：通用配方会使干净基准饱和，迫使评估不断重新瞄准现实假设。（5）引用时说明 Yao 的代表工作（ReAct、WebShop、tau-bench），因为本书依赖的多个基准都源自这一世界观。引述需保持原意并附链接 https://ysymyth.github.io/The-Second-Half/（2025 年 4 月 10 日）。

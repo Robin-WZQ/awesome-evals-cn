@@ -1,8 +1,8 @@
 # 深度笔记中文翻译进度
 
-进度：`[███████████████████░] 94%（135/143）`
+进度：`[████████████████████] 98%（141/143）`
 
-- 文章：60/68
+- 文章：66/68
 - 论文：28/28
 - 演讲与播客：47/47
 
@@ -150,3 +150,9 @@
 133. `notes/articles/prime-intellect-environments-hub.md`
 134. `notes/articles/rlvr-hidden-costs-measurement-gaps.md`
 135. `notes/articles/cameron-wolfe-agent-evals.md`
+136. `notes/articles/leaderboard-illusion.md`
+137. `notes/articles/mechanize-gba-eval.md`
+138. `notes/articles/agentrewardbench-evaluating-automatic-evaluations-web-agent-.md`
+139. `notes/articles/benchmark-label-errors.md`
+140. `notes/articles/yao-second-half.md`
+141. `notes/articles/era-of-experience.md`

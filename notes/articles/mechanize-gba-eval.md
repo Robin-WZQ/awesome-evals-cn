@@ -1,53 +1,53 @@
-# Notes — "Introducing GBA Eval: Giving frontier coding agents 24 hours to write a Game Boy Advance emulator"
+# 笔记——《GBA Eval 发布：让前沿编程智能体用 24 小时编写 Game Boy Advance 模拟器》
 
-**Author:** Stephen Yang, Ege Erdil, Tamay Besiroglu (Mechanize) · **URL:** https://www.mechanize.work/technical-blog/introducing-gba-eval/ · **Type:** eng-blog · **Found:** true
+**作者：** Stephen Yang、Ege Erdil、Tamay Besiroglu（Mechanize） · **URL：** https://www.mechanize.work/technical-blog/introducing-gba-eval/ · **类型：** 工程博客 · **已找到：** 是
 
-## Summary
+## 摘要
 
-Mechanize's GBA Eval tasks frontier coding agents with writing, from scratch, a Game Boy Advance emulator in Rust that compiles to WebAssembly — a task that would take a skilled human engineer multiple weeks — and gives them roughly 24 hours of agent time to do it. The interesting engineering is in the grading: rather than rely on hand-written assertions (which the authors argue are the root cause of most eval quality problems), they grade by *replay*, running the candidate emulator and a reference emulator in lockstep on pre-recorded input sequences and comparing output frame-by-frame. The reference oracle is a lightly modified fork of Mesen2 (one of the most accurate GBA emulators), exposed through a thin C ABI (`set_keys` / `run_frame` / `framebuffer`) with the emulation core left unmodified. This frame-exact comparison is only tractable because the GBA console has no entropy source — no RTC, wall clock, or analog input — so all randomness derives from input timing, making runs perfectly deterministic and reproducible. The post is positioned as a public proof-of-existence for the kind of high-investment, low-flaw eval/RL-environment work Mechanize does with AI labs, and as a recruiting piece. Concrete model results (Claude scoring ~70-74%, GPT-5.5 ~53%, Gemini variants failing to build a working emulator) appear on the companion leaderboard at gbaeval.com rather than in the post body itself.
+Mechanize 的 GBA Eval 要求前沿编程智能体从零开始用 Rust 编写一个可编译为 WebAssembly 的 Game Boy Advance 模拟器，并为其提供约 24 小时的智能体运行时间；而对于熟练的人类工程师，这项任务也需要数周。真正有意思的工程工作在评分环节：作者没有依赖手写断言（他们认为这是大多数评测质量问题的根源），而是采用“回放”评分——让候选模拟器和参考模拟器锁步运行预先录制的输入序列，并逐帧比较输出。参考预言机是经过轻量修改的 Mesen2 分支（公认最准确的 GBA 模拟器之一），通过精简的 C ABI（`set_keys` / `run_frame` / `framebuffer`）暴露接口，模拟核心本身则保持不变。这种帧级精确比较之所以可行，是因为 GBA 主机没有熵源：没有 RTC、墙上时钟或模拟输入，所有随机性都来自输入时序，因此运行过程完全确定且可复现。文章将 GBA Eval 定位为一个公开的存在性证明，用来展示 Mechanize 与 AI 实验室合作时如何开展高投入、低缺陷的评测与 RL 环境工作，同时也用于招聘。具体模型成绩（Claude 约 70–74%，GPT-5.5 约 53%，Gemini 的多个版本未能构建可用模拟器）见配套排行榜 gbaeval.com，而不是文章正文。
 
-## Key points
+## 要点
 
-- **The task:** "We task models with writing, from scratch, a Game Boy Advance (GBA) emulator in Rust that compiles to WebAssembly." This is a multi-week project for a skilled human; agents get on the order of 24 hours (per the title and external coverage; the budget is not stated in the post body).
-- **Thesis — bad graders cap capability:** the authors open by arguing that "current evals, benchmarks, and RL environments for LLM capabilities have significant quality problems, and that these problems pose a major barrier to future improvements in model capabilities." Examples they cite: "Nearly 60% of the problems in that subset had flawed tests that would reject correct solutions," plus easily-cheatable problems (solutions/grader code in git history) and underspecified LLM-judge rubrics.
-- **The grading insight is replay, not assertions:** "The grading for this task consists of several components, but the most interesting is replay, where we check whether actual gameplay works on the emulator in various games." They "pre-record input sequences for the game (e.g., passing the first few levels)," then "the candidate and reference emulators consume identical inputs, and their outputs are compared on every frame." Audio can be compared the same way.
-- **Determinism is the load-bearing trick:** "This kind of grading is tractable because the GBA console itself has no entropy source. There is no RTC, wall clock, or analog input on the console." All randomness "derives entirely from the exact timing of inputs" — the same property speedrunners exploit for RNG manipulation in tool-assisted speedruns. This is what makes a frame-exact oracle comparison a *valid* grader rather than a flaky one.
-- **The oracle is a real, accurate emulator, minimally forked:** "We use a lightly modified fork of Mesen2, an open-source cross-platform emulator widely regarded as one of the most accurate GBA emulators available, as the reference."
-- **Surgical oracle interface:** "Our changes are limited to a thin C ABI exposing the lockstep emulator interface (`set_keys` / `run_frame` / `framebuffer`) and a deterministic input-replay harness; the emulation core itself is unmodified from upstream Mesen2." Keeping the core untouched means the oracle stays trustworthy — the harness drives it in lockstep but doesn't change what "correct" means.
-- **Black-box oracle CLI given to the agent (per external coverage):** the agent's container ships the Rust + wasm32 toolchain, the ABI specification, a BIOS stub, dev ROMs, and an "oracle CLI" that is a black-box wrapper around Mesen2 — the agent cannot read Mesen2's source or access the internet, so it must actually implement correct emulation rather than copy a reference. (Sourced from search snippets of the article / Adafruit coverage; not confirmed verbatim in the body text WebFetch returned.)
-- **Model results (from gbaeval.com / external coverage, not the post body):** Claude Opus 4.8 ~70.9% (described as the top score "to date" at one point, beating GPT-5.5's 53.2% in under an hour); a later Claude "Fable 5" reportedly ~74.5%, beating Opus 4.8's 24-hour result in under 2 hours; Gemini 3.1 Pro "failed to produce a working emulator" and Gemini 3.5 Flash scored ~6.7%. Treat these specific numbers as leaderboard-sourced and time-varying.
-- **Honest caveat on interpretation:** the authors warn that "Rankings of models on GBA Eval are not necessarily representative of their general 'software engineering capability'" — i.e., one hard task is a probe, not a verdict.
-- **Why a human-expert floor matters:** they note many existing test cases "contain poorly specified problem statements or environments, where even a human expert software engineer would fail in the place of the model, which effectively caps achievable scores" — GBA Eval is designed to avoid that failure mode by grading observable behavior against ground truth.
-- **Positioning:** "GBA Eval is analogous to the work we do at Mechanize with top AI labs when we make environments for evaluating and training LLMs," released "as an example of what it looks like to invest time in careful grading." The post closes as a hiring pitch for environment/eval software engineers.
+- **任务：**“我们要求模型从零开始用 Rust 编写一个能够编译为 WebAssembly 的 Game Boy Advance（GBA）模拟器。”这对熟练人类而言是一个持续数周的项目，而智能体获得约 24 小时（依据标题和外部报道；正文没有写明预算）。
+- **核心判断——糟糕的评分器会限制能力上限：** 作者开篇主张，“当前用于评估 LLM 能力的评测、基准和 RL 环境存在严重质量问题，而这些问题是模型能力进一步提升的主要障碍。”他们举出的例子包括：某一子集中“近 60% 的问题存在缺陷测试，会拒绝正确答案”，此外还有很容易作弊的问题（解答或评分器代码藏在 git 历史中）以及定义不充分的 LLM 裁判量表。
+- **评分洞见是回放，而非断言：**“这个任务的评分由多个部分组成，其中最有意思的是回放：我们检查不同游戏中的实际游玩是否能在模拟器上正常工作。”他们“预先录制游戏输入序列（例如通过前几关）”，然后“候选模拟器和参考模拟器接收完全相同的输入，并在每一帧比较输出”。音频也可以采用同样方式比较。
+- **确定性是支撑整个方法的关键：**“这种评分之所以可行，是因为 GBA 主机本身没有熵源。主机上没有 RTC、墙上时钟或模拟输入。”所有随机性“完全来自输入的精确时序”——速通玩家在工具辅助速通中操纵 RNG 所利用的正是这一性质。因此，逐帧精确的预言机比较才会成为有效而非不稳定的评分器。
+- **预言机是真实、准确且只做最小改动的模拟器：**“我们使用 Mesen2 的一个轻量修改分支作为参考；Mesen2 是一款开源跨平台模拟器，被广泛认为是目前最准确的 GBA 模拟器之一。”
+- **精确克制的预言机接口：**“我们的改动仅限于一个精简的 C ABI，用来暴露锁步模拟器接口（`set_keys` / `run_frame` / `framebuffer`），再加上一个确定性的输入回放工具；模拟核心本身与上游 Mesen2 完全一致。”核心保持不动意味着预言机仍然值得信任——工具让其锁步运行，却不改变“正确”的含义。
+- **提供给智能体的黑盒预言机 CLI（依据外部报道）：** 智能体所在容器提供 Rust + wasm32 工具链、ABI 规范、BIOS 存根、开发 ROM，以及一个封装 Mesen2 的黑盒“预言机 CLI”。智能体无法阅读 Mesen2 源码，也无法访问互联网，因此必须真正实现正确的模拟器，而不能复制参考实现。（来自文章搜索摘要及 Adafruit 报道；WebFetch 返回的正文中没有逐字确认。）
+- **模型结果（来自 gbaeval.com / 外部报道，而非文章正文）：** Claude Opus 4.8 约 70.9%（一度被称为“截至当时”的最高分，并在不到一小时内超过 GPT-5.5 的 53.2%）；后来 Claude “Fable 5”据报约 74.5%，不到两小时便超过 Opus 4.8 的 24 小时成绩；Gemini 3.1 Pro“未能产出可用模拟器”，Gemini 3.5 Flash 约得 6.7%。这些数字来自会随时间变化的排行榜，应据此理解。
+- **对解释范围的诚实提醒：** 作者警告，“模型在 GBA Eval 上的排名不一定能代表其一般‘软件工程能力’。”换言之，一个困难任务只是一次探测，不是最终判决。
+- **人类专家下限为何重要：** 他们指出，现有测试用例中有许多“问题说明或环境定义不佳，即使人类软件工程专家处在模型的位置也会失败，这实际上封死了可达到的最高分”。GBA Eval 通过将可观察行为与真实基准比较，力图避免这一问题。
+- **定位：**“GBA Eval 类似于 Mechanize 与顶尖 AI 实验室合作构建 LLM 评估和训练环境时所做的工作”，此次发布旨在“展示为严谨评分投入时间之后会是什么样子”。文章结尾转向环境/评测软件工程师的招聘。
 
-## Verified quotes
+## 已核验引述（中文翻译）
 
-All quotes below are verbatim from https://www.mechanize.work/technical-blog/introducing-gba-eval/ :
+以下引述均逐字取自 https://www.mechanize.work/technical-blog/introducing-gba-eval/ ，此处译为中文：
 
-1. "We task models with writing, from scratch, a Game Boy Advance (GBA) emulator in Rust that compiles to WebAssembly."
-2. "This kind of grading is tractable because the GBA console itself has no entropy source. There is no RTC, wall clock, or analog input on the console. This means that randomness in these ROMs derives entirely from the exact timing of inputs."
-3. "Our changes are limited to a thin C ABI exposing the lockstep emulator interface (`set_keys` / `run_frame` / `framebuffer`) and a deterministic input-replay harness; the emulation core itself is unmodified from upstream Mesen2."
-4. "Then, the candidate and reference emulators consume identical inputs, and their outputs are compared on every frame."
+1. “我们要求模型从零开始用 Rust 编写一个能够编译为 WebAssembly 的 Game Boy Advance（GBA）模拟器。”
+2. “这种评分之所以可行，是因为 GBA 主机本身没有熵源。主机上没有 RTC、墙上时钟或模拟输入。这意味着，这些 ROM 中的随机性完全来自输入的精确时序。”
+3. “我们的改动仅限于一个精简的 C ABI，用来暴露锁步模拟器接口（`set_keys` / `run_frame` / `framebuffer`），再加上一个确定性的输入回放工具；模拟核心本身与上游 Mesen2 完全一致。”
+4. “随后，候选模拟器和参考模拟器接收完全相同的输入，并在每一帧比较输出。”
 
-(Note: the specific per-model leaderboard scores and the "24 hours" / "oracle CLI black-box" / Docker-container details were sourced from search snippets and the companion gbaeval.com leaderboard rather than confirmed verbatim in the article body that could be fetched. The Adafruit re-coverage returned HTTP 403 and could not be independently verified.)
+（说明：各模型的具体排行榜分数，以及“24 小时”、黑盒“预言机 CLI”和 Docker 容器细节，来自搜索摘要及配套 gbaeval.com 排行榜，并非可抓取文章正文中得到逐字确认的信息。Adafruit 的二次报道返回 HTTP 403，无法独立核验。）
 
-## What it adds / why it's good
+## 它补充了什么 / 为何值得关注
 
-This is a rare, concrete war-story on building a *behavioral, non-assertion-based* grader for a genuinely hard agentic coding task — the part most eval write-ups gloss over. The non-BS practitioner value:
+这是一篇少见且具体的工程复盘：它讲清了如何为真正困难的智能体编程任务构建一个**基于行为、而非断言**的评分器，而这恰恰是大多数评测文章一笔带过的部分。对实践者真正有价值之处在于：
 
-- **A reusable design pattern: oracle-by-differential-replay.** Instead of writing thousands of brittle test assertions (the exact thing they show is ~60% flawed in existing suites), they grade by running candidate vs. a trusted reference implementation in lockstep and diffing outputs. This generalizes far beyond emulators to any domain where you have a trusted oracle and deterministic inputs (compilers, parsers, replication engines, simulators).
-- **It names the precondition that makes replay grading valid:** determinism / absence of an entropy source. Most people who try frame-diffing or output-diffing graders get burned by hidden nondeterminism (clocks, RNG, timing); this post makes the prerequisite explicit and shows how to pick/shape a task so the prerequisite holds.
-- **Minimal-fork oracle discipline:** keeping Mesen2's emulation core untouched and only adding a thin C ABI + replay harness is a concrete trustworthiness practice — the grader's notion of "correct" comes from an unmodified, widely-validated implementation, not from the eval author's own re-derivation.
-- **Anti-cheat by construction:** giving the agent a black-box oracle CLI (no Mesen2 source, no internet) forces real implementation work rather than retrieval/copying — a direct answer to the "solution-in-git-history" contamination problem they criticize.
-- **Honesty most leaderboards skip:** the explicit "this ranking is not general SWE capability" caveat is the kind of calibration the obvious benchmark sources (SWE-bench-style aggregate scores) tend to omit.
+- **可复用的设计模式：基于差分回放的预言机。** 它没有编写成千上万个脆弱的测试断言（作者已经展示，现有套件中近 60% 的断言有缺陷），而是让候选实现与可信参考实现锁步运行，再比较输出差异。只要某一领域有可信预言机和确定性输入，这一方法就可推广到模拟器之外，例如编译器、解析器、复制引擎和仿真系统。
+- **明确回放评分有效的前提：确定性 / 不存在熵源。** 许多尝试逐帧比较或输出差异评分的人最终都会遭遇隐藏的非确定性（时钟、RNG、时序）。文章明确指出这一前提，并展示如何选择或塑造任务，使此前提成立。
+- **最小化分支修改的预言机纪律：** 保持 Mesen2 的模拟核心不变，只增加精简 C ABI 与回放工具，是一种具体的可信实践——评分器对“正确”的定义来自经过广泛验证且未经修改的实现，而不是评测作者自己重新推导的实现。
+- **从结构上防作弊：** 向智能体提供黑盒预言机 CLI（不给 Mesen2 源码，也不联网），迫使智能体真正实现功能，而非检索或复制；这直接回应了作者批评的“git 历史里藏着解答”式污染问题。
+- **多数排行榜欠缺的诚实：** 明确说明“这个排名并不等于一般软件工程能力”，体现了 SWE-bench 式汇总分数讨论中常常缺失的校准意识。
 
-Versus the obvious sources (Eugene Yan on LLM-judge patterns, generic SWE-bench discourse): this is end-to-end *eval-infra* engineering with a verifier you can trust precisely, grounded in a single hard task, with real model deltas — closer to how frontier RL environments are actually built than to a survey of judge prompts.
+与常见材料（例如 Eugene Yan 对 LLM 裁判模式的讨论、泛化的 SWE-bench 话题）相比，这是一项端到端的**评测基础设施**工程：它基于一个困难任务，构建了可精确信任的验证器，并展示真实模型差异；因此，它比裁判提示词综述更接近前沿 RL 环境的实际构建方式。
 
-## Themes
+## 主题
 
-- **1 why-evals** — opens by arguing flawed graders cap model capability and block future progress.
-- **2 eval⇄capability⇄RL-env** — explicitly frames GBA Eval as analogous to the RL environments Mechanize builds with labs; grader quality as the lever on capability.
-- **5 eval infra** — core contribution: the replay harness, oracle CLI, Mesen2 fork, container toolchain.
-- **8 judge/verifiers** — the central technique is a deterministic, frame-exact differential verifier (oracle) replacing brittle assertions and LLM judges.
-- **9 agent-specific** — long-horizon (~24h) autonomous coding agent task graded on the artifact's runtime behavior.
-- **6 benchmark-vs-eval** — argues for behavior-grounded, contamination-resistant grading over cheatable benchmark test cases; notes rankings aren't a general-capability verdict.
+- **1 为何需要评测**——开篇论证有缺陷的评分器会限制模型能力，并阻碍未来进展。
+- **2 评测⇄能力⇄RL 环境**——明确把 GBA Eval 类比为 Mechanize 为实验室构建的 RL 环境；评分器质量是撬动能力的杠杆。
+- **5 评测基础设施**——核心贡献包括回放工具、预言机 CLI、Mesen2 分支以及容器工具链。
+- **8 裁判/验证器**——核心技术是确定性的逐帧差分验证器（预言机），用来替代脆弱断言和 LLM 裁判。
+- **9 智能体特有问题**——这是一个长时程（约 24 小时）的自主编程智能体任务，按产物运行时行为评分。
+- **6 基准与评测的区别**——主张采用基于行为、抗污染的评分，而不是可作弊的基准测试用例；同时提醒排名并非一般能力定论。

@@ -1,40 +1,45 @@
-# Notes (workflow) — The Leaderboard Illusion — Singh, Nan, Wang, D'souza, Kapoor, Üstün, Koyejo, Deng, Longpre, Smith, Ermis, Fadaee, Hooker (2025), arXiv:2504.20879
+# 工作流笔记——《排行榜幻象》——Singh、Nan、Wang、D'souza、Kapoor、Üstün、Koyejo、Deng、Longpre、Smith、Ermis、Fadaee、Hooker（2025），arXiv:2504.20879
 
-**Author:** Shivalika Singh et al. (Cohere Labs / Cohere, Princeton, Stanford, U. Waterloo, MIT, Allen AI / UW)
-**URL:** https://arxiv.org/abs/2504.20879
-**Found:** true
+**作者：** Shivalika Singh 等（Cohere Labs / Cohere、Princeton、Stanford、U. Waterloo、MIT、Allen AI / UW）
+**链接：** https://arxiv.org/abs/2504.20879
+**已找到：** 是
 
-## Summary
-A systematic empirical audit of Chatbot Arena (LMArena) covering ~2M battles, 243 models, 42 providers over Jan 2024–Apr 2025. The authors argue Arena's rankings are distorted by undisclosed, asymmetric policies rather than reflecting genuine model quality. Four core findings: (1) Preferential private testing + score retraction lets a few providers run a best-of-N strategy — submit many private variants, keep only the top-scoring one — which provably violates the Bradley-Terry unbiased-sampling assumption and inflates the published rating (E[max] > E[single]). At the extreme, Meta tested 27 private variants before the Llama-4 launch. (2) Data-access asymmetry: proprietary providers absorb the majority of crowdsourced human-vote data (54.3%–70.1% of battles per quarter; proprietary total 61.4%), with Google ~19.2% and OpenAI ~20.4% of all prompts each, while 83 open-weight models combined get ~29.7% and 41 fully open-source models get ~8.9%. (3) This data access drives Arena-specific overfitting, not real progress: raising the Arena-data share of a fine-tuning mix from 0%→70% lifted ArenaHard win-rate from 23.5% to 49.9% (relative +112.3%) — yet MMLU declined from 66.5% to 64.4%, showing the gains do not generalize. Prompt distributions are also reused (e.g., 7.3% of Dec-2024 prompts reappear verbatim in Jan-2025; up to ~33% near-duplication by similarity), so data access predicts next month's prompts. (4) Opaque deprecation harms reliability: of 243 public models, 205 were silently deprecated (vs. 47 officially listed in FastChat); 64% of silently removed models are open-weight/open-source. Deprecation under a shifting prompt distribution breaks the BT transitivity assumptions (constant conditions, connected comparison graph), producing unreliable rankings. The paper frames the whole dynamic via Goodhart's Law and offers five reform recommendations.
+## 摘要
 
-## Key points
-- Scope: ~2M battles, 243 models, 42 providers, Jan 2024–Apr 2025 — a measurement study of a benchmark's integrity, not of models.
-- Best-of-N gaming: private testing + retraction lets a provider submit N variants and publish only the max-scoring one; this violates the Bradley-Terry unbiased-sampling assumption so the reported rating is an inflated extreme, not an unbiased skill estimate. Meta tested 27 variants pre-Llama-4. Simulation: ~20 private variants adds ~50 Arena points.
-- Data asymmetry: proprietary models get 61.4% of all data (per-quarter 54.3%–70.1%); Google ~19.2% and OpenAI ~20.4% of prompts each; 83 open-weight models ~29.7%; 41 open-source ~8.9%. Caused by higher sampling rates AND fewer deprecations for proprietary models.
-- Overfitting is the punchline for benchmark rot: 0→70% Arena-data in the SFT mix raised ArenaHard win-rate 23.5%→49.9% (+112.3% relative) but MMLU FELL 66.5%→64.4%. Leaderboard gains are distribution-specific and don't transfer — a clean demonstration that climbing the bench can be anti-correlated with real capability.
-- Prompt reuse makes Arena partly memorizable: 7.3% exact cross-month duplication (Dec'24→Jan'25), up to ~33.1% by high cosine similarity; sustained data access predicts future prompts.
-- Silent deprecation: 205 of 243 models silently removed vs 47 officially deprecated; 64% of silent removals are open/open-weight. Deprecation under drifting prompt mix breaks BT transitivity (needs constant conditions + connected comparison graph), corrupting rankings even for models still present.
-- Selective disclosure: Arena does not require all submitted models be made public, and the public-leaderboard version may not match the publicly available API — so the scored artifact may not be the shipped artifact.
-- Five reforms: (1) prohibit score retraction + disclose number of private variants; (2) cap private variants per provider, disclosed to all; (3) auditable, stratified deprecation (retire bottom 30th percentile within each category after convergence); (4) improve sampling fairness via Arena's own active-sampling rule; (5) full public transparency on tested models, deprecations, and sampling rates on a rolling (quarterly) basis.
+本文对 Chatbot Arena（LMArena）开展系统性实证审计，覆盖 2024 年 1 月至 2025 年 4 月间约 200 万场对战、243 个模型和 42 家提供商。作者指出，Arena 的排名受到未披露且不对称的政策扭曲，并不能真实反映模型质量。研究有四项核心发现：（1）优待式私测与撤回分数机制让少数提供商能够采用 best-of-N 策略——提交许多私有变体，只保留得分最高的一个——这可证明违反 Bradley–Terry 模型的无偏采样假设，并抬高最终公布的评分（E[max] > E[single]）。极端情况下，Meta 在 Llama-4 发布前测试了 27 个私有变体。（2）数据访问不对称：专有模型提供商获得了大部分众包人类投票数据（各季度占对战的 54.3%–70.1%；专有模型合计占 61.4%）；Google 和 OpenAI 各自接触约 19.2% 和 20.4% 的全部提示，而 83 个开放权重模型合计仅获得约 29.7%，41 个完全开源模型仅获得约 8.9%。（3）这种数据访问带来的是针对 Arena 的过拟合，而非真正进步：将微调混合数据中 Arena 数据的占比从 0% 提高到 70%，ArenaHard 胜率由 23.5% 升至 49.9%（相对提升 112.3%），但 MMLU 却由 66.5% 降至 64.4%，说明收益无法泛化。提示分布还会重复使用，例如 2024 年 12 月提示中有 7.3% 在 2025 年 1 月原样重现，按相似度计算的近重复比例最高约为 33%，因此持续获得数据即可预测下个月的提示。（4）不透明的停用机制损害可靠性：243 个公开模型中，205 个被静默停用，而 FastChat 官方仅列出 47 个；静默移除模型中有 64% 属于开放权重或开源模型。提示分布不断变化时停用模型，会破坏 BT 传递性所需的假设（条件恒定、比较图连通），从而产生不可靠的排名。论文以 Goodhart 定律概括整个动态，并提出五项改革建议。
 
-## Verified quotes
-- "We find that undisclosed private testing practices benefit a handful of providers who are able to test multiple variants before public release and retract scores if desired." — Singh et al., abstract, arXiv:2504.20879v2
-- "At an extreme, we identify 27 private LLM variants tested by Meta in the lead-up to the Llama-4 release." — Singh et al., abstract
-- "Providers like Google and OpenAI have received an estimated 19.2% and 20.4% of all data on the arena, respectively. In contrast, a combined 83 open-weight models have only received an estimated 29.7% of the total data." — Singh et al., abstract
-- "even limited additional data can result in relative performance gains of up to 112% on ArenaHard, a test set from the arena distribution. Together, these dynamics result in overfitting to Arena-specific dynamics rather than general model quality." — Singh et al., abstract
-- "As a result, the BT estimator systematically inflates the ratings of models submitted under the best-of-N strategy, distorting leaderboard rankings." — Singh et al., Section 3.2
-- "while increasing the proportion of Chatbot Arena data within a fixed training budget yielded consistent improvements on the Arena test set, MMLU performance slightly declined from 66.5% (0_arena) to 64.4% (30_arena) and 65.9% (70_arena). This suggests that gains from Chatbot Arena data are highly specific and do not translate to broader generalization" — Singh et al., Section 4.2 (Results)
-- "out of 243 public models, 205 have been silently deprecated. This is a significantly higher number than the 47 models officially listed as deprecated as part of Chatbot Arena's backend codebase, FastChat." — Singh et al., Section 1 (contributions)
-- "Among the models that are silently deprecated, 64% are open-weight or fully open-source." — Singh et al., Section 1 (contributions)
-- "7.3% of prompts from December 2024 appear again in the exact form in January 2025." — Singh et al., Section 4.2
-- "We urge Chatbot Arena to prohibit retraction after submission, ensuring all tested variants' scores are permanently visible on the leaderboard." — Singh et al., Section 6 (Recommendations)
-- "Chatbot Arena does not require all submitted models to be made public, and there is no guarantee that the version appearing on the public leaderboard matches the publicly available API." — Singh et al., Section 1 (contributions)
-- "Any observed statistical regularity will tend to collapse once pressure is placed upon it for control purposes. — Charles A. E. Goodhart" — Epigraph quoted in Singh et al., Introduction
+## 要点
 
-## What it adds
-The book's P16 ('Evals Rot') and P3 ('A Verifiable Reward... Gets Gamed Triple') are stated as principles; this paper is the rigorous, quantified field evidence that the most influential public LLM benchmark is already rotted AND gamed in production. It supplies three things the book lacks: (1) A clean overfitting proof-point that is anti-correlated with real capability — +112.3% on the in-distribution bench while MMLU drops — which is the strongest single number to cite for 'climbing the bench is not progress.' (2) A statistical mechanism for how a leaderboard gets gamed: best-of-N private submission + score retraction violates the Bradley-Terry unbiased-sampling assumption, so the published number is E[max of N noisy estimates], a structurally inflated extreme. This generalizes to any pass@1/best-of-N eval where the submitter controls how many attempts get scored. (3) A 'the eval itself is an adversarial system' lesson: the threats are not just contamination but governance — undisclosed policies, asymmetric data access, selective disclosure, silent deprecation that fragments the comparison graph. The book mostly treats the eval-builder as the only actor; here the benchmark operator and the gaming providers are separate adversaries, which the book underweights.
+- 范围：约 200 万场对战、243 个模型、42 家提供商，时间跨度为 2024 年 1 月至 2025 年 4 月。这是一项衡量基准完整性的研究，而非衡量模型本身的研究。
+- best-of-N 操纵：私测加撤回机制允许提供商提交 N 个变体，只公布得分最高者；这违反 Bradley–Terry 的无偏采样假设，因此报告的评分是被抬高的极值，而不是无偏的能力估计。Meta 在 Llama-4 发布前测试了 27 个变体。模拟结果显示，约 20 个私有变体可使 Arena 评分增加约 50 分。
+- 数据不对称：专有模型获得全部数据的 61.4%（各季度为 54.3%–70.1%）；Google 和 OpenAI 分别接触约 19.2% 和 20.4% 的提示；83 个开放权重模型合计约占 29.7%；41 个开源模型合计约占 8.9%。原因既包括专有模型更高的采样率，也包括其更少被停用。
+- 过拟合揭示基准腐化的关键结论：在 SFT 混合数据中将 Arena 数据占比由 0 提高到 70%，使 ArenaHard 胜率从 23.5% 升至 49.9%（相对提升 112.3%），但 MMLU 从 66.5% 降至 64.4%。排行榜收益只对特定分布有效，无法迁移；这清楚表明，提升基准排名甚至可能与真实能力负相关。
+- 提示重复使 Arena 在一定程度上可被记忆：跨月完全重复比例为 7.3%（2024 年 12 月至 2025 年 1 月），按较高余弦相似度计算的近重复比例最高约为 33.1%；持续访问数据可以预测未来提示。
+- 静默停用：243 个模型中有 205 个被静默移除，而官方仅列出 47 个停用模型；静默移除者中有 64% 是开源或开放权重模型。在提示组合漂移时停用模型，会破坏 BT 传递性（其要求条件恒定且比较图连通），即使仍在榜模型的排名也会受到污染。
+- 选择性披露：Arena 不要求所有提交模型公开，公开排行榜中的版本也可能与公开 API 中可用的版本不一致，因此接受评分的制品可能并非实际交付的制品。
+- 五项改革：（1）禁止撤回分数，并披露私有变体数量；（2）限制每家提供商可提交的私有变体数量，并向所有参与者公开；（3）实行可审计的分层停用机制（收敛后，在每个类别内淘汰排名后 30% 的模型）；（4）利用 Arena 自身的主动采样规则提高采样公平性；（5）以滚动方式（按季度）完整公开受测模型、停用情况和采样率。
 
-**Touches principles:** 16, 3, 13, 6, 11
+## 已核验引述（中文翻译）
 
-## Integration proposal
-duplicate
+- “我们发现，未公开的私有测试做法使少数提供商受益，因为它们能够在公开发布前测试多个变体，并可根据需要撤回分数。”——Singh 等，摘要，arXiv:2504.20879v2
+- “在一个极端案例中，我们发现 Meta 在 Llama-4 发布前测试了 27 个私有 LLM 变体。”——Singh 等，摘要
+- “Google 和 OpenAI 等提供商估计分别获得了 Arena 全部数据的 19.2% 和 20.4%。相比之下，83 个开放权重模型合计估计仅获得了全部数据的 29.7%。”——Singh 等，摘要
+- “即便只增加有限数据，也能在 Arena 分布的测试集 ArenaHard 上带来最高 112% 的相对性能增益。综合这些动态，最终产生的是对 Arena 特有机制的过拟合，而不是总体模型质量的提升。”——Singh 等，摘要
+- “因此，对于采用 best-of-N 策略提交的模型，BT 估计器会系统性抬高其评分，从而扭曲排行榜排名。”——Singh 等，第 3.2 节
+- “在固定训练预算下提高 Chatbot Arena 数据占比，虽然能在 Arena 测试集上持续取得改进，但 MMLU 性能却由 66.5%（0_arena）小幅下降到 64.4%（30_arena）和 65.9%（70_arena）。这表明，Chatbot Arena 数据带来的收益具有高度特异性，无法转化为更广泛的泛化能力。”——Singh 等，第 4.2 节（结果）
+- “243 个公开模型中，有 205 个已被静默停用。这个数字远高于 Chatbot Arena 后端代码库 FastChat 中官方列出的 47 个停用模型。”——Singh 等，第 1 节（贡献）
+- “在被静默停用的模型中，64% 是开放权重或完全开源模型。”——Singh 等，第 1 节（贡献）
+- “2024 年 12 月的提示中，有 7.3% 在 2025 年 1 月以完全相同的形式再次出现。”——Singh 等，第 4.2 节
+- “我们敦促 Chatbot Arena 禁止提交后撤回，确保所有受测变体的分数永久显示在排行榜上。”——Singh 等，第 6 节（建议）
+- “Chatbot Arena 不要求所有提交模型公开，也不保证公共排行榜上出现的版本与公共 API 中可用的版本相同。”——Singh 等，第 1 节（贡献）
+- “任何已观察到的统计规律，一旦被施加压力并用于控制，便往往会崩溃。——Charles A. E. Goodhart”——Singh 等在引言中引用的题词
+
+## 本文新增了什么
+
+本书的 P16（“评测会腐化”）和 P3（“可验证的奖励会遭到三重操纵”）只是作为原则提出；这篇论文则提供了严谨、量化的现场证据，证明最具影响力的公共 LLM 基准已在实际运行中同时发生腐化和操纵。它补充了本书欠缺的三点：（1）一个清晰的过拟合证据，而且与真实能力负相关——同分布基准上提升 112.3%，MMLU 却下降。这是支撑“刷高基准不等于进步”最有力的单项数字。（2）排行榜被操纵的统计机制：best-of-N 私有提交加分数撤回违反 Bradley–Terry 的无偏采样假设，因此公布的数字实际是 E[N 个含噪估计的最大值]，是结构性膨胀的极值。这可推广到任何由提交者控制计分尝试次数的 pass@1/best-of-N 评测。（3）“评测本身就是一个对抗系统”的教训：威胁不仅来自污染，还来自治理问题——未披露政策、不对称数据访问、选择性披露，以及会割裂比较图的静默停用。本书主要把评测构建者视为唯一参与者，而此处的基准运营者与实施操纵的提供商是彼此独立的对抗方；本书低估了这种结构。
+
+**涉及原则：** 16、3、13、6、11
+
+## 整合建议
+
+重复
