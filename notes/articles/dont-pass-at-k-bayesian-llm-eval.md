@@ -1,37 +1,37 @@
-# Notes — "Don't Pass@k: A Bayesian Framework for Large Language Model Evaluation"
+# 笔记——《别再用 Pass@k：大语言模型评测的贝叶斯框架》
 
-**Author:** Mohsen Hariri, Amirhossein Samandar, Michael Hinczewski, Vipin Chaudhary · **URL:** https://arxiv.org/abs/2510.04265 · **Type:** paper · **Found:** true
+**作者：** Mohsen Hariri、Amirhossein Samandar、Michael Hinczewski、Vipin Chaudhary · **网址：** https://arxiv.org/abs/2510.04265 · **类型：** 论文 · **已找到：** 是
 
-## Summary
-This paper argues that Pass@k — the standard metric for reporting LLM reasoning performance — produces unstable and sometimes misleading rankings when sample counts are small and compute is constrained, which is precisely the regime of expensive agent and reasoning evaluations. It proposes a Bayesian replacement: model evaluation outcomes as categorical data with a Dirichlet prior, then report the posterior estimate of a model's underlying success probability together with a credible interval, rather than a single noisy point estimate. The framework gives closed-form posterior mean and uncertainty for any weighted rubric, and proves that under a uniform prior the posterior mean is order-equivalent to average accuracy (Pass@1) — explaining why avg@N is empirically robust while the Bayesian version adds principled uncertainty on top. Empirically, on AIME'24/'25, HMMT'25, and BrUMO'25 plus simulations with known ground truth, the posterior procedure converges faster and ranks models more stably than Pass@k at far smaller sample counts. The headline practical payoff is a transparent decision rule: differences are statistically meaningful when credible intervals don't overlap, and noise otherwise. Accepted to ICLR 2026; code at github.com/mohsenhariri/scorio.
+## 摘要
+本文指出，标准 LLM 推理指标 Pass@k 在样本少、算力受限时会给出不稳定甚至误导性的排名，而昂贵的智能体和推理评测恰好常处于这一场景。作者提出贝叶斯替代方案：使用 Dirichlet 先验把评测结果建模为类别数据，报告模型潜在成功概率的后验估计及可信区间，而非单个有噪声的点估计。该框架可为任意加权量表给出后验均值与不确定性的闭式解，并证明在均匀先验下，后验均值与平均准确率（Pass@1）的排序等价；这既解释了 avg@N 的经验稳健性，也在其上增加了原则化的不确定性。AIME'24／'25、HMMT'25、BrUMO'25 与已知真值模拟实验表明，在远少于 Pass@k 的样本量下，后验方法收敛更快、排名更稳定。实用决策规则也很透明：可信区间不重叠时差异才具有统计意义，否则视为噪声。论文被 ICLR 2026 接收，代码位于 github.com/mohsenhariri/scorio。
 
-## Key points
-- **The target problem:** Pass@k is a point estimate that is high-variance at small N. With only a handful of expensive runs per task, Pass@k rankings can flip between evaluation runs, making "model A beats model B" claims unreliable.
-- **Core move:** treat a model's success on a task as a latent probability `p`, observe trials, and report the **Bayesian posterior over `p`** plus a **credible interval** instead of a raw frequency or a thresholded Pass@k.
-- **Categorical, not binary:** outcomes are modeled as categorical (not just 0/1) with a **Dirichlet prior**, so the same machinery covers graded / weighted-rubric scoring — judge scores, partial credit, multi-criterion rubrics — not just pass/fail.
-- **Closed form:** the Dirichlet–categorical conjugacy yields **analytic** expressions for the posterior mean and uncertainty of any weighted rubric. No bootstrap, no MCMC — you get intervals directly, cheaply.
-- **Theoretical anchor:** under a **uniform prior, the posterior mean is order-equivalent to average accuracy (Pass@1 / avg@N)**. This is the key result — it says the Bayesian estimator ranks models the same way as the empirically robust avg@N, so adopting it costs you nothing in ordering while adding calibrated uncertainty.
-- **Decision rule:** treat a performance gap as real only when **credible intervals do not overlap**; overlapping intervals = not distinguishable given the sample budget. This makes "is this gap signal or noise?" an explicit, reportable test rather than a vibe.
-- **Empirical claim:** on AIME'24/'25, HMMT'25, BrUMO'25 and ground-truth simulations, the posterior procedure shows **faster convergence and greater rank stability** than Pass@k and recent variants, enabling reliable comparison at much smaller sample counts.
-- **Prior evidence is usable:** the Dirichlet prior lets you fold in informative priors when appropriate (e.g. known base rates), rather than forcing a fresh frequentist estimate every time.
-- **Unifies binary and non-binary eval:** one protocol covers exact-match pass/fail and rubric-graded outputs, which matters for agent evals where success is often partial or multi-step.
-- **Practical framing:** the recommendation is a "compute-efficient protocol" — explicitly motivated by the cost of trials, the same constraint that dominates agent-run budgets.
+## 要点
+- **目标问题：** Pass@k 是小样本下高方差的点估计。每题只有少数昂贵运行时，模型排名可能随评测轮次翻转。
+- **核心做法：** 把模型的任务成功视为潜在概率 `p`，观察多次试验，报告 `p` 的贝叶斯后验与可信区间，而非原始频率或阈值化 Pass@k。
+- **类别式而非二元式：** 采用 Dirichlet 先验对类别结果建模，因此不仅支持 0／1，也支持评分器分数、部分得分和多标准量表。
+- **闭式求解：** Dirichlet–类别共轭性为任意加权量表的后验均值和不确定性提供解析表达式，无需 bootstrap 或 MCMC。
+- **理论支点：** 在均匀先验下，后验均值与平均准确率（Pass@1／avg@N）的排序等价。采用贝叶斯估计不会改变这种稳健排序，却能增加校准过的不确定性。
+- **决策规则：** 仅在可信区间不重叠时把性能差距视为真实；重叠则表示现有样本预算下无法区分。
+- **经验结论：** 在多个数学基准与真值模拟中，后验程序比 Pass@k 及近期变体收敛更快、排名更稳定，可用更少样本可靠比较。
+- **可利用先验信息：** 适当时可通过 Dirichlet 先验纳入已知基率，而无需每次从零估计。
+- **统一二元与非二元评测：** 同一协议同时覆盖精确匹配和量表评分，适合具有部分成功或多步目标的智能体任务。
+- **实践定位：** 这是面向昂贵试验预算的“计算高效协议”，正对应智能体运行的现实约束。
 
-## Verified quotes
-- "Pass@k is widely used to report the reasoning performance of LLMs, but it often produces unstable and potentially misleading rankings, especially when the number of trials (samples) is limited and computational resources are constrained." — https://arxiv.org/abs/2510.04265
-- "We present a principled Bayesian evaluation framework that replaces Pass@k and average accuracy over N trials (avg@N) with posterior estimates of a model's underlying success probability and credible intervals, yielding stable rankings and a transparent decision rule for differences." — https://arxiv.org/abs/2510.04265
-- "Theoretically, under a uniform prior, the Bayesian posterior mean is order-equivalent to average accuracy (Pass@1), explaining its empirical robustness while adding principled uncertainty." — https://arxiv.org/abs/2510.04265
-- "The framework clarifies when observed gaps are statistically meaningful (non-overlapping credible intervals) versus noise, and it naturally extends to graded, rubric-based evaluations." — https://arxiv.org/abs/2510.04265
-- "Together, these results recommend replacing Pass@k for LLM evaluation and ranking with a posterior-based, compute-efficient protocol that unifies binary and non-binary evaluation while making uncertainty explicit." — https://arxiv.org/abs/2510.04265
+## 已核验引述（中文翻译）
+- “Pass@k 被广泛用于报告 LLM 的推理性能，但它经常产生不稳定且可能具有误导性的排名，尤其是在试验（样本）数量有限、计算资源受限时。”——https://arxiv.org/abs/2510.04265
+- “我们提出一个原则化的贝叶斯评测框架，以模型潜在成功概率的后验估计和可信区间取代 Pass@k 与 N 次试验平均准确率（avg@N），从而获得稳定排名和透明的差异决策规则。”——同上
+- “理论上，在均匀先验下，贝叶斯后验均值与平均准确率（Pass@1）的排序等价，这解释了后者的经验稳健性，同时增加了原则化的不确定性。”——同上
+- “该框架阐明何时观察到的差距具有统计意义（可信区间不重叠）、何时只是噪声，并自然扩展到分级的量表评测。”——同上
+- “这些结果共同建议，在 LLM 评测与排名中以基于后验、计算高效的协议取代 Pass@k；该协议统一二元与非二元评测，并显式表达不确定性。”——同上
 
-(Quotes verified from the arXiv abstract page. Full PDF body text could not be extracted cleanly due to compressed PDF streams, so all quotes above are taken from the verbatim abstract.)
+（引述已在 arXiv 摘要页核验。由于 PDF 压缩流导致正文无法干净提取，以上均取自摘要原文。）
 
-## What it adds / why it's good
-The obvious sources (the original Codex Pass@k definition and its later unbiased-estimator variants) give you a *less biased point estimate* of the same quantity — they reduce bias but do nothing about the core problem of an evaluator staring at a single noisy number with no error bars. This paper's non-BS contribution is twofold. First, it makes **uncertainty first-class and analytic**: you get a credible interval in closed form from the same samples, so "this leaderboard gap is within noise" becomes a one-line, reproducible check rather than an afterthought requiring bootstrap plumbing. Second, the **order-equivalence-to-avg@N theorem** is the quietly important result — it removes the usual objection that "Bayesian = different rankings = political fight to adopt." Since under a flat prior the ordering matches avg@1, teams can switch with no ranking disruption and pure upside on calibration. For agent evals specifically — where each rollout can cost dollars and minutes, so N is genuinely tiny — the small-N rank stability and the explicit non-overlap decision rule directly attack the failure mode of over-reading a 2-point gap from 8 samples. It also unifies binary and rubric/judge scoring under one Dirichlet model, which is the right shape for agent tasks that are graded, not pass/fail.
+## 它带来了什么／为何有价值
+原始 Codex Pass@k 定义及后续无偏估计变体只是提供同一数量的较低偏差点估计，无法解决评测者盯着一个没有误差线的噪声数字这一根本问题。本文有两项实质贡献。第一，它让不确定性成为一等公民且可解析计算：使用同一批样本即可得到闭式可信区间，让“排行榜差距仍处于噪声内”成为一行可复现检查。第二，与 avg@N 排序等价的定理消除了“贝叶斯方法会改变排名、难以推动采用”的常见阻力；在平坦先验下切换不会扰动排序，却能纯粹增加校准收益。对每次运行耗费时间和金钱、样本量很小的智能体评测而言，小样本排名稳定性和区间不重叠规则直接遏制了从 8 个样本的 2 个点差距中得出过强结论。Dirichlet 模型还能统一二元与量表／裁判评分，适配非纯通过／失败的智能体任务。
 
-## Themes
-- **1 why-evals** — central: argues the dominant metric is statistically unsound at realistic sample budgets.
-- **5 eval infra** — primary: a concrete, closed-form, compute-efficient estimation protocol with code (scorio) to drop into eval pipelines.
-- **6 benchmark-vs-eval/integrity** — strong: provides a rigorous test for when leaderboard/benchmark gaps are real vs. noise (non-overlapping credible intervals).
-- **8 judge/verifiers** — supporting: the Dirichlet/weighted-rubric extension covers graded, rubric-based and judge-style scoring, not just exact-match.
-- **9 agent-specific** — supporting: the small-N / expensive-trial regime it targets is exactly the reality of agent rollouts, even though the empirical benchmarks shown are math-reasoning sets.
+## 主题
+- **1 为什么需要评测**——指出主流指标在现实样本预算下统计上不可靠。
+- **5 评测基础设施**——带代码的闭式、计算高效估计协议。
+- **6 基准与评测／完整性**——严格判断排行榜差距是信号还是噪声。
+- **8 裁判／验证器**——支持量表与裁判评分。
+- **9 智能体专属**——昂贵、小样本运行场景与智能体评测高度一致。

@@ -1,38 +1,38 @@
-# Notes — "Hidden Technical Debt of AI Systems: Agent Runtime"
+# 笔记——《人工智能系统的隐性技术债：智能体运行时》
 
-**Author:** Han-Chung Lee · **URL:** https://leehanchung.github.io/blogs/2026/04/24/hidden-technical-debt-agent-runtime/ · **Type:** blog · **Found:** true
+**作者：** Han-Chung Lee · **网址：** https://leehanchung.github.io/blogs/2026/04/24/hidden-technical-debt-agent-runtime/ · **类型：** 博客 · **已找到：** 是
 
-## Summary (3-6 sentences)
-Lee reframes Sculley et al.'s classic "Hidden Technical Debt in ML Systems" (2015) for the agent era, arguing the agent is not the model but "the harness plus the model, running inside the runtime" — and that the runtime (compute substrate, filesystem, tools, network boundary, state model, lifecycle controller) is the largest, most-overlooked debt source. He walks the isolation-primitive stack (containers vs. Firecracker vs. gVisor vs. Kata vs. V8 isolates) with cold-start and isolation trade-offs, and insists containers are a packaging mechanism, not a sandbox for adversarial agent code. The eval-relevant payload is "runtime shift": an agent learns the specific tool latencies, failure modes, and shell quirks of the runtime it trained in, so moving to a different production runtime produces silent quality regressions "that no eval catches because the eval runs in the training runtime." He maps the divergence between experimentation/training runtimes (thousands of bursty rollouts, snapshot/replay, offline-recorded networks) and production runtimes (one durable per-user session surviving async gaps like CI waits), and grounds it in production cases — Ramp Inspect, Cognition/Devin, Manus, E2B, Modal. The remedies: co-locate train/prod sandboxes, define a versioned runtime contract, or inject 5-10% tool errors during training so the policy is robust to production noise.
+## 摘要
+Lee 把 Sculley 等人 2015 年的经典文章《机器学习系统中的隐性技术债》重新置于智能体时代，主张智能体并不等于模型，而是“框架加模型，在运行时内执行”；运行时——包括计算底座、文件系统、工具、网络边界、状态模型与生命周期控制器——是最大却最容易被忽视的技术债来源。文章比较了容器、Firecracker、gVisor、Kata 与 V8 isolates 等隔离原语的冷启动与隔离权衡，并强调容器是打包机制，而非对抗性智能体代码的沙箱。对评测而言，最重要的概念是“运行时偏移”：智能体会学习训练运行时的工具延迟、故障模式和 shell 细节，迁移到不同生产运行时后会出现静默质量退化，而评测因仍在训练运行时执行而完全无法发现。文章比较了实验/训练运行时与生产运行时的差异，并引用 Ramp Inspect、Cognition/Devin、Manus、E2B 和 Modal 等生产案例。建议的补救措施包括让训练与生产共用沙箱、定义版本化运行时契约，或在训练中注入 5%–10% 的工具错误，使策略适应生产噪声。
 
-## Key points (5-12 substantive bullets)
-- **The runtime, not the model, is the debt sink.** An agent runtime = six components: compute substrate (container/microVM/VM), snapshot-capable filesystem, tools (shell, code interpreter, browser, file editor, MCP), network boundary, state model (persistence across turns/episodes), and lifecycle controller.
-- **"Runtime shift" is a distinct distributional failure from data drift** — the eval-gap thesis. The model bakes in tool latencies, failure modes, shell quirks, filesystem layout, and even "the exact way `ls` formats output." Swap runtimes and tools go flaky, instant commands block, snapshots vanish — and evals miss it entirely because they run in the *training* runtime, not the production one.
-- **Containers are not a sandbox.** "Containers are not a sandbox for agent code. They are a packaging and resource-control mechanism." Shared kernel = wrong tool for adversarial/model-generated instructions.
-- **Isolation-primitive comparison table** with concrete cold-start numbers: Linux containers (runc/Podman) shared kernel, ~100ms; Firecracker KVM microVM, ~125ms boot / sub-second from snapshot, ~5MB VMM footprint; gVisor userspace-kernel syscall interception, container-class; Kata lightweight VM-per-pod, few hundred ms; V8 isolates per-tenant JS heap, sub-millisecond (JS-only).
-- **Firecracker is the de-facto standard** for agent sandboxes — AWS open-sourced it in 2018; E2B, Fly.io, Vercel Sandbox build on it. E2B ~150ms cold start with full-VM snapshots; Modal uses gVisor with filesystem diffs and sub-second snapshot resume + GPU.
-- **Four reasons sandboxing is non-negotiable:** (1) isolation against model mistakes (`rm -rf`, pasting credentials into curl — "a coding agent that mounts your repo and has shell access can, and eventually will, delete the wrong directory"); (2) prompt injection — tool outputs are attacker-controlled, the agent-systems analog of early-2000s SQL injection; (3) multi-tenancy at RL training scale (thousands of concurrent isolated rollouts); (4) reproducibility/debugging via snapshot replay that turns production failures into regression tests.
-- **War story — Ramp Inspect:** each session runs its own Modal sandbox containing Postgres, Redis, Temporal, RabbitMQ, a VS Code server, and a VNC/Chromium stack; the agent writes >50% of merged PRs. Key insight: "The agent's productivity is bounded by the runtime's startup time, not by the model's tokens-per-second."
-- **Train vs. prod runtime divergence table:** training = thousands of bursty parallel rollouts, cold-start-critical (5s × 10k is expensive), fork/branch/replay/snapshot state, often offline/recorded networks, drop-and-resample failure model, second-to-minute lifetimes; production = one steady per-user session, durable/auditable state, open-internet APIs, retry/degrade/escalate failures, minute-to-hour (sometimes pinned) lifetimes.
-- **Production agents must survive async gaps** — Cognition's report: an agent opens a PR, waits on CI (hours or days), responds to reviews, reruns tests; working state must persist without burning compute between steps.
-- **Three legitimate fixes for runtime shift:** (1) co-locate training and production on the same sandbox provider (accept lock-in); (2) define a versioned runtime contract (shell, tools, latencies, failure semantics) implemented identically in both; (3) train against production noise by injecting 5-10% tool errors during training — Step-DeepResearch reports tangible gains.
-- **Debt-accumulation pattern:** team picks the easiest-to-integrate prototype sandbox, production exposes new failure modes, they patch with retries / longer timeouts / "prompt-engineered apologies," and behavior entangles with runtime-specific quirks until switching infra becomes impossible.
-- **Cognition/Devin and Manus references:** Cognition spent a year-plus on hypervisor engineering for VM-level isolation, treating kernel-escape as the working assumption for untrusted code; Manus built snapshotted restorable runtimes so users can replay agent trajectories.
+## 要点
+- **运行时才是技术债汇聚处。** 智能体运行时包含六部分：计算底座、支持快照的文件系统、工具、网络边界、跨轮次/回合的状态模型，以及生命周期控制器。
+- **“运行时偏移”不同于数据漂移。** 模型会内化工具延迟、故障模式、shell 细节、文件系统布局，甚至 `ls` 输出格式。更换运行时后，工具可能变得不稳定、即时命令可能阻塞、快照可能消失；而评测仍在训练运行时运行，因此完全漏检。
+- **容器不是沙箱。** 容器只是打包和资源控制机制；共享内核使其不适合隔离对抗性或由模型生成的指令。
+- **隔离原语的具体权衡：** Linux 容器共享内核，冷启动约 100 毫秒；Firecracker KVM 微虚拟机启动约 125 毫秒，从快照恢复不到一秒，虚拟机监视器占用约 5MB；gVisor 以用户态内核拦截系统调用，启动速度接近容器；Kata 每个 Pod 使用轻量虚拟机，需数百毫秒；V8 isolates 为每租户提供 JavaScript 堆，启动不到一毫秒，但仅支持 JavaScript。
+- **Firecracker 已成为智能体沙箱的事实标准。** AWS 于 2018 年将其开源，E2B、Fly.io 与 Vercel Sandbox 均基于它构建。E2B 借助完整虚拟机快照将冷启动做到约 150 毫秒；Modal 使用 gVisor、文件系统差异和亚秒级快照恢复，并支持 GPU。
+- **沙箱不可或缺的四个原因：** 隔离模型误操作；防御提示注入；支持强化学习训练规模的多租户；通过快照重放复现和调试，把生产故障转化为回归测试。具备仓库挂载和 shell 权限的编码智能体最终会删除错误目录，而网页、PDF 和客户邮件中的工具输出从一开始就是攻击者可控的。
+- **Ramp Inspect 案例：** 每个会话在独立 Modal 沙箱中运行 Postgres、Redis、Temporal、RabbitMQ、VS Code 服务器和 VNC/Chromium 栈；智能体完成了合并 PR 的 50% 以上。关键结论是，智能体生产率受运行时启动时间限制，而非模型每秒生成的 token 数。
+- **训练与生产运行时分化：** 训练端需要数千个突发并行回合，冷启动至关重要，依赖分叉/分支/重放/快照，网络往往离线或录制，失败可丢弃并重采样，生命周期以秒或分钟计；生产端则是每用户一个稳定会话，状态需持久且可审计，访问开放互联网接口，失败要重试、降级或升级处理，生命周期可达数小时甚至长期固定。
+- **生产智能体必须跨越异步间隔。** Cognition 的案例中，智能体创建 PR 后可能等待数小时或数日的持续集成，再回复评审并重跑测试；期间必须保留工作状态而不持续消耗计算资源。
+- **三类合理修复：** 让训练与生产使用同一沙箱提供商并接受锁定；定义版本化运行时契约，统一 shell、工具、延迟和失败语义；在训练中注入 5%–10% 的工具错误。Step-DeepResearch 报告称后一方法带来明确收益。
+- **债务积累模式：** 团队原型期选择最易集成的沙箱，生产暴露新故障后不断增加重试、更长超时和“提示工程式道歉”，行为逐渐与运行时特有细节纠缠，最终难以更换基础设施。
+- **Cognition/Devin 与 Manus：** Cognition 花费一年以上开展虚拟机监控器工程，以不可信代码可能逃逸内核为工作假设；Manus 构建可快照、可恢复的运行时，让用户能够重放智能体轨迹。
 
-## Verified quotes (verbatim, from the URL)
-1. "The agent is the harness plus the model, running inside the runtime." — https://leehanchung.github.io/blogs/2026/04/24/hidden-technical-debt-agent-runtime/
-2. "It is not the data shift the MLOps community has been worrying about for a decade. It is runtime shift, and it shows up as silent quality regressions that no eval catches because the eval runs in the training runtime." — same URL
-3. "Tool outputs are attacker-controlled the moment the agent visits a webpage, opens a PDF, or processes a customer email." — same URL
-4. "The teams that do not will spend the next two years paying down a debt they did not know they were taking on." — same URL
+## 已核验引述（中文翻译）
+1. “智能体是框架加模型，在运行时内执行。”—— https://leehanchung.github.io/blogs/2026/04/24/hidden-technical-debt-agent-runtime/
+2. “这不是机器学习运维社区十年来一直担忧的数据偏移，而是运行时偏移；它表现为任何评测都捕捉不到的静默质量退化，因为评测运行在训练运行时中。”——同上
+3. “从智能体访问网页、打开 PDF 或处理客户邮件的那一刻起，工具输出便由攻击者控制。”——同上
+4. “没有这样做的团队，将在未来两年偿还一笔他们甚至不知道自己已经背负的债务。”——同上
 
-## What it adds / why it's good
-Most eval/observability writing treats the harness as a fixed substrate and obsesses over prompts, judges, and datasets. Lee's contribution is to make the *runtime itself* a first-class eval variable: he names "runtime shift" as a failure mode where evals silently lie because they execute in the training runtime, not production — a gap that no benchmark score or LLM-judge will surface. It's concrete and code-aware in a way the obvious sources (Yan, generic "evals matter" posts) are not: real cold-start numbers, an isolation-primitive comparison table, named vendor architectures (E2B/Modal/Daytona/Vercel Sandbox), and production war stories (Ramp Inspect's full microservice-per-session sandbox, Cognition's year of hypervisor work). The actionable insight that "productivity is bounded by runtime startup time, not tokens-per-second" reframes agent perf engineering, and the 5-10% tool-error injection recipe (with a Step-DeepResearch citation) is a directly usable training/eval-env technique. It bridges classic ML-infra debt thinking to agent RL environments better than almost any single practitioner post.
+## 贡献与价值
+大多数评测和可观测性文章把框架视为固定底座，重点放在提示、裁判与数据集上。Lee 的贡献是把运行时本身提升为一等评测变量，并把“运行时偏移”命名为一种让评测静默失真的故障：评测在训练环境而非生产环境中执行，所以基准分数或大语言模型裁判都无法揭露问题。文章给出真实冷启动数字、隔离原语对照、E2B/Modal/Daytona/Vercel Sandbox 等架构，以及 Ramp Inspect 和 Cognition 的生产案例，具体程度远高于泛泛而谈。“生产率受运行时启动时间而非 token 速度限制”重塑了智能体性能工程视角，而 5%–10% 工具错误注入则是一项可以直接采用的训练与评测环境技术。它有效连接了经典机器学习基础设施技术债与智能体强化学习环境。
 
-## Themes
-- **9 agent-specific** (primary — runtime architecture is the whole subject)
-- **1 why-evals** (runtime shift = evals that silently fail because they run in the training runtime)
-- **2 eval⇄capability⇄RL-env** (train/prod runtime parity; injecting tool errors to harden the policy)
-- **7 RL environments** (thousands of concurrent isolated rollouts; snapshot/fork/replay sandboxes)
-- **3 model/harness/skill** ("the agent is the harness plus the model")
-- **4 observability** (snapshot replay of multi-hour trajectories as debugging/regression tests)
-- **10 safety** (sandboxing against `rm -rf`, prompt injection, kernel-escape assumption)
+## 主题
+- **9 智能体专项**——全文核心是运行时架构。
+- **1 为何需要评测**——运行时偏移会使训练运行时中的评测静默失效。
+- **2 评测⇄能力⇄强化学习环境**——强调训练/生产运行时一致性及工具错误注入。
+- **7 强化学习环境**——并行隔离回合以及快照、分叉和重放。
+- **3 模型/框架/技能**——智能体由框架和模型共同构成。
+- **4 可观测性**——通过快照重放多小时轨迹，开展调试与回归测试。
+- **10 安全**——防御误删除、提示注入与内核逃逸。

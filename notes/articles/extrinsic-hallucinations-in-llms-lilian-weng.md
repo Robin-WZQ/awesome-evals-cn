@@ -1,35 +1,36 @@
-# Notes — "Extrinsic Hallucinations in LLMs"
-**Author:** Lilian Weng (Lil'Log) · **URL:** https://lilianweng.github.io/posts/2024-07-07-hallucination/ · **Type:** blog · **Found:** true
+# 笔记——《大语言模型中的外在幻觉》
 
-## Summary
-A long-form survey (July 2024) that scopes "hallucination" down to one tractable problem — **extrinsic hallucination**, where output must be grounded by world knowledge rather than by an in-context source — and then walks the full stack of how to *measure* and *reduce* it. Its core contribution for eval design is the **in-context vs. extrinsic** split: the former is a faithfulness/consistency check against provided context, the latter is a factuality check against the pre-training corpus as a proxy for world knowledge, which is fundamentally harder to verify per generation. Weng catalogs the canonical factuality-evaluation methods (FActScore, SAFE, SelfCheckGPT, TruthfulQA, FactualityPrompt, FacTool, SelfAware) with their mechanisms, metrics, and headline numbers, and crucially insists that a good model must *also* "acknowledge not knowing" — making abstention/calibration a first-class eval axis, not an afterthought. It then surveys anti-hallucination methods (RAG variants, chain-of-verification, factual sampling, factuality-aware fine-tuning) and reports a key counterintuitive finding: standard RLHF makes factuality *worse*. It is a reference-grade map for anyone building factuality evals rather than a single new benchmark.
+**作者：** Lilian Weng（Lil'Log） · **网址：** https://lilianweng.github.io/posts/2024-07-07-hallucination/ · **类型：** 博客 · **已找到：** 是
 
-## Key points
-- **Two-type taxonomy that frames the whole eval-design problem.** In-context hallucination = output must be consistent with the provided source/context (a faithfulness check). Extrinsic hallucination = output must be grounded by the pre-training data / world knowledge (a factuality check). Most "is this true?" evals are really extrinsic-hallucination evals.
-- **Abstention is part of factuality.** The post elevates "when the model does not know about a fact, it should say so" to a core requirement — so factuality evals should jointly score correctness *and* appropriate refusal, not just precision on attempted answers.
-- **FActScore** decomposes long-form generation into **atomic facts**, validates each against a knowledge source (Wikipedia), and reports the fraction supported. Retrieval-augmented validation beats no-context LLM judging; error rates rise with entity rarity and with later position in the generation.
-- **SAFE (Search-Augmented Factuality Evaluator)** uses an LLM agent to iteratively issue Google Search queries over multiple steps, scoring each fact; metric is **F1@K** (precision of supported facts × recall up to K facts). ~72% agreement with humans at ~20x lower cost.
-- **SelfCheckGPT** is the black-box, zero-resource baseline: sample the model multiple times stochastically and measure self-consistency (via BERTScore/NLI/prompting). No external KB and no logprob access required — useful when you can only hit an API.
-- **TruthfulQA** = 817 adversarial questions across 38 topics targeting common human misconceptions; best LLM at the time hit **58%** vs **94%** for humans. Scale can make truthfulness *worse* on these adversarial items even as calibration improves.
-- **FactualityPrompt**, **FacTool** (claim extraction → query gen → tool query → verify), and **SelfAware** (1,032 unanswerable + 2,337 answerable questions, measuring known-unknown discrimination) round out the benchmark appendix.
-- **Detection taxonomy:** retrieval-augmented evaluation, sampling-based consistency, calibration, and indirect querying (asking about a reference indirectly beats asking directly whether it exists).
-- **Anti-hallucination methods** span RAG/edit (RARR, Self-RAG with `Retrieve`/`IsRel`/`IsSup`/`IsUse` reflection tokens), chain-of-actions (Chain-of-Verification — factored, independent verification beats joint; RECITE), factual-nucleus sampling (decrease randomness across a sentence), and fine-tuning (FLAME, factuality tuning, Inference-Time Intervention).
-- **Counterintuitive findings worth citing in eval rationale:** standard RLHF makes factuality worse (humans reward longer/detailed answers, not truer ones); nucleus sampling trades factuality for diversity; teaching a model *new* facts during fine-tuning is learned slowly and can *increase* hallucination.
+## 摘要
+这篇 2024 年 7 月的长篇综述把“幻觉”收窄为一个可处理的问题：**外在幻觉**，即输出必须由世界知识而非上下文内来源支撑；随后系统梳理如何测量和减少它。对评测设计而言，最重要的贡献是区分**上下文内幻觉与外在幻觉**：前者检查输出与所给上下文的一致性／忠实度，后者检查输出相对于预训练语料所近似代表的世界知识是否真实，而逐次验证后者本质上更加困难。Weng 总结了主流事实性评测方法 FActScore、SAFE、SelfCheckGPT、TruthfulQA、FactualityPrompt、FacTool 和 SelfAware 的机制、指标与代表性数字，并强调优秀模型还必须“承认不知道”，从而把拒答／校准提升为一等评测轴。文章还综述了 RAG 变体、验证链、事实性采样和事实性感知微调等缓解方法，并报告一个反直觉结论：标准 RLHF 会让事实性变差。对事实性评测构建者而言，这是一份参考级地图，而非单一新基准。
 
-## Verified quotes
-- "There are two types of hallucination: 1. In-context hallucination: The model output should be consistent with the source content in context." — https://lilianweng.github.io/posts/2024-07-07-hallucination/
-- "Extrinsic hallucination: The model output should be grounded by the pre-training dataset. However, given the size of the pre-training data corpus, it is too expensive to retrieve and identify conflicts per generation. If we consider the pre-training data corpus as a proxy for world knowledge, we essentially try to ensure the model output is factual and verifiable by external world knowledge. Equally importantly, when the model does not know about a fact, it should say so." — https://lilianweng.github.io/posts/2024-07-07-hallucination/
-- "This post focuses on extrinsic hallucination. To avoid hallucination, LLMs need to be (1) factual and (2) acknowledge not knowing the answer when applicable." — https://lilianweng.github.io/posts/2024-07-07-hallucination/
-- "**FActScore** (Factual precision in Atomicity Score; Min et al. 2023) decomposes a long form generation into multiple atomic facts and validates each separately." — https://lilianweng.github.io/posts/2024-07-07-hallucination/
-- "At the time of testing by the paper, the best LLM performs at 58% accuracy in comparison and humans can achieve 94%." — https://lilianweng.github.io/posts/2024-07-07-hallucination/
-- "Note that RLHF makes factuality worse, because human feedback often prefers longer, more detailed answers, which are not necessarily more factual." — https://lilianweng.github.io/posts/2024-07-07-hallucination/
+## 要点
+- **两类幻觉构成整个设计框架。** 上下文内幻觉要求输出与所给来源／上下文一致，是忠实度检查；外在幻觉要求输出有预训练数据／世界知识支撑，是事实性检查。多数“这是真的吗”评测其实属于外在幻觉评测。
+- **拒答属于事实性的一部分。** 当模型不知道某事实时，应明确说明。因此，事实性评测应同时衡量正确回答和适当拒答，而不能只计算已回答问题的精度。
+- **FActScore** 把长文本分解为**原子事实**，逐条对照知识来源（Wikipedia）验证，并报告得到支持的比例。带检索的验证优于无上下文 LLM 判断；实体越罕见、事实在生成文本中越靠后，错误率越高。
+- **SAFE（搜索增强事实性评估器）** 使用 LLM 智能体经过多步迭代发起 Google Search，逐条评判事实；指标为 **F1@K**，结合受支持事实的精确率与最多 K 条事实的召回率。其与人工约有 72% 一致率，成本约低 20 倍。
+- **SelfCheckGPT** 是黑盒、零外部资源基线：对模型进行多次随机采样，并用 BERTScore、NLI 或提示法衡量自洽性。它不需要外部知识库或 logprob，适用于只能调用 API 的场景。
+- **TruthfulQA** 包含 38 个主题的 817 个对抗性问题，针对人类常见误解；当时最佳 LLM 准确率为 **58%**，人类为 **94%**。在这些对抗题上，规模增大可能使真实性变差，即便校准有所改善。
+- **FactualityPrompt、FacTool**（提取论断→生成查询→调用工具→验证）和 **SelfAware**（1,032 个不可回答问题与 2,337 个可回答问题，用于衡量已知／未知辨别）完善了基准附录。
+- **检测方法分类：** 检索增强评测、基于采样的一致性、校准，以及间接查询；询问某引用的相关信息，往往比直接问该引用是否存在更有效。
+- **缓解方法：** 包括 RAG／编辑（RARR、带 `Retrieve`／`IsRel`／`IsSup`／`IsUse` 反思令牌的 Self-RAG）、行动链（Chain-of-Verification 中分解后独立验证优于联合验证；RECITE）、事实核采样（在句子推进时降低随机性）和微调（FLAME、事实性微调、推理时干预）。
+- **值得用于评测论证的反直觉结论：** 标准 RLHF 会损害事实性，因为人类偏好更长、更详细而非更真实的答案；核采样以事实性换多样性；通过微调教模型新事实学习很慢，还可能增加幻觉。
 
-## What it adds / why it's good
-The obvious sources (a single FActScore or TruthfulQA paper) give you one benchmark; this gives you the **conceptual scaffolding to choose and compose them**. The in-context vs. extrinsic distinction is the single most useful idea for eval design here: it tells you *what ground truth your eval is even checking against* (provided context vs. world knowledge), which determines whether you need a retrieval/verifier loop at all. The post is also unusually honest about failure modes that bite eval builders — that LLM-as-judge factuality checks need retrieval to be reliable, that black-box consistency (SelfCheckGPT) is the fallback when you lack KB or logprobs, that indirect queries beat direct ones, and that RLHF/length bias actively corrupts factuality. The atomic-fact decomposition pattern (FActScore/SAFE/FacTool) is effectively a reusable recipe for any verifier-graded factuality eval. Net: it's a curated, mechanism-level map with the numbers attached, not a hype post — the deep reference behind Weng's more famous agent essay.
+## 已核验引述（中文翻译）
+- “幻觉有两类：1. 上下文内幻觉：模型输出应当与上下文中的来源内容一致。”——https://lilianweng.github.io/posts/2024-07-07-hallucination/
+- “外在幻觉：模型输出应由预训练数据集支撑。然而，考虑到预训练语料的规模，为每次生成检索并识别冲突代价过高。如果把预训练语料视为世界知识的代理，我们实质上是在努力确保模型输出符合事实且可由外部世界知识验证。同样重要的是，当模型不知道某个事实时，它应该明确说明。”——同上
+- “本文聚焦外在幻觉。为了避免幻觉，LLM 需要做到：（1）符合事实；（2）在适当情况下承认不知道答案。”——同上
+- “**FActScore**（原子化事实精度分数；Min 等，2023）把一段长文本生成分解成多个原子事实，并分别验证每一条。”——同上
+- “在论文测试时，最佳 LLM 的准确率为 58%，而人类可达到 94%。”——同上
+- “请注意，RLHF 会让事实性变差，因为人类反馈经常偏好更长、更详细的回答，而这些回答不一定更符合事实。”——同上
 
-## Themes
-- **1 why-evals** — argues *why* factuality/abstention must be measured and what ground truth each eval type implies.
-- **6 benchmark-vs-eval/integrity** — distinguishes faithfulness-to-context from factuality-to-world-knowledge; surveys benchmark mechanics and their limits.
-- **8 judge/verifiers** — atomic-fact decomposition + retrieval/search-augmented verification (FActScore, SAFE, FacTool) is the verifier playbook; flags when LLM-judge alone is unreliable.
-- **10 safety/adversarial** — TruthfulQA's adversarial misconception questions and the known-unknown / abstention (SelfAware) axis.
-- (Touches **4 observability/surfaces** lightly via calibration and self-consistency detection signals.)
+## 它带来了什么／为何有价值
+单篇 FActScore 或 TruthfulQA 论文只提供一种基准；本文则提供了选择和组合这些基准所需的概念脚手架。上下文内与外在幻觉的区分是评测设计中最有用的思想：它明确你的真值究竟来自所给上下文还是世界知识，进而决定是否需要检索／验证器闭环。文章还坦率揭示了容易坑到评测构建者的失败模式：事实性 LLM 裁判需要检索才可靠；缺少知识库或 logprob 时可用 SelfCheckGPT 一类黑盒一致性方法；间接查询优于直接询问；RLHF 与长度偏差会主动损害事实性。FActScore、SAFE、FacTool 的原子事实分解模式，实际上构成了任何由验证器评分的事实性评测都可复用的配方。总体而言，它是一份带数字的机制级精选地图，而不是宣传文章，也是 Weng 那篇更著名智能体文章背后的深层参考。
+
+## 主题
+- **1 为什么需要评测**——说明为何必须衡量事实性与拒答，以及每类评测所依赖的真值。
+- **6 基准与评测／完整性**——区分上下文忠实度与世界知识事实性，并讨论基准机制及局限。
+- **8 裁判／验证器**——原子事实分解与检索／搜索增强验证构成验证器方法论，同时指出单独使用 LLM 裁判何时不可靠。
+- **10 安全／对抗**——TruthfulQA 的对抗性误解问题和 SelfAware 的已知／未知轴。
+- 通过校准与自洽检测信号，轻度涉及 **4 可观测性／表面**。

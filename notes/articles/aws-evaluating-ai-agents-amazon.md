@@ -1,37 +1,38 @@
-# Notes — "Evaluating AI agents: Real-world lessons from building agentic systems at Amazon"
+# 笔记——《评测 AI 智能体：在 Amazon 构建智能体系统的现实经验》
 
-**Author:** Yunfei Bai, Allie Colin, Kashif Imran, Winnie Xiong (AWS / Amazon) · **URL:** https://aws.amazon.com/blogs/machine-learning/evaluating-ai-agents-real-world-lessons-from-building-agentic-systems-at-amazon/ · **Type:** eng-blog · **Found:** true
+**作者：** Yunfei Bai、Allie Colin、Kashif Imran、Winnie Xiong（AWS／Amazon） · **网址：** https://aws.amazon.com/blogs/machine-learning/evaluating-ai-agents-real-world-lessons-from-building-agentic-systems-at-amazon/ · **类型：** 工程博客 · **已找到：** 是
 
-> **Provenance caveat (read first):** The reason this source was flagged — a "60% → 25% success across 8 runs" multi-run reliability dropoff statistic — **does not appear anywhere in this article.** I fetched the page three times and searched specifically for that figure, "8 runs," pass@k/pass^k, and any quantified per-run consistency numbers; none are present. The flag appears to have conflated this AWS post with a different source. This post is a *qualitative framework* piece, not a war-story piece with hard numbers. Everything below reflects what the article actually says.
+> **来源警告（请先阅读）：** 将本来源列入清单所依据的“8 次运行中成功率从 60% 降至 25%”统计，实际上并未出现在文章任何位置。我三次抓取页面，并专门搜索该数字、“8 次运行”、pass@k／pass^k 以及任何量化的逐次一致性数字，均未找到。该标记似乎混淆了这篇 AWS 文章与另一来源。本文是一篇定性框架文章，而非包含硬数字的实践复盘；下文完全依照文章实际内容。
 
-## Summary (3-6 sentences)
-This is an AWS Machine Learning Blog post (Feb 18, 2026) from four Amazon practitioners arguing that traditional LLM evaluation — which scores only the final output — is inadequate for AI agents, because it treats agentic systems as black boxes and cannot explain *why* an agent failed. They propose a "holistic agentic AI evaluation framework" with two components: an automated agent evaluation workflow and an agent evaluation library, organized into layered assessment (component-level and final-output-level) across four dimensions: quality, performance, responsibility, and cost. The post enumerates agent-specific evaluation targets — tool-selection accuracy, tool-parameter accuracy, multi-turn function calling, reasoning grounding/faithfulness, intent detection, memory retrieval, multi-turn topic adherence, and safety (hallucination/toxicity/harmfulness). It stresses that pre-deployment evaluation is insufficient and must be paired with continuous production monitoring and human-in-the-loop (HITL) validation, especially for multi-agent systems with emergent behaviors. It is grounded in AWS tooling (Bedrock AgentCore Evaluations, Strands Agents, LangChain/LangGraph).
+## 摘要（3–6 句）
+这篇 2026 年 2 月 18 日发表于 AWS Machine Learning Blog 的文章由四位 Amazon 从业者撰写。作者认为，只对最终输出评分的传统 LLM 评测不足以评价 AI 智能体，因为它把系统当作黑盒，无法解释智能体为何失败。文章提出一个“整体式智能体 AI 评测框架”，由自动化智能体评测工作流与智能体评测库两部分组成，并在组件级和最终输出级进行分层评估，覆盖质量、性能、责任与成本四个维度。其智能体专属目标包括工具选择准确率、参数准确率、多轮函数调用、推理扎根／忠实度、意图识别、记忆检索、多轮主题遵循和安全性。文章强调部署前评测不足以覆盖真实运行，还必须结合持续生产监控与人在回路验证，尤其是具有涌现行为的多智能体系统。整体方案以 Bedrock AgentCore Evaluations、Strands Agents、LangChain／LangGraph 等 AWS 生态工具为基础。
 
-## Key points (5-12 substantive bullets)
-- **Core thesis — black-box scoring fails for agents:** "Traditional LLM evaluation methods treat agent systems as black boxes and evaluate only the final outcome, failing to provide sufficient insights to determine why AI agents fail or pinpoint the root causes." The whole framework is motivated by needing *diagnostic* eval, not just pass/fail.
-- **What an agent actually is (why eval is harder):** "AI agents autonomously pursue goals through multi-step reasoning, tool use, and adaptive decision-making" — so evaluation has to cover the trajectory, not just the endpoint.
-- **The four evaluation dimensions:** quality, performance, responsibility, and cost — eval must be holistic across all four plus production monitoring and HITL, spanning "the full lifecycle of agentic AI deployment from development to production."
-- **Layered framework:** a "holistic agentic AI evaluation framework" with two pieces — (1) an automated AI agent evaluation workflow and (2) an AI agent evaluation library. Assessment is layered: component-level (middle) and final-output (upper) assessment.
-- **Tool-use evaluation is broken out into sub-metrics:** tool/function *selection accuracy*, *parameter accuracy*, *call error rates*, and *multi-turn function calling* — not just "did it call a tool."
-- **Reasoning evaluation:** grounding accuracy, faithfulness scores, and context alignment — i.e., is the reasoning faithful to retrieved/available context.
-- **Emergent-behavior framing:** evaluation must assess "the emergent behaviors of the complete system, including the accuracy of tool selection decisions, the coherence of multi-step reasoning processes, the efficiency of memory retrieval operations, and the overall success rates."
-- **Other agent-specific targets:** intent-detection correctness (routing), memory retrieval accuracy/relevance, multi-turn topic adherence and refusal capability.
-- **Responsibility/safety dimension:** hallucination, toxicity, and harmfulness detection are first-class eval categories, not afterthoughts.
-- **Pre-deployment eval is not enough:** "the pre-deployment evaluation might not fully capture the performance characteristics" — production monitoring is needed to catch degradation over time across "diverse user behaviors, usage patterns, and edge cases not represented before production deployment."
-- **HITL scales with system complexity:** "HITL becomes critical because of the increased complexity and potential for unexpected emergent behaviors" — explicitly tied to *multi-agent* systems.
-- **Tooling anchor:** Amazon Bedrock AgentCore (and AgentCore Evaluations), Strands Agents, LangChain, LangGraph, Amazon S3 — the framework is meant to be operationalized on AWS.
+## 要点
+- **核心论点：黑盒评分不适合智能体。** 只评价最终结果不能说明智能体为何失败，也无法定位根因；评测必须具有诊断性。
+- **智能体为何更难评：** 智能体通过多步推理、工具使用和自适应决策自主追求目标，因此必须评价轨迹而不仅是终点。
+- **四个评测维度：** 质量、性能、责任与成本，结合生产监控和人在回路，覆盖从开发到生产的完整生命周期。
+- **分层框架：** 包含自动化 AI 智能体评测工作流与评测库两部分；评估分为组件级和最终输出级。
+- **工具使用细分指标：** 工具／函数选择准确率、参数准确率、调用错误率和多轮函数调用，而不是简单地问“是否调用了工具”。
+- **推理评测：** 扎根准确率、忠实度分数与上下文对齐，即推理是否忠实于检索或可用上下文。
+- **涌现行为视角：** 必须评价完整系统的涌现行为，包括工具选择决策、多步推理连贯性、记忆检索效率和总体成功率。
+- **其他专属目标：** 意图识别（路由）、记忆检索的准确性／相关性、多轮主题遵循与拒答能力。
+- **责任／安全维度：** 幻觉、毒性与有害性检测是一等评测类别，而不是事后补充。
+- **部署前评测不够：** 生产监控需要覆盖部署前未出现的多样用户行为、使用模式和边缘案例，识别随时间发生的退化。
+- **系统越复杂越需要 HITL：** 多智能体系统更复杂且可能出现意外涌现行为，因此人在回路尤为关键。
+- **工具锚点：** Amazon Bedrock AgentCore（含 AgentCore Evaluations）、Strands Agents、LangChain、LangGraph 与 Amazon S3。
 
-## Verified quotes (1-4 VERBATIM)
-All from https://aws.amazon.com/blogs/machine-learning/evaluating-ai-agents-real-world-lessons-from-building-agentic-systems-at-amazon/ :
-1. "Traditional LLM evaluation methods treat agent systems as black boxes and evaluate only the final outcome, failing to provide sufficient insights to determine why AI agents fail or pinpoint the root causes."
-2. "To address these challenges, we propose a holistic agentic AI evaluation framework... The framework contains two key components: an automated AI agent evaluation workflow and an AI agent evaluation library."
-3. "It's essential to maintain quality because the pre-deployment evaluation might not fully capture the performance characteristics. Also, production evaluation monitors real-world performance across diverse user behaviors, usage patterns, and edge cases not represented before production deployment to identify performance degradation over time."
-4. "As AI systems become increasingly complex, the importance of a thorough AI agent evaluation approach cannot be overstated. Through holistic evaluation across quality, performance, responsibility, and cost dimensions... the full lifecycle of agentic AI deployment from development to production can be addressed."
+## 已核验引述（中文翻译）
+均来自：https://aws.amazon.com/blogs/machine-learning/evaluating-ai-agents-real-world-lessons-from-building-agentic-systems-at-amazon/
 
-*Note: The flagged "60% → 25% success across 8 runs" multi-run reliability statistic could not be verified — it is not present in this article.*
+1. “传统 LLM 评测方法把智能体系统视为黑盒，只评价最终结果，无法提供足够信息来判断 AI 智能体为何失败或定位根因。”
+2. “为应对这些挑战，我们提出一个整体式智能体 AI 评测框架……该框架包含两个关键组件：自动化 AI 智能体评测工作流和 AI 智能体评测库。”
+3. “保持质量至关重要，因为部署前评测可能无法完全捕获性能特征。生产评测还会监控多样用户行为、使用模式及部署前未涵盖的边缘案例中的现实表现，以识别随时间发生的性能退化。”
+4. “随着 AI 系统日益复杂，全面 AI 智能体评测方法的重要性再怎么强调也不为过。通过在质量、性能、责任与成本维度开展整体评测……即可覆盖智能体 AI 从开发到生产的完整部署生命周期。”
 
-## What it adds / why it's good
-The practitioner value here is the **decomposition of agent evaluation into component-level sub-metrics** — separating tool *selection* accuracy from tool *parameter* accuracy from call *error rates*, and reasoning *grounding* from *faithfulness* — which is more granular than the usual "task success rate" most blog posts stop at. The framing that black-box final-outcome scoring "[fails] to determine why AI agents fail" is the right operational instinct: eval as a *debugging/observability* tool, not just a leaderboard number. Its tie-in to a concrete production stack (Bedrock AgentCore Evaluations, Strands, LangGraph) and its explicit lifecycle stance (pre-deploy eval is necessary but insufficient → continuous production monitoring + HITL) make it useful as an architecture checklist. The honest limitation versus sharper practitioner sources (e.g., Hamel Husain, Eugene Yan): it is **framework-and-taxonomy heavy and number-light** — there are no war stories, no concrete failure rates, no judge-calibration data, and a clear AWS-product slant. Treat it as a well-organized taxonomy of *what to measure*, not evidence of *what was found*.
+说明：被标记的“8 次运行中从 60% 降至 25%”统计无法核验，因为文章中不存在该数据。
 
-## Themes
-1 why-evals · 3 model/harness/skill · 4 observability · 5 eval infra · 8 judge/verifiers · 9 agent-specific · 10 safety
+## 它带来了什么／为何有价值
+本文的实践价值在于把智能体评测拆成组件级子指标：工具选择准确率、参数准确率和调用错误率彼此分离，推理扎根与忠实度也分别衡量，这比只报告“任务成功率”更细。其黑盒最终结果评分无法定位根因的判断也符合运营现实：评测应当是调试与可观测工具，而不只是排行榜数字。与 Bedrock AgentCore Evaluations、Strands、LangGraph 等生产栈结合，并明确从部署前评测延伸至持续生产监控和 HITL，使它可作为架构检查清单。相较 Hamel Husain、Eugene Yan 等更尖锐的实践来源，其局限同样明显：框架与分类很多，数字很少；没有失败率案例、裁判校准数据，且带有明显 AWS 产品倾向。因此更适合把它视为“该测什么”的分类体系，而不是“发现了什么”的实证证据。
+
+## 主题
+1 为什么需要评测 · 3 模型／套件／技能 · 4 可观测性 · 5 评测基础设施 · 8 裁判／验证器 · 9 智能体专属 · 10 安全

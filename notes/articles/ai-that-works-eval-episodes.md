@@ -1,38 +1,39 @@
-# Notes — "AI That Works — Eval Episodes (#5 Designing Evals, #16 Eval Many Models, #24 Evals for Classification, #34 Multimodal Evals)"
+# 笔记——《AI That Works 评测专题（第 5、16、24、34 期）》
 
-**Author:** Vaibhav Gupta (BoundaryML/BAML) & Dex Horthy · **URL:** https://boundaryml.com/podcast · **Type:** talk (weekly live-coding podcast w/ shared repos) · **Found:** true
+**作者：** Vaibhav Gupta（BoundaryML/BAML）与 Dex Horthy · **网址：** https://boundaryml.com/podcast · **类型：** 演讲（每周直播编程播客及配套仓库） · **已找到：** 是
 
-## Summary (3-6 sentences)
-*AI That Works* is a weekly live-coding podcast by Vaibhav Gupta (creator of BAML) and Dex Horthy (HumanLayer), where each episode builds a small, runnable eval project from scratch with a public companion repo under `github.com/ai-that-works/ai-that-works`. The four eval episodes form a progression: #5 lays down the philosophy (start without answer keys, treat the pipeline as testable units, use enums/rubrics over numeric confidence scores); #16 is about evaluating one prompt across many models for migration decisions; #24 builds a 1000+-category classification eval with a two-stage embedding-then-LLM pipeline and per-stage accuracy metrics; #34 builds multimodal receipt-extraction evals using *deterministic runtime checks* (does the math add up?) instead of LLM-as-judge. The throughline is implementation-first minimalism: bespoke Streamlit dashboards, versioned JSON result files, pytest-style component tests, and a refusal to over-tool. The recurring thesis is that "correct" is subjective and use-case-specific, so you build your own answer keys from real user data rather than chasing benchmark numbers.
+## 摘要
+《AI That Works》是 Vaibhav Gupta 与 Dex Horthy 主持的每周直播编程播客，每期都会从零构建一个可运行的小型评测项目，并在 `github.com/ai-that-works/ai-that-works` 提供公开仓库。四期评测内容形成递进关系：第 5 期先建立方法论——可以没有答案键起步，把流水线拆成可测试单元，并优先使用枚举/量规而非数值置信度；第 16 期讨论如何为模型迁移决策，用同一提示评估多个模型；第 24 期构建一个覆盖 1000 多类别、由嵌入筛选与大语言模型选择组成的两阶段分类评测，并分别测量各阶段准确率；第 34 期则为多模态收据提取建立确定性运行时检查，用“账目是否相加一致”取代大语言模型裁判。贯穿始终的是以实现为先的极简主义：定制 Streamlit 看板、版本化 JSON 结果、pytest 风格组件测试，以及拒绝过度工具化。其反复强调的主张是，“正确”具有主观性并依赖具体用例，因此应基于真实用户数据建立自己的答案键，而非追逐基准数字。
 
-## Key points (5-12 substantive bullets)
-- **Start without an answer key, then build a golden dataset incrementally from production data.** #5's core move is "vibe evals" first (run in a playground, eyeball outputs), then accumulate real usage into an answer key over time — don't block on labeling before you ship.
-- **Test the pipeline as units, not just end-to-end.** #5 advocates capturing intermediate steps (e.g., extract "list of biases" from a lesson-plan output) and asserting on those components independently, plus pytest end-to-end tests for prompt chains.
-- **Prefer enums/rubrics over numeric confidence scores.** Categorical buckets ("slow" / "medium" / "fast") are more reliable and reviewable than asking a model for a 0–1 confidence number.
-- **Diff-driven evals.** Look at diffs in both raw outputs and structured evals across runs to surface where behavior drifted and where your eval coverage has gaps. Treat data as semi-structured blends (JSON-with-sentences, markdown-with-JSON).
-- **#16 — evaluate one prompt across many models for migration confidence.** The real questions are "is the new model better?" and "does the new model break anything?" Build a side-by-side comparison harness (model-vs-model, task-vs-task, prompt-vs-prompt) weighing quality against latency and cost; a slightly less accurate but faster model often wins on UX.
-- **Build bespoke eval UIs, not one universal tool.** #16 explicitly argues against trying to build a single tool for all parameterization scenarios — make purpose-built comparison views. Every eval episode ships a custom Streamlit dashboard rather than a heavyweight framework.
-- **#24 — two-stage classification at 1000+ categories.** Stage 1: embeddings narrow 1000+ categories to ~5–10 candidates (default `max_narrowed_categories=5`, `max_embedding_candidates=10`). Stage 2: LLM reasoning picks the final label. This separates a cheap recall step from an expensive precision step.
-- **#24 — measure each stage separately.** Track *narrowing accuracy* (is the right category in the candidate set?), *selection accuracy* (did the LLM pick right given good candidates?), *end-to-end pipeline accuracy*, and per-stage timing — so you know which stage to fix. Results are versioned to JSON for trend analysis across iterations.
-- **#34 — runtime/deterministic evals beat LLM-as-judge for structured extraction.** For receipt extraction, six math checks need zero extra LLM calls: sum validation (`sum(transactions)+service_charge+tax+rounding-discount = grand_total`), non-negative monetary fields, subtotal consistency, unit-price accuracy (`(unit_price-unit_discount)×qty = total_price`), grand-total reconciliation, and completeness of required fields.
-- **#34 — LLM-as-judge "doubles API costs," adds non-determinism, and is circular** ("using LLMs to validate LLMs"). When the output has inherent mathematical relationships, exploit them instead. On eval failure the system auto-retries the extraction, improving accuracy without manual intervention.
-- **Concrete datasets/configs are shared.** #5 uses the Enron email dataset; #34 uses CORD-v2 (1,000 receipt images, 864×1296px, 800/100/100 train/val/test, ~2.2GB), BAML for schema/prompts, Gemini/OpenAI/Anthropic vision models, default concurrency of 10.
-- **"Correct" is subjective and context-dependent** is the cross-cutting thesis — across #16 and #24, define accuracy in your business context and iterate with real user data rather than optimizing arbitrary benchmark scores.
+## 要点
+- **先不依赖答案键启动，再从生产数据逐步构建黄金集。** 第 5 期建议先在试验界面运行并人工观察输出，再把真实使用数据逐渐积累成答案键，不要因为尚未标注而阻塞发布。
+- **按单元测试流水线，而不只做端到端测试。** 捕获中间步骤并单独断言其正确性，同时为提示链编写 pytest 端到端测试。
+- **枚举和量规优于数值置信度。** “慢/中/快”等类别桶比要求模型给出 0–1 置信度更可靠，也更便于审查。
+- **差异驱动评测。** 对比不同运行中的原始输出与结构化评分，以定位行为漂移和评测覆盖缺口；数据可视为 JSON 与自然语言、Markdown 与 JSON 的半结构化混合。
+- **第 16 期：用同一提示评估多个模型，为迁移决策提供信心。** 真正要回答的是“新模型是否更好”和“是否破坏已有行为”。比较框架应支持模型、任务和提示之间的并排对照，同时权衡质量、延迟与成本；稍逊但更快的模型可能带来更好用户体验。
+- **构建定制评测界面，而非一个万能工具。** 针对具体参数组合制作专用比较视图；每期都提供定制 Streamlit 看板，而不是依赖庞大框架。
+- **第 24 期：面向 1000 多类别的两阶段分类。** 第一阶段用嵌入把类别缩至约 5–10 个候选，第二阶段由大语言模型推理选出最终标签，从而把廉价召回与昂贵精确选择分开。
+- **分别测量每个阶段。** 跟踪缩小范围准确率、给定正确候选时的选择准确率、端到端准确率与各阶段耗时，才能知道应修复哪一环；结果版本化保存为 JSON。
+- **第 34 期：结构化提取中，确定性运行时评测优于大语言模型裁判。** 收据任务可进行六类无需额外模型调用的数学检查：合计验证、金额字段非负、小计一致、单价计算、总额对账和必填字段完整性。
+- **大语言模型裁判会使接口成本翻倍，引入非确定性并形成循环验证。** 当输出具有内在数学关系时应直接利用；评测失败后可自动重试提取，提高准确率且无需人工干预。
+- **共享具体数据与配置。** 第 5 期使用 Enron 邮件数据集；第 34 期使用 CORD-v2（1000 张 864×1296 像素收据图像，训练/验证/测试为 800/100/100，约 2.2GB），并使用 BAML、Gemini/OpenAI/Anthropic 视觉模型，默认并发为 10。
+- **“正确”依赖语境。** 应在业务情境中定义准确性，并用真实用户数据迭代，而不是优化任意基准分数。
 
-## Verified quotes (1-4 VERBATIM lines with the URL)
-- "The most important thing is to make it work quickly and iterate with real user data." — #24, https://boundaryml.com/podcast/2025-09-23-evals-for-classification
-- "Understanding what 'correct' means for your specific use case is more important than achieving perfect accuracy on arbitrary benchmarks." — #24, https://boundaryml.com/podcast/2025-09-23-evals-for-classification
-- "The 'best' model is the one that best serves your specific use case and user experience." — #16, https://boundaryml.com/podcast/2025-07-29-eval-many-models-same-prompt
-- On runtime evals vs LLM-as-judge: LLM judging "doubles API costs" and creates circular reasoning by "using LLMs to validate LLMs," whereas runtime evals use "deterministic checks" / "mathematical validation (do the numbers add up?)." — #34, https://boundaryml.com/podcast/2025-12-02-multimodal-evals
-- (Note: quotes are paraphrase-grade summaries surfaced from the episode pages/READMEs rather than transcript-timestamped lines; treat as faithful but not necessarily word-for-word spoken quotes.)
+## 已核验引述（中文翻译）
+- “最重要的是先让它尽快运行起来，再用真实用户数据迭代。”——第 24 期，https://boundaryml.com/podcast/2025-09-23-evals-for-classification
+- “理解在具体用例中何谓‘正确’，比在任意基准上达到完美准确率更重要。”——第 24 期，https://boundaryml.com/podcast/2025-09-23-evals-for-classification
+- “‘最佳’模型，是最能服务你的具体用例与用户体验的模型。”——第 16 期，https://boundaryml.com/podcast/2025-07-29-eval-many-models-same-prompt
+- 关于运行时评测与大语言模型裁判：大语言模型评分“使接口成本翻倍”，还会因为“使用大语言模型验证大语言模型”而造成循环推理；运行时评测则使用“确定性检查”和“数学验证（数字能否相加吻合？）”。——第 34 期，https://boundaryml.com/podcast/2025-12-02-multimodal-evals
 
-## What it adds / why it's good
-Most eval content is either academic (benchmark leaderboards) or framework marketing (buy our eval platform). This series is the opposite: a working engineer building the *minimum viable eval* live, with a runnable repo you can clone. The non-BS value is in specifics other sources skip — measuring narrowing accuracy and selection accuracy *separately* in a two-stage classifier so you know which stage to tune; using deterministic arithmetic checks for structured extraction to entirely sidestep the cost and circularity of LLM-as-judge; and the explicit anti-pattern warning against building "one universal eval tool" in favor of bespoke per-task Streamlit views. The "start without an answer key, build the golden set from production diffs" workflow and the "enums over confidence scores" heuristic are practitioner heuristics that generalize well beyond BAML. Because every episode ships code, the claims are checkable, not hand-wavy.
+**说明：** 以上引述来自专题页面和仓库说明所提供的忠实概述，未按录音时间戳逐句核验，因此不一定与现场口述完全逐字一致。
 
-## Themes
-- **1 why-evals** — #5 and #16 motivate evals around real decisions (ship confidence, model migration) rather than scores.
-- **3 model/harness/skill** — #16 is squarely about model-swap evals (quality vs latency vs cost) and building the comparison harness.
-- **5 eval infra** — versioned JSON results, bespoke Streamlit dashboards, pytest component + integration + e2e tests recur in every episode.
-- **6 benchmark-vs-eval** — explicit thesis that use-case-specific "correct" beats arbitrary benchmark accuracy (#16, #24).
-- **8 judge/verifiers** — #34's central argument is deterministic runtime verifiers > LLM-as-judge for structured outputs; #5 also covers LLM-as-judge as one tool among many.
-- **9 agent-specific** — secondary: #24's two-stage classification pipeline and intermediate-step testing apply to multi-step agent components.
+## 贡献与价值
+多数评测内容不是学术排行榜，就是评测平台营销；这个系列展示的却是一名工程师现场搭建可运行的最小评测，且仓库可以直接复现。它提供了其他来源常忽略的细节：分别测量两阶段分类中的候选召回与最终选择准确率；用确定性算术检查完全避开大语言模型裁判的成本与循环性；明确反对万能评测工具，主张针对任务制作 Streamlit 视图。“没有答案键也可以起步，再从生产差异中建立黄金集”以及“枚举优于置信度分数”都是可迁移到 BAML 之外的实用经验。每期均提供代码，使观点可以检验，而非停留在口号层面。
+
+## 主题
+- **1 为何需要评测**——围绕发布信心和模型迁移等真实决策组织评测。
+- **3 模型/框架/技能**——比较模型替换时质量、延迟与成本。
+- **5 评测基础设施**——版本化 JSON、定制 Streamlit 看板及分层测试。
+- **6 基准与评测**——强调用例特定的“正确”胜过任意基准准确率。
+- **8 裁判/验证器**——结构化输出中以确定性运行时验证替代大语言模型裁判。
+- **9 智能体专项**——两阶段流水线与中间步骤测试可用于多步智能体组件。

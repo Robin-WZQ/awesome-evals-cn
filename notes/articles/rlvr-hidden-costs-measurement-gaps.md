@@ -1,37 +1,36 @@
-# Notes — "Position: The Hidden Costs and Measurement Gaps of Reinforcement Learning with Verifiable Rewards"
+# 笔记——《立场：可验证奖励强化学习的隐性成本与测量缺口》
 
-**Author:** Fang Wu, Aaron Tu, Weihao Xuan, et al. (incl. Jure Leskovec, Yejin Choi) · **URL:** https://arxiv.org/abs/2509.21882 · **Type:** paper · **Found:** true
+**作者：** Fang Wu、Aaron Tu、Weihao Xuan 等（包括 Jure Leskovec、Yejin Choi） · **网址：** https://arxiv.org/abs/2509.21882 · **类型：** 论文 · **已找到：** 是
 
-## Summary
-A position paper arguing that many headline RLVR (reinforcement learning with verifiable rewards) gains are not well validated because reports conflate genuine policy improvement with three confounds: (i) budget mismatch between the RLVR model and its baseline, (ii) "attempt inflation" and calibration drift that convert abstentions into confident answers, and (iii) benchmark data contamination. Using budget-matched reproductions and partial-prompt contamination probes, the authors show several widely cited gaps shrink substantially or disappear once budgets, prompts, and dataset versions are matched and contaminated sets are treated as memorization probes rather than reasoning evidence. The core measurement insight for evals: the *choice of metric flips the conclusion* — answer-only metrics (pass@k) show muted gains while process-aware metrics (CoT-pass@k) reveal larger deltas — and RLVR carries a hidden "RLVR tax" of reduced abstention and miscalibration. They propose a "tax-aware minimum standard": budget-matched saturation curves with variance, calibration, and abstention tracking, an LLM-judge robustness stress test, and an explicit contamination screen. The takeaway is not that RLVR is ineffective, but that reasoning gains should be treated as provisional without these controls.
+## 摘要
+这篇立场论文认为，许多受到广泛关注的可验证奖励强化学习（RLVR）增益尚未得到充分验证，因为相关报告把真正的策略改进与三类混杂因素混为一谈：RLVR 模型与基线之间的预算不匹配；把拒答变成自信作答的“尝试膨胀”和校准漂移；以及基准数据污染。作者通过预算匹配复现和部分提示词污染探针表明，当预算、提示词和数据集版本一致，并将受污染集合视为记忆探针而非推理证据后，多项广为引用的差距会显著缩小甚至消失。其对评测最关键的测量洞见是：指标选择可能逆转结论——仅看答案的 pass@k 显示的增益较弱，而关注过程的 CoT-pass@k 则揭示出更大差异；与此同时，RLVR 还会带来拒答减少与校准恶化这一隐性“RLVR 税”。作者提出一套“纳入代价的最低标准”：给出带方差的预算匹配饱和曲线，跟踪校准与拒答，开展大语言模型裁判稳健性压力测试，并明确筛查污染。结论并非 RLVR 无效，而是缺少这些控制时，所谓推理增益只能视为暂定结论。
 
-## Key points
-- **Three confounds inflate reported RLVR gains:** budget mismatch (RLVR vs. baseline use different sampling/compute budgets), attempt inflation + calibration drift, and benchmark contamination. Headline gaps "shrink substantially or disappear" once these are controlled.
-- **Metric choice can flip the conclusion.** Answer-only metrics like pass@k show muted gains, while process-aware criteria like CoT-pass@k (requiring a correct answer *and* a syntactically valid chain) reveal larger deltas — so the same model can look better or worse depending on the metric chosen. This is the central "measurement gap" hazard for anyone using RLVR-trained models as eval subjects.
-- **The "RLVR tax":** unintended empirical side effects that ride along with apparent gains — reduced abstention, miscalibration, instruction-fidelity drift, and a larger safety/privacy surface from longer traces.
-- **Abstention suppression is the headline reliability cost:** RLVR converts honest "I don't know" into confident wrong answers. Empirically "refusal rates often collapse after RLVR, shifting abstentions into assertive answers."
-- **Concrete abstention number:** going from DeepSeek-V3 to DeepSeek-R1, abstentions on a probe set dropped from ~480 to ~81 items — a large collapse in calibrated refusal.
-- **"Attempt inflation" mechanism:** stronger RLVR policies *attempt far more questions*, which can raise raw accuracy counts even when per-attempt reliability degrades — decoupling apparent capability from calibrated competence.
-- **Budget mismatch:** baselines often evaluated at a fixed/lower budget while RLVR systems use variable/larger sampling, creating an unfair comparison; the fix is budget-matched saturation curves (accuracy vs. sampling budget) rather than single-point comparisons.
-- **Contamination as memorization probe:** partial-prompt probes expose memorization — e.g., a model scoring high on a contaminated MATH-500 split collapses to ~0% on fresh AIME-2025, indicating the "reasoning" was recall.
-- **Magnitude of the measurement gap:** their standardized re-evaluations move reported numbers by roughly −6 to +16 percentage points relative to original reports (Table 2), i.e. enough to reorder leaderboards.
-- **Proposed minimum standard:** budget-matched saturation curves with variance bands, calibration + abstention tracking, an LLM-judge robustness stress test, and an explicit contamination screen — a checklist for trustworthy RLVR claims.
-- **Position, not pure empirics:** it's an ICML-style position paper (a "Position:" submission); the reproductions are illustrative probes supporting the argument rather than a comprehensive benchmark suite.
+## 要点
+- **三类混杂因素会夸大 RLVR 增益：** 预算不匹配、尝试膨胀与校准漂移、基准污染。控制这些因素后，显著差距往往缩小或消失。
+- **指标选择可能逆转结论。** pass@k 等仅答案指标显示的增益有限，而要求答案正确且推理链语法有效的 CoT-pass@k 等过程指标可能显示更大差异。
+- **“RLVR 税”：** 表面增益伴随拒答减少、校准失真、指令遵循漂移，以及长推理轨迹造成的更大安全与隐私暴露面。
+- **压低拒答是主要可靠性代价：** RLVR 会把诚实的“不知道”变成自信的错误答案。探针集上从 DeepSeek-V3 到 DeepSeek-R1，拒答条目约由 480 个降至 81 个。
+- **尝试膨胀机制：** 更强的 RLVR 策略会尝试更多问题，即便每次尝试的可靠性下降，也可能提高原始答对数，从而让表面能力与校准后的胜任程度脱节。
+- **预算不匹配：** 基线常用固定或较小预算，而 RLVR 系统使用可变或更大的采样预算。合理做法是比较准确率随采样预算变化的饱和曲线，而不是单点结果。
+- **把污染集当作记忆探针：** 部分提示词探针可揭露记忆。例如模型在受污染的 MATH-500 划分上得分很高，却在全新的 AIME-2025 上跌至约 0%，说明所谓“推理”实为回忆。
+- **测量缺口的量级：** 标准化重评相较原报告可造成约 −6 至 +16 个百分点的变化，足以重新排列排行榜。
+- **最低标准：** 带方差带的预算匹配饱和曲线、校准与拒答跟踪、大语言模型裁判稳健性压力测试，以及显式污染筛查。
+- **这是立场论文而非纯实证研究：** 复现实验是支持论点的示例探针，并非完整基准套件。
 
-## Verified quotes
-- "However, we argue that many headline RLVR gains are not yet well validated because reports often conflate policy improvement with three confounds: (i) budget mismatch between RLVR and baseline evaluations, (ii) attempt inflation and calibration drift that convert abstentions into confident answers, and (iii) benchmark data contamination." — https://arxiv.org/abs/2509.21882
-- "This does not mean that RLVR is ineffective, but it implies that current measurements often overstate capability gains and obscure reliability costs." — https://arxiv.org/abs/2509.21882
-- "Answer-only metrics (e.g., pass@k) can show muted gains, whereas process-aware criteria such as CoT-pass@k (which require both a correct answer and a syntactically valid chain) often reveal larger deltas in settings explicitly optimized for process rewards." — https://arxiv.org/html/2509.21882v3
-- "Empirically, refusal rates often collapse after RLVR, shifting abstentions into assertive answers (Song et al., [2025])." — https://arxiv.org/html/2509.21882v3
-- "A second complication is what we call the RLVR tax: unintended empirical side effects that accompany apparent gains under current reasoning-style post-training (reduced abstention, miscalibration, instruction-fidelity drift, and a larger safety/privacy surface due to longer traces)." — https://arxiv.org/html/2509.21882v3
-- "The dominant effect is attempt inflation: stronger RLVR policies attempt far more questions." — https://arxiv.org/html/2509.21882v3
+## 已核验引述（中文翻译）
+- “然而，我们认为，许多受到关注的 RLVR 增益尚未得到充分验证，因为报告经常把策略改进与三类混杂因素混为一谈：（一）RLVR 与基线评估之间的预算不匹配；（二）把拒答转化为自信回答的尝试膨胀与校准漂移；（三）基准数据污染。”—— https://arxiv.org/abs/2509.21882
+- “这并不意味着 RLVR 无效，但它表明当前测量往往夸大能力增益，并掩盖可靠性代价。”—— https://arxiv.org/abs/2509.21882
+- “仅答案指标（如 pass@k）可能显示较弱增益，而 CoT-pass@k 等过程感知标准（同时要求答案正确且推理链语法有效）在明确针对过程奖励进行优化的设置中，往往显示更大差异。”—— https://arxiv.org/html/2509.21882v3
+- “从实证上看，RLVR 之后的拒答率往往骤降，把拒答转化为断言式回答。”—— https://arxiv.org/html/2509.21882v3
+- “第二个复杂因素是我们所说的 RLVR 税：当前推理式后训练在带来表面增益时所伴随的非预期实证副作用，包括拒答减少、校准失真、指令忠实度漂移，以及长轨迹造成的更大安全与隐私暴露面。”—— https://arxiv.org/html/2509.21882v3
+- “主导效应是尝试膨胀：更强的 RLVR 策略会尝试多得多的问题。”—— https://arxiv.org/html/2509.21882v3
 
-## What it adds / why it's good
-Most RLVR write-ups celebrate accuracy deltas; this paper is one of the few that treats the *evaluation protocol itself* as the object of study and shows the protocol can manufacture or erase the result. Two ideas are directly load-bearing for an agent-evals library: (1) **metric pluralism flips rankings** — if your harness scores only final answers, you will systematically read RLVR models differently than a process-aware harness would, so the metric is a confound you must hold fixed before comparing models; and (2) **abstention is a first-class measurement axis** — RLVR quietly trains away calibrated "I don't know," so any eval that only rewards correctness (and never penalizes confident-wrong over honest-abstain) is blind to a real regression in deployed reliability. The "RLVR tax" framing and the budget-matched saturation-curve recommendation give a concrete, reusable checklist (budget-match, track variance/calibration/abstention, stress-test judges, screen contamination) that generalizes well beyond RLVR to any capability claim. The non-BS value is that it operationalizes "your benchmark gain might be a measurement artifact" with named mechanisms and numbers rather than hand-waving.
+## 贡献与价值
+多数 RLVR 文章强调准确率差值，而本文把评估协议本身作为研究对象，并说明协议可以制造或抹去结果。对智能体评测库而言，两点尤其关键。第一，指标多元性会改变排名：只评分最终答案的框架会系统性地以不同方式解读 RLVR 模型，因此比较模型前必须固定指标。第二，拒答应是一等测量维度：RLVR 会悄然消除经过校准的“不知道”，只奖励正确而不惩罚“自信答错优于诚实拒答”的评测，会忽略真实的部署可靠性退化。“RLVR 税”以及预算匹配饱和曲线建议还形成了一套可复用清单：匹配预算、跟踪方差/校准/拒答、压力测试裁判并筛查污染。其真正价值在于，它用具名机制与数字把“基准增益可能只是测量伪影”变成了可操作问题。
 
-## Themes
-- **1 why-evals** — argues capability numbers are untrustworthy without protocol controls; core motivation for principled evals.
-- **6 benchmark-vs-eval/integrity** — contamination probes, budget-matching, and "memorization vs. reasoning" are squarely about benchmark integrity.
-- **8 judge/verifiers** — proposes an LLM-judge robustness stress test; whole paper is about what "verifiable reward" actually verifies.
-- **10 safety/adversarial** — abstention suppression / confident-wrong answers is a calibration-and-safety failure mode (honest "I don't know" → assertive error).
-- **2 eval⇄capability⇄RL-env** — directly about how RL training distorts the eval signal and vice versa.
+## 主题
+- **1 为何需要评测**——没有协议控制，能力数字并不可信。
+- **6 基准与评测/完整性**——污染探针、预算匹配以及区分记忆与推理。
+- **8 裁判/验证器**——提出大语言模型裁判稳健性压力测试。
+- **10 安全/对抗**——压低拒答与自信答错属于校准和安全失效。
+- **2 评测⇄能力⇄强化学习环境**——强化学习训练会扭曲评测信号，反之亦然。

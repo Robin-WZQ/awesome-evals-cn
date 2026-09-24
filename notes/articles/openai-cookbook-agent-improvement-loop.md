@@ -1,37 +1,37 @@
-# Notes — "Build an Agent Improvement Loop with Traces, Evals, and Codex"
+# 笔记——《用轨迹、评测与 Codex 构建智能体改进闭环》
 
-**Author:** Wesley Pasfield (OpenAI Cookbook, Agents SDK) · **URL:** https://developers.openai.com/cookbook/examples/agents_sdk/agent_improvement_loop · **Type:** eng-blog · **Found:** true
+**作者：** Wesley Pasfield（OpenAI Cookbook，Agents SDK） · **网址：** https://developers.openai.com/cookbook/examples/agents_sdk/agent_improvement_loop · **类型：** 工程博客 · **已找到：** 是
 
-## Summary (3-6 sentences)
-This OpenAI Cookbook notebook is a runnable, end-to-end demonstration of an agent "improvement flywheel": it runs a real agent, captures execution traces, layers human + model feedback onto those traces, converts the feedback into reusable Promptfoo evals, and then ranks the next set of changes and hands them to Codex to implement. The worked example is a financial diligence analyst agent operating over a mounted dataroom, run across five realistic diligence questions. The central framing is the "harness" — the full contract around the model (instructions, tools, routing, output requirements, validation checks) — rather than just the prompt or model. The loop is closed by HALO, an external optimization tool that diagnoses the trace corpus and writes a `codex_handoff.md` carrying the diagnosis, ranked recommendations, evidence, and implementation guidance forward. It is notable as a concrete, code-first instantiation of the trace→feedback→eval→fix practitioner loop, complete with validation gates that catch regressions before changes ship.
+## 摘要（3–6 句）
+这份 OpenAI Cookbook 笔记本完整演示了一个可运行的智能体“改进飞轮”：运行真实智能体、捕获执行轨迹、在轨迹上叠加人工与模型反馈、把反馈转成可复用的 Promptfoo 评测，再为下一轮修改排序并交给 Codex 实现。示例是一个在挂载数据室中工作的财务尽调分析智能体，它会处理五个现实尽调问题。核心分析单位不是提示或模型，而是“套件”（harness）——围绕模型的完整契约，包括指令、工具、路由、输出要求与验证检查。外部优化工具 HALO 分析轨迹语料，并生成 `codex_handoff.md`，将诊断、排序后的建议、证据和实施指导传递给 Codex，从而闭合循环。这是“轨迹→反馈→评测→修复”实践闭环的一次具体、代码优先实现，并包含上线前捕获回归的验证门禁。
 
-## Key points (5-12 substantive bullets)
-- **Five-stage loop:** (1) trace generation — run the agent on realistic scenarios and export OpenTelemetry-style spans to JSONL; (2) feedback collection — add human reviewer comments and LLM critiques onto traces; (3) eval generation — auto-convert feedback into Promptfoo test cases; (4) validation gate — run Promptfoo evals against current behavior to catch regressions; (5) optimization & handoff — use HALO to rank harness changes and emit a `codex_handoff.md`.
-- **"Harness," not "prompt," is the unit of change:** the notebook defines the harness as the full contract around the model — instructions, tools, routing, output requirements, and validation checks — so improvements target the whole agent contract, not just wording.
-- **Custom trace exporter:** a `HaloJsonlTraceProcessor` intercepts Agents SDK span lifecycle events and writes one JSON line per span, preserving trace IDs, parent-child relationships, timing, token counts, tool invocations, workflow names, and error status — making runs correlatable across the corpus and consumable by HALO.
-- **Feedback becomes machine-readable expectations:** human + model observations about gaps/failures are structured into Promptfoo test cases (inputs, expected outputs, grading criteria) so future agent versions can be re-validated automatically without manual re-review.
-- **HALO closes the loop:** HALO (github.com/context-labs/halo) analyzes the full trace corpus + feedback + eval results, ranks which harness modifications have highest impact, and writes the developer-facing `codex_handoff.md` with diagnosis, evidence links, and implementation guidance for Codex.
-- **Concrete worked agent:** a financial diligence analyst whose system prompt emphasizes structured evidence over narrative, citation discipline, and explicit unknown-handling; tool policy restricts data to a mounted dataroom and prefers structured CSV/JSON exports over narrative files when they conflict.
-- **Output contract enforcement:** the agent must emit six required artifacts (summary answer, investment memo, risk register, open questions, citations, evidence table). Two validation tools enforce this — `check_evidence_coverage.py` audits drafted claims against actual dataroom files, and `validate_output_contract.py` checks all artifacts exist with valid JSON/CSV.
-- **Versioned config as dataclasses:** `ModelSettings` (model + reasoning effort, e.g. "medium") and `AgentConfig` (system prompt, model settings, tool policy, eval metadata) bundle the harness into a versioned contract; `run_sdk_agent()` stages the dataset, attaches tracing, runs the SDK runner, collects artifacts, and exports traces.
-- **Numbers:** 5 traced runs by default (financing risk, revenue quality, customer concentration, security readiness, unsupported metrics); ~20 min runtime with default models. Fictional dataroom details exercise the agent's discipline: 11 months runway at $2.9M monthly burn; 34% customer concentration (Northstar Holdings, $12.4M of $36.9M controlled ARR); $43.0M board ARR vs $36.9M controlled ARR, a $6.1M gap attributed to launch-stage commitments and usage true-ups.
-- **War-story design intent:** the dataroom deliberately contains conflicting metrics (board vs controlled ARR) and unsupported numbers so traces surface whether the agent hallucinates, cites, or flags unknowns — turning subjective "is this answer good" judgments into reproducible eval cases.
+## 要点
+- **五阶段闭环：** 生成轨迹并将 OpenTelemetry 风格跨度导出为 JSONL；加入人工评论和 LLM 批评；自动转为 Promptfoo 测试；对当前行为运行回归门禁；用 HALO 排列套件修改优先级并输出 `codex_handoff.md`。
+- **修改单位是“套件”，而非“提示”：** 套件是指令、工具、路由、输出要求和验证检查组成的完整契约，因此改进目标是整个智能体契约，而不只是措辞。
+- **自定义轨迹导出器：** `HaloJsonlTraceProcessor` 拦截 Agents SDK 的跨度生命周期事件，每个跨度写一行 JSON，并保留轨迹 ID、父子关系、时间、令牌数、工具调用、工作流名称与错误状态，以便跨语料关联并供 HALO 使用。
+- **反馈变成机器可读期望：** 人和模型对缺口／失败的观察被结构化为包含输入、预期输出和评分标准的 Promptfoo 用例，未来版本无需再次人工审核即可自动复验。
+- **HALO 闭合循环：** HALO（github.com/context-labs/halo）分析轨迹、反馈与评测结果，排列高影响套件修改，并为 Codex 写出包含诊断、证据链接和实施指导的交接文件。
+- **具体智能体：** 财务尽调分析员的系统提示强调结构化证据、引用纪律与显式处理未知项；工具策略将数据限制在挂载的数据室中，并在冲突时优先采用结构化 CSV／JSON 而非叙述文件。
+- **输出契约强制：** 智能体必须生成六项制品：摘要答案、投资备忘录、风险登记册、开放问题、引用和证据表。`check_evidence_coverage.py` 对照数据室文件审计论断，`validate_output_contract.py` 检查制品是否齐全且 JSON／CSV 有效。
+- **数据类版本化配置：** `ModelSettings` 封装模型与推理强度，`AgentConfig` 封装系统提示、模型设置、工具策略和评测元数据；`run_sdk_agent()` 负责暂存数据集、接入追踪、运行 SDK、收集制品并导出轨迹。
+- **数字：** 默认进行 5 次带追踪运行，覆盖融资风险、收入质量、客户集中度、安全就绪度与无依据指标；默认模型约需 20 分钟。虚构数据室包含 11 个月现金跑道、每月 290 万美元消耗；Northstar Holdings 占受控 ARR 的 34%（1240 万／3690 万美元）；董事会 ARR 为 4300 万美元，与受控 ARR 相差 610 万美元。
+- **案例设计意图：** 数据室故意加入冲突指标和无依据数字，以暴露智能体是否会幻觉、引用证据或标记未知，把主观的“答案好不好”转成可复现用例。
 
-## Verified quotes (1-4 verbatim lines)
-> "This notebook builds an improvement flywheel for an agent. We start with real traces, add human and model feedback, turn that feedback into Promptfoo evals, and use the resulting evidence to propose the next harness changes for Codex to implement." — https://developers.openai.com/cookbook/examples/agents_sdk/agent_improvement_loop
+## 已核验引述（中文翻译）
+> “本笔记本为智能体构建一个改进飞轮。我们从真实轨迹开始，加入人和模型的反馈，把反馈转成 Promptfoo 评测，再利用所得证据提出下一轮套件修改建议，交由 Codex 实现。”——https://developers.openai.com/cookbook/examples/agents_sdk/agent_improvement_loop
 
-> "The flywheel preserves what you learn from each run. Traces show what happened, feedback explains what mattered, evals make those expectations reusable, and Codex can act on the resulting change set." — same URL
+> “飞轮会保存每次运行中学到的内容。轨迹展示发生了什么，反馈解释哪些事情重要，评测让这些期望可复用，而 Codex 可以执行由此得到的变更集。”——同上
 
-> "In this notebook, the harness is the full contract around the model, including instructions, tools, routing, output requirements, and validation checks." — same URL
+> “在本笔记本中，套件是围绕模型的完整契约，包括指令、工具、路由、输出要求和验证检查。”——同上
 
-> "Prefer structured CSV/JSON exports over narrative files when they conflict." (agent system prompt) — same URL
+> “当结构化 CSV／JSON 导出与叙述文件冲突时，优先采用前者。”（智能体系统提示）——同上
 
-## What it adds / why it's good
-Most practitioner writing on eval loops stays at the diagram level: "collect traces, label them, write evals, fix the agent." This source is the rare one that ships the actual plumbing — a custom span exporter, dataclass-versioned harness config, a feedback-to-Promptfoo converter, a validation gate, and a structured Codex handoff artifact — so the loop is mechanically reproducible rather than aspirational. Two ideas are genuinely sharper than the obvious sources: (1) treating the **harness as the unit of optimization** (instructions + tools + routing + output contract + validators), which reframes "improve the prompt" into "improve the contract"; and (2) the **`codex_handoff.md` as a durable carrier of state between the analysis stage and the coding agent** — diagnosis, ranked recs, evidence, and implementation guidance travel together, which is exactly the gap that breaks most human-in-the-loop improvement cycles. The deliberately adversarial dataroom (conflicting ARR figures, unsupported metrics) is a nice touch: it builds evals that test epistemic discipline (cite/flag/abstain), not just task completion.
+## 它带来了什么／为何有价值
+大多数实践文章停留在“收集轨迹、做标注、写评测、修智能体”的示意图层面；本资料罕见地给出了实际管道：自定义跨度导出器、以数据类版本化的套件配置、反馈到 Promptfoo 的转换器、验证门禁，以及结构化的 Codex 交接制品，使循环可机械复现而非停留在愿景。两个观点尤其突出：一是把套件而非提示作为优化单位，把“改提示”升级为“改契约”；二是用 `codex_handoff.md` 作为分析阶段与编码智能体间的持久状态载体，让诊断、排序建议、证据和实施指导一起传递，补上许多人机协作闭环最容易断裂的一环。带冲突 ARR 和无依据指标的对抗性数据室，还使评测真正检验引用、标记与拒答等认识论纪律，而不仅是任务完成。
 
-## Themes
-- **1 why-evals** — argues evals make subjective feedback reusable and reproducible across agent versions.
-- **4 observability** — trace generation via a custom OpenTelemetry-style JSONL span exporter is the loop's foundation.
-- **5 eval infra** — Promptfoo suites, a validation gate, and the HALO/`codex_handoff.md` pipeline as concrete eval infrastructure.
-- **8 judge/verifiers** — model critiques plus deterministic verifiers (`check_evidence_coverage.py`, `validate_output_contract.py`) as graders.
-- **9 agent-specific** — full agent harness (tools, output contract, dataroom) and Agents SDK tracing, not single-prompt eval.
+## 主题
+- **1 为什么需要评测**——把主观反馈变成可跨版本复用的期望。
+- **4 可观测性**——基于 OpenTelemetry 风格 JSONL 跨度导出的轨迹是闭环基础。
+- **5 评测基础设施**——Promptfoo、验证门禁及 HALO／`codex_handoff.md` 管线。
+- **8 裁判／验证器**——模型批评加确定性验证器。
+- **9 智能体专属**——面向完整智能体套件与 Agents SDK 追踪，而非单提示评测。

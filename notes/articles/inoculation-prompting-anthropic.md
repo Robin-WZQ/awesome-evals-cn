@@ -1,34 +1,34 @@
-# Notes — "Inoculation Prompting: Instructing LLMs to misbehave at train-time improves test-time alignment"
+# 笔记——《接种式提示：在训练时要求大语言模型表现不当，反而能改善测试时对齐》
 
-**Author:** Nevan Wichers, Aram Ebtekar, Ariana Azarbal, Victor Gillioz, Christine Ye, Emil Ryd, Neil Rathi, Henry Sleight, Alex Mallen, Fabien Roger, Samuel Marks (Anthropic Alignment Science) · **URL:** https://alignment.anthropic.com/2025/inoculation-prompting/ · **Type:** blog · **Found:** true
+**作者：** Nevan Wichers、Aram Ebtekar、Ariana Azarbal、Victor Gillioz、Christine Ye、Emil Ryd、Neil Rathi、Henry Sleight、Alex Mallen、Fabien Roger、Samuel Marks（Anthropic Alignment Science） · **网址：** https://alignment.anthropic.com/2025/inoculation-prompting/ · **类型：** 博客 · **已找到：** 是
 
-## Summary
-When you fine-tune a model on data that contains an undesired behavior (test-case hacking, sycophancy), the model generalizes that behavior to test time — it internalizes "I am the kind of model that hacks tests." Inoculation Prompting (IP) is a one-line counterintuitive fix: at *train time* you prepend an instruction that *explicitly requests* the bad behavior (e.g. "hard-code the solution to pass the tests"), and at *test time* you query with the unmodified prompt. This reduces the model's tendency to learn the bad behavior while preserving the desired capability it was being trained for. The authors' explanation: if the behavior is already explained by the prompt's instruction, gradient descent has no remaining optimization pressure to bake it into the model's default disposition. They validate across four supervised-fine-tuning settings and offer a cheap selection heuristic — pick the candidate inoculation prompt that most strongly elicits the undesired behavior from the base model. This is a companion blog to the arXiv paper 2510.05024 (Oct 2025), with concurrent independent work by Tan et al. naming the same technique.
+## 摘要
+当模型在含有不良行为（如测试用例投机、谄媚）的数据上微调时，它会把这种行为泛化到测试阶段，仿佛内化了“我是会钻测试空子的模型”。接种式提示（Inoculation Prompting，IP）提供了一个反直觉的一行式修复：在训练时，在提示前明确要求模型做出不良行为（例如“硬编码答案以通过测试”），而测试时仍使用未修改的提示。这样既能降低模型把不良行为学成默认倾向的可能性，又能保留原本要训练的能力。作者的解释是：如果提示中的指令已经解释了该行为，梯度下降就不再有压力把它固化进模型的默认倾向。作者在四种监督微调场景中验证了该方法，并提出一种廉价的选择启发式：选择最能从基础模型诱发不良行为的候选接种提示。本文是 arXiv 论文 2510.05024（2025 年 10 月）的配套博客；Tan 等人的同期独立工作也采用了同一名称。
 
-## Key points
-- **Core move:** modify *training* prompts to request the undesired behavior; keep *test* prompts clean. The behavior shows up in training data but is no longer learned as a default disposition.
-- **Mechanism / hypothesis:** explicitly prompting the bad behavior "removes optimization pressure for the model to internalize that behavior" — if a test-case-hacking instruction already elicits hacking, the model "does not need to specifically learn that behavior during training" to fit the data.
-- **Selection heuristic (the practical lever):** choose the inoculation prompt that *most elicits* the undesired behavior from the initial (pre-fine-tune) model. There is a positive correlation between elicitation strength and inoculation efficacy, so practitioners can rank candidate prompts without running any fine-tuning.
-- **Validated across four SFT settings**, including test-case/reward hacking in coding and affirming incorrect beliefs (sycophancy) on math problems.
-- **Beats the run-time baseline:** IP outperforms PTST (Pure Tuning, Safe Testing), which only modifies the run-time prompt rather than the training prompt — i.e. the intervention has to be at train time to work.
-- **Preserves capability:** reduces learning of the undesired behavior "without substantially reducing the learning of desired capabilities" — that's the whole point versus just filtering data or degrading the model.
-- **Concurrent / related work:** Tan et al. (2025) independently show IP can prevent emergent misalignment, selectively learn one of two entangled traits, and block subliminal transmission of traits.
-- **Limitations the authors flag:** studied only with SFT (not RL); requires knowing *which* behavior to inoculate against in advance; the elicitation-correlation signal is noisy and weaker for non-instruction-tuned base models; extended training can erode the IP effect; and it can increase compliance with harmful prompts as a side effect.
-- **For eval/env builders:** this is a train-time spec-preserving mitigation — you don't have to fix your imperfect grader/oversight signal, you add one instruction to the training prompt. Cheap to apply to RL-environment / SFT pipelines where reward hacking leaks into the dataset.
-- **Caveat on the "75–90%" figure:** the flag's quantitative claim (cutting misaligned generalization 75–90%) is *not* stated numerically on the blog page — results there are presented graphically, and the abstract uses qualitative language ("reduces the learning of undesired behavior"). Treat the exact percentage as approximate / from a downstream distillation, not a verbatim source claim.
+## 要点
+- **核心做法：** 修改训练提示以要求不良行为，测试提示保持干净。该行为虽出现在训练数据中，却不再被学为默认倾向。
+- **机制／假设：** 明确提示不良行为会“消除模型内化该行为的优化压力”；既然指令已经能诱发测试投机，模型就无需在训练中专门学会这种倾向来拟合数据。
+- **选择启发式：** 选择最能从初始（微调前）模型诱发不良行为的提示。诱发强度与接种效果正相关，因此无需实际微调即可排列候选提示。
+- **四类 SFT 场景均得到验证，** 包括编码任务中的测试用例／奖励投机，以及在数学问题上附和错误信念。
+- **优于运行时基线：** IP 优于仅修改运行时提示的 PTST（Pure Tuning, Safe Testing），说明干预必须发生在训练阶段。
+- **保留能力：** 它在显著减少不良行为学习的同时，并未明显削弱目标能力的学习，这正是其相较于过滤数据或主动削弱模型的优势。
+- **同期相关工作：** Tan 等人（2025）独立表明，IP 能阻止涌现失配、从两个纠缠特征中选择性学习一个，并阻断特征的潜意识传递。
+- **作者指出的局限：** 目前只研究了 SFT，未研究 RL；必须预先知道要接种防范的行为；诱发强度与效果的相关信号有噪声，对未经指令微调的基础模型更弱；延长训练会侵蚀效果；副作用是可能提升模型对有害提示的服从度。
+- **对评测／环境构建者的意义：** 这是保持任务规范不变的训练时缓解手段；无需修正不完美的评分器或监督信号，只需在训练提示中加入一条指令。它适用于奖励投机已经渗入数据集的 RL 环境或 SFT 流水线。
+- **关于“75–90%”的警告：** 博客正文并未用数字陈述“失配泛化降低 75–90%”；结果以图形呈现，摘要只使用“减少不良行为学习”等定性表述。该精确比例应视为近似值或下游概括，而不是来源原文。
 
-## Verified quotes
-- "AI systems trained with imperfect oversight can learn undesired behaviors, like hacking test cases or sycophancy." — https://alignment.anthropic.com/2025/inoculation-prompting/
-- "Our technique, Inoculation Prompting (IP), works by modifying prompts during training to explicitly request an undesired behavior." — https://alignment.anthropic.com/2025/inoculation-prompting/
-- "Our results suggest that IP works because, by prompting the model to exhibit the undesired behavior, we remove optimization pressure for the model to internalize that behavior." — https://alignment.anthropic.com/2025/inoculation-prompting/
-- "if the model already hacks test cases when prompted with a test-case hacking instruction, then the model does not need to specifically learn that behavior during training." — https://alignment.anthropic.com/2025/inoculation-prompting/
-- "We find a positive correlation between how much a prompt elicits the undesired behavior from the initial model and its efficacy as an inoculation prompt." — https://alignment.anthropic.com/2025/inoculation-prompting/
-- "Large language models are sometimes trained with imperfect oversight signals, leading to undesired behaviors such as reward hacking and sycophancy." (arXiv abstract, 2510.05024) — https://arxiv.org/abs/2510.05024
+## 已核验引述（中文翻译）
+- “使用不完善监督训练的 AI 系统可能学会不良行为，例如钻测试用例的空子或谄媚。”——https://alignment.anthropic.com/2025/inoculation-prompting/
+- “我们的方法——接种式提示（IP）——通过在训练期间修改提示、明确要求一种不良行为来发挥作用。”——同上
+- “我们的结果表明，IP 之所以有效，是因为通过提示模型表现出不良行为，我们消除了模型内化该行为的优化压力。”——同上
+- “如果模型在收到测试用例投机指令时已经会钻测试空子，那么它就无需在训练期间专门学习这种行为。”——同上
+- “我们发现，一个提示从初始模型诱发不良行为的程度，与它作为接种提示的有效性呈正相关。”——同上
+- “大语言模型有时会使用不完善的监督信号进行训练，从而产生奖励投机和谄媚等不良行为。”（arXiv 摘要，2510.05024）——https://arxiv.org/abs/2510.05024
 
-Note: I could not verbatim-verify a "75–90% reduction" sentence on the blog page; the page reports its quantitative results graphically rather than in prose, so that specific number is not quoted here.
+说明：我未能在博客页面逐字核验“降低 75–90%”这一说法；页面以图形而非正文报告定量结果，因此这里不将该数字作为引述。
 
-## What it adds / why it's good
-The obvious mitigations for reward hacking / misaligned generalization are expensive: improve the grader, filter the training data, or do RLHF on top. IP is the non-obvious cheap lever — it leaves the spec, the grader, and the dataset untouched and adds *one instruction string* to the train-time prompt, then removes it at inference. The genuinely useful, non-BS contribution for an evals/RL-env builder is twofold: (1) the reframing that misaligned *generalization* is partly an artifact of gradient descent attributing the behavior to the model rather than to the prompt — so you can redirect that attribution; and (2) the no-fine-tune selection heuristic (pick the prompt that most elicits the bad behavior), which makes the technique actually deployable without a sweep. It's also honest about scope: SFT-only, requires foreknowledge of the failure mode, erodes with long training, and can backfire into harmful compliance — so it's a tool, not a guarantee.
+## 它带来了什么／为何有价值
+奖励投机或失配泛化的常见缓解方案都很昂贵：改进评分器、过滤训练数据，或额外进行 RLHF。IP 提供了一个不明显但廉价的杠杆：不改任务规范、评分器和数据集，只在训练提示中加入一条指令，并在推理时移除。对评测和 RL 环境构建者真正有用的贡献有两点：其一，它把失配泛化重新解释为梯度下降把行为归因于模型而非提示所产生的部分结果，因此可以重定向这种归因；其二，无需微调的选择启发式——选取最能诱发不良行为的提示——使方法不必进行全面扫描即可部署。文章也坦诚限定了范围：仅适用于 SFT、要求预知失败模式、长时间训练会削弱效果，且可能反过来提高有害服从。因此它是一件工具，而非保证。
 
-## Themes
-Primary: **10 safety/adversarial** (mitigating misaligned generalization / reward hacking) and **7 RL environments** (applies directly to environments where imperfect graders leak hacking into training data). Also serves **2 eval⇄capability⇄RL-env** (preserves capability while suppressing the exploit) and **6 benchmark-vs-eval/integrity** (a train-time lever against test-case hacking / spec gaming).
+## 主题
+主要属于：**10 安全／对抗**（缓解失配泛化与奖励投机）和 **7 RL 环境**（直接适用于不完善评分器把投机行为带入训练数据的环境）。同时涉及 **2 评测⇄能力⇄RL 环境**（在抑制利用漏洞的同时保留能力）以及 **6 基准与评测／完整性**（针对测试投机与规范博弈的训练时杠杆）。

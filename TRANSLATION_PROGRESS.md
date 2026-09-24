@@ -1,8 +1,8 @@
 # 深度笔记中文翻译进度
 
-进度：`[█████████████████░░░] 85%（121/143）`
+进度：`[███████████████████░] 94%（134/143）`
 
-- 文章：46/68
+- 文章：59/68
 - 论文：28/28
 - 演讲与播客：47/47
 
@@ -136,3 +136,16 @@
 119. `notes/articles/anthropic-writing-tools-for-agents.md`
 120. `notes/articles/hud-verifier-reward-design-rl-environments.md`
 121. `notes/articles/wolfe-stats-llm-evals.md`
+122. `notes/articles/ai-that-works-eval-episodes.md`
+123. `notes/articles/aws-evaluating-ai-agents-amazon.md`
+124. `notes/articles/countdown-code-reward-hacking-rlvr-testbed.md`
+125. `notes/articles/dont-pass-at-k-bayesian-llm-eval.md`
+126. `notes/articles/extrinsic-hallucinations-in-llms-lilian-weng.md`
+127. `notes/articles/how-i-ai-hamel-husain-eval-tricks.md`
+128. `notes/articles/inoculation-prompting-anthropic.md`
+129. `notes/articles/leehanchung-hidden-technical-debt-agent-runtime.md`
+130. `notes/articles/natural-emergent-misalignment-reward-hacking-production-rl.md`
+131. `notes/articles/openai-cookbook-agent-improvement-loop.md`
+132. `notes/articles/opik-evaluate-agent-trajectory.md`
+133. `notes/articles/prime-intellect-environments-hub.md`
+134. `notes/articles/rlvr-hidden-costs-measurement-gaps.md`
