@@ -2,7 +2,7 @@
 
 > 一份经过筛选、带有明确判断且拒绝“链接堆砌”的 AI 智能体构建与评测资源库，覆盖论文、博客、演讲、课程、工具与基准。
 
-本仓库是 [benchflow-ai/awesome-evals](https://github.com/benchflow-ai/awesome-evals) 的中文整理版，原始版本固定于提交 [`1b8928b`](https://github.com/benchflow-ai/awesome-evals/commit/1b8928b60a9d41cbab371610d741d39a3fd50860)。英文完整清单见 [README.en.md](README.en.md)，原项目由 [BenchFlow](https://benchflow.ai) 维护。
+本仓库是 [benchflow-ai/awesome-evals](https://github.com/benchflow-ai/awesome-evals) 的中文整理版，原始版本固定于提交 [`1b8928b`](https://github.com/benchflow-ai/awesome-evals/commit/1b8928b60a9d41cbab371610d741d39a3fd50860)，原项目由 [BenchFlow](https://benchflow.ai) 维护。
 
 与普通的 Awesome List 不同，原项目为每条资源说明了“它是什么、为什么值得收录”，检查了 URL 和引用，并剔除了失效或停止维护的工具。原始资料来自：
 
@@ -13,7 +13,7 @@
 
 当前上游包含 **443+ 条精选资源和 143 篇深度阅读笔记**。其中 🆕 表示 2025—2026 年发布或更新，⚠️ 表示需要注意适用条件或证据局限。
 
-> 说明：本中文入口由人工整理，翻译章节结构、核心判断和重点资源说明；论文、博客、工具及基准的原始标题保留英文，以便准确检索和引用。143 篇深度笔记及英文全量条目仍以 [README.en.md](README.en.md) 和 [`notes/`](notes/) 为准，不将未逐条翻译的内容标记为中文译文。
+> 说明：本中文版由人工整理。深度笔记的标题、栏目、正文与引述均已翻译为中文；作者姓名、模型名称、缩写、代码、公式、URL 及必要的正式资源名称按准确性需要保留。
 
 ## 目录
 
@@ -218,7 +218,6 @@
 - [`notes/articles/`](notes/articles/)：博客与实践文章的深度笔记。
 - [`notes/talks/`](notes/talks/)：47 场演讲、播客和课程笔记，部分带时间戳。
 - [`notes/papers/`](notes/papers/)：由引文图谱筛出的论文笔记。
-- [`README.en.md`](README.en.md)：443+ 条资源的完整英文注释清单。
 
 ## 许可证与来源
 

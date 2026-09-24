@@ -1,22 +1,21 @@
-name: Eval Scan (audit + update)
+name: 评测扫描（审计并更新）
 
-# Autonomous daily curator. Claude Code finds NEW high-signal agent-eval content, vets it
-# ruthlessly, verifies it, and opens ONE review PR — or none. Runs on a Claude subscription
-# OAuth token. The bot can NEVER push to main or self-merge; a human approves every PR.
+# 自主每日策展器。Claude Code 寻找新的高信号智能体评测内容，严格筛选并核验，
+# 然后创建一个待审查 PR，或者不创建。它使用 Claude 订阅 OAuth token 运行。
+# 机器人绝不能推送到 main 或自行合并；每个 PR 都必须由人批准。
 #
-# This is the SIMPLE, PRODUCTIVE recipe (exhaustive single-job, capable subagents) — the one
-# that actually surfaces real finds. The sophisticated delta-state/tiered recipe
-# (.github/scan-recipe.md + .scanner/) is kept as documented future work (its real form is a
-# two-job Haiku-scout -> Sonnet-vet pipeline); the single-job version of it was reliably safe
-# but not productive in a 25-min CI budget.
+# 这是简单而高效的方案（单作业穷尽搜索，配合高能力子智能体），确实能发现有价值的内容。
+# 更复杂的增量状态／分层方案（.github/scan-recipe.md + .scanner/）作为未来工作保留文档；
+# 其完整形态是 Haiku 侦察 -> Sonnet 筛选的双作业流水线。该方案的单作业版本虽一直安全，
+# 但无法在 25 分钟 CI 预算内有效产出。
 
 on:
   schedule:
-    - cron: "0 13 * * *"   # daily 13:00 UTC
+    - cron: "0 13 * * *"   # 每日 13:00 UTC
   workflow_dispatch:
     inputs:
       focus:
-        description: "Scope this run to one source group / topic (optional)"
+        description: "将本次运行限定到一个来源组／主题（可选）"
         required: false
         default: ""
 
@@ -34,9 +33,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      # Slack notifications stay OFF (steps no-op) unless BOTH secrets are set:
-      #   SLACK_BOT_TOKEN  — a Slack bot token (xoxb-…) with chat:write, invited to the channel
-      #   SLACK_CHANNEL_ID — the target channel's ID (e.g. C07RE9B3LAW)
+      # 除非同时设置以下两个 secret，否则 Slack 通知保持关闭（步骤不执行）：
+      #   SLACK_BOT_TOKEN  — 具有 chat:write 权限且已被邀请进入频道的 Slack 机器人 token（xoxb-…）
+      #   SLACK_CHANNEL_ID — 目标频道 ID（例如 C07RE9B3LAW）
       SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -45,110 +44,100 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Opens the Slack thread for this run and captures its timestamp so the result posts
-      # as a threaded reply. Uses the Slack Web API directly (plain step, not the model).
-      - name: Notify Slack — scan started
+      # 为本次运行创建 Slack 讨论串，并保存其时间戳，以便结果作为串内回复发布。
+      # 直接使用 Slack Web API（普通步骤，不调用模型）。
+      - name: 通知 Slack——扫描已开始
         id: slack_start
         if: env.SLACK_BOT_TOKEN != '' && env.SLACK_CHANNEL_ID != ''
         run: |
-          txt=$(printf ':mag: *Daily eval scan started* — %s\nScanning known authors, company eng blogs, eval podcasts, arXiv & HF for new high-signal agent-eval content. Finds (and rejections) get threaded here. <%s|View run>' "$(date -u +%F)" "$RUN_URL")
+          txt=$(printf ':mag: *每日评测扫描已开始* — %s\n正在扫描已知作者、公司工程博客、评测播客、arXiv 和 HF，寻找新的高信号智能体评测内容。发现项（以及淘汰项）会在此串中更新。<%s|查看运行>' "$(date -u +%F)" "$RUN_URL")
           resp=$(curl -sS -X POST https://slack.com/api/chat.postMessage \
             -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
             -H 'Content-type: application/json; charset=utf-8' \
             -d "$(jq -n --arg ch "$SLACK_CHANNEL_ID" --arg txt "$txt" '{channel:$ch, text:$txt}')")
           echo "ts=$(echo "$resp" | jq -r '.ts // empty')" >> "$GITHUB_OUTPUT"
-          # Stamped from the runner clock (which cannot fail) so the result step can tell a PR THIS
-          # run opened from one left open on an earlier day. `date -u` is deliberate: an API lookup
-          # here would abort the step under `bash -e` and cost the Slack summary entirely.
+          # 使用不会失败的运行器时钟记录时间，使结果步骤能够区分本次运行创建的 PR
+          # 与早先某天遗留的 PR。刻意使用 `date -u`：此处查询 API 可能在 `bash -e` 下
+          # 中止步骤，导致整份 Slack 摘要丢失。
           echo "started_at=$(date -u +%FT%TZ)" >> "$GITHUB_OUTPUT"
-          [ "$(echo "$resp" | jq -r .ok)" = "true" ] || echo "::warning::Slack start post failed: $(echo "$resp" | jq -r '.error // "unknown"')"
+          [ "$(echo "$resp" | jq -r .ok)" = "true" ] || echo "::warning::Slack 启动消息发布失败：$(echo "$resp" | jq -r '.error // "unknown"')"
 
-      - name: Run the eval scan
+      - name: 运行评测扫描
         id: claude
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          # Use the workflow token for git/PR ops instead of a minted Claude GitHub App token
-          # (the OIDC->app-token exchange is an external dependency that can 401). The scanner
-          # only needs to push a branch + open a PR, which GITHUB_TOKEN + permissions above cover.
+          # Git／PR 操作使用工作流 token，而不生成 Claude GitHub App token；
+          # OIDC 到应用 token 的交换是可能返回 401 的外部依赖。扫描器只需推送分支并创建 PR，
+          # 上述权限下的 GITHUB_TOKEN 已足够。
           github_token: ${{ secrets.GITHUB_TOKEN }}
           settings: ".github/claude-scan-settings.json"
           claude_args: "--model claude-sonnet-4-6 --max-turns 200"
           prompt: |
-            You are the autonomous daily curator for **benchflow-ai/awesome-evals**. Find NEW, genuinely
-            high-signal agent-evaluation content, vet it RUTHLESSLY, verify it, and open ONE review PR — or
-            none. You can NEVER push to `main` and NEVER merge; a human approves every PR.
-            Optional focus for this run: "${{ github.event.inputs.focus }}" (empty = full scan).
+            你是 **benchflow-ai/awesome-evals** 的自主每日策展器。寻找新的、真正高信号的智能体评测内容，
+            极其严格地筛选并核验，然后创建一个待审查 PR；也可以不创建。你绝不能推送到 `main`，
+            也绝不能合并；每个 PR 都必须由人批准。
+            本次运行的可选关注范围："${{ github.event.inputs.focus }}"（为空表示完整扫描）。
 
-            1. Read `README.md`, `MENTIONS.md`, and `CONTRIBUTING.md`. Collect every URL AND entry title across
-               BOTH lists as your dedup set. Dedup by URL **and** by close title — never re-add a paper/talk/post
-               already listed under a different URL (arxiv vs html, or a podcast *about* a listed paper).
+            1. 阅读 `README.md`、`MENTIONS.md` 和 `CONTRIBUTING.md`。收集两个列表中的所有 URL 和条目标题，
+               作为去重集合。按 URL 和近似标题双重去重；不得重复加入以不同 URL 出现的同一论文／演讲／文章，
+               例如 arXiv 与 HTML 版本，或讨论已收录论文的播客。
 
-            2. DISCOVER thoroughly — spawn one Task subagent per seam IN PARALLEL and actually fetch each;
-               concluding "nothing new" without fetching the company-blog indexes is a FAILED run:
-               - known authors' latest (Eugene Yan, Han-Chung Lee, Hamel Husain, Shreya Shankar, Nathan Lambert,
-                 Florian Brand, Jason Liu, Cameron Wolfe, Chip Huyen, Lilian Weng, Simon Willison);
-               - company eng blogs — for JS-SPA ones (Cursor, Anthropic engineering, OpenAI, Cognition, Replit,
-                 Sourcegraph, Braintrust, Vercel, Prime Intellect, BenchFlow) run **WebSearch recency queries**
-                 (e.g. `site:cursor.com eval OR benchmark` past 2 weeks) AND fetch the index;
-               - eval podcasts (Latent Space, Vanishing Gradients, AI That Works, MLOps Community, How I AI);
-               - new benchmarks/tools (recent arXiv agent-eval, HF papers, GitHub releases via `gh api`);
-               - eval mentions inside general agent-building posts/talks.
+            2. 彻底发现——每条搜索路径各创建一个 Task 子智能体并行执行，且确实抓取来源。
+               未抓取公司博客索引便得出“没有新内容”，视为运行失败：
+               - 已知作者的最新内容（Eugene Yan、Han-Chung Lee、Hamel Husain、Shreya Shankar、Nathan Lambert、
+                 Florian Brand、Jason Liu、Cameron Wolfe、Chip Huyen、Lilian Weng、Simon Willison）；
+               - 公司工程博客——对于使用 JS SPA 的 Cursor、Anthropic engineering、OpenAI、Cognition、Replit、
+                 Sourcegraph、Braintrust、Vercel、Prime Intellect、BenchFlow，既要运行近期 **WebSearch 查询**
+                 （例如过去两周的 `site:cursor.com eval OR benchmark`），也要抓取索引；
+               - 评测播客（Latent Space、Vanishing Gradients、AI That Works、MLOps Community、How I AI）；
+               - 新基准／工具（近期 arXiv 智能体评测、HF 论文、通过 `gh api` 获取 GitHub release）；
+               - 通用智能体构建文章／演讲中的评测内容。
 
-            3. VET RUTHLESSLY — real data/method/benchmark/war-story only. Reject SEO/marketing/derivative/
-               thin-recap and anything already in the dedup set.
-               BOTH ERRORS ARE REAL. A single weak entry lowers trust in the list. But a MISS is just as bad and
-               far less visible: this list exists so a practitioner sees the major eval results here first, so
-               failing to surface a significant new benchmark audit, a named author's new eval post THAT CLEARS
-               THE BAR, or a retraction/sequel to something ALREADY in the list is a failed run, not a safe one.
-               Calibration: a typical day is 0-3 additions. Zero is a legitimate outcome when you fetched the
-               seams and nothing cleared the bar — but it is never the default, and "when in doubt leave it out"
-               licenses rejecting a weak candidate, never skipping the search that would have found a strong one.
-               PER-ITEM REVIEW: for EACH surviving candidate, spawn its OWN Task subagent that (a) judges it against
-               the bar (keep/cut) and (b) assigns its target section (see step 5). Never batch-judge; one subagent
-               per addition idea, so each gets a real review.
+            3. 极其严格地筛选——只保留真实数据、方法、基准或实战复盘。淘汰 SEO、营销、二手衍生内容、
+               内容稀薄的复述，以及去重集合中已有的项目。
+               两类错误都真实存在。一个弱条目就会降低列表可信度；但漏报同样糟糕且更难察觉。本列表的目的，
+               是让实践者最先在这里看到重要评测结果。因此，漏掉重要的新基准审计、达到标准的知名作者新文章，
+               或已收录项目的撤回／续篇，都属于失败，而不是安全保守。
+               校准：通常每天新增 0–3 项。如果已抓取所有路径却没有内容过线，零新增完全合理；但它绝不能成为默认。
+               “有疑问就不收录”只允许淘汰弱候选，绝不允许跳过本可发现强候选的搜索。
+               逐项审查：每个进入候选的项目都必须拥有独立 Task 子智能体：（a）按标准判断保留／淘汰；
+               （b）确定目标章节（见步骤 5）。绝不能批量评判；每个新增构想都要得到真实审查。
 
-            4. VERIFY survivors. If the **/deep-research** skill is available, run ONE /deep-research pass over the
-               survivor batch to adversarially fact-check each headline claim + surface dups/contradictions;
-               otherwise spawn skeptic subagents that re-fetch the live page. NEVER state a number you cannot quote
-               verbatim from one source sentence; drop anything you cannot verify.
+            4. 核验保留项。如果 **/deep-research** 技能可用，对全部保留项运行一次 /deep-research，
+               以对抗方式核查每项核心主张并发现重复／矛盾；否则创建持怀疑态度的子智能体，重新抓取实时页面。
+               任何数字若无法从来源中的一句原文逐字举证，就绝不能陈述；删除无法核实的内容。
 
-            5. ROUTE each kept item into its CORRECT SECTION — integrate into the main list, NEVER a catch-all
-               "Scan additions" subsection:
-               - an eval-FOCUSED article/paper/tool → its best THEMED section in `README.md` BY TOPIC, inserted
-                 among that section's existing entries: §1 why-evals · §2 eval⇄capability⇄RL-env · §3 model/harness/skill ·
-                 §4 observability · §5 eval-infra · §6 benchmark-vs-eval & INTEGRITY (contamination, reward-hacking,
-                 eval-awareness, leaderboard gaming) · §7 RL-environments · §8 LLM-as-judge & verifiers ·
-                 §9 agent-specific eval & agent BENCHMARKS · §10 safety/adversarial.
-               - a talk / podcast / lecture → the `🎙 Talks, podcasts & slides` section in `README.md`.
-               - a resource that only MENTIONS evals (agent-building post/talk with a good eval segment, not eval-first)
-                 → `MENTIONS.md`.
-               Mirror the existing entry shape (`- **[Title](url)** — Author — note. 🆕`). NEVER create or use a
-               generic "Scan additions" bucket, and NEVER put an eval-mention in `README.md`.
+            5. 把每个保留项路由到正确章节——整合进主列表，绝不能使用笼统的“扫描新增”小节：
+               - 以评测为核心的文章／论文／工具 → 按主题插入 `README.md` 中最合适的现有章节：
+                 §1 为何需要评测；§2 评测⇄能力⇄RL 环境；§3 模型／框架／技能；§4 可观测性；
+                 §5 评测基础设施；§6 基准与评测及完整性（污染、奖励操纵、评测感知、排行榜操纵）；
+                 §7 RL 环境；§8 LLM-as-judge 与验证器；§9 智能体专用评测与智能体基准；§10 安全／对抗。
+               - 演讲／播客／课程 → `README.md` 的 `🎙 Talks, podcasts & slides` 章节。
+               - 只提及评测的资源（包含优质评测片段但不以评测为主的智能体文章／演讲）→ `MENTIONS.md`。
+               遵循现有条目格式（`- **[Title](url)** — Author — note. 🆕`）。不得创建或使用通用的
+               “扫描新增”容器，也不得把只提及评测的资源放进 `README.md`。
 
-            6. If ≥1 item clears the bar: create branch `scan/<YYYY-MM-DD>`, commit (plain message, NO AI/Claude
-               attribution or "Generated with" line), push, and open ONE PR (base=`main`) titled
-               "Scan <date>: N new eval find(s)" whose body lists each addition, WHICH FILE it went to, the verbatim
-               claim quote proving any stat, and why it clears the bar. NEVER push to `main`. If nothing clears the
-               bar, make no changes and report "no new items".
+            6. 如果至少有 1 项过线：创建分支 `scan/<YYYY-MM-DD>`，提交时使用普通消息，不得包含 AI／Claude
+               署名或“Generated with”字样；推送并创建一个以 `main` 为基线的 PR，标题为
+               `Scan <date>: N new eval find(s)`。正文列出每项新增、进入的文件、证明统计数字的逐字引述，
+               以及它为何过线。绝不能推送到 `main`。如果没有内容过线，不做改动并报告“没有新条目”。
 
-            7. ALWAYS end your final message with a SEARCH REPORT, whether or not you opened a PR:
-               - every index/feed/search you actually fetched, as a plain URL list, grouped by seam;
-               - every candidate you considered but rejected, one line each with the reject reason;
-               - the counts: N sources fetched, M candidates considered, K added.
-               A "no new items" answer with an empty or missing search report is a FAILED run — it is the one
-               thing that distinguishes a real zero-find day from having skipped the work.
+            7. 无论是否创建 PR，最终消息都必须以搜索报告结尾：
+               - 按搜索路径分组，以纯 URL 列表列出实际抓取的每个索引／feed／搜索；
+               - 每个考虑后淘汰的候选各占一行，并写明淘汰原因；
+               - 统计：抓取 N 个来源，考虑 M 个候选，新增 K 项。
+               报告“没有新条目”却缺少搜索报告或搜索报告为空，视为运行失败；搜索报告是区分真正零发现
+               与跳过工作的唯一依据。
 
-            Be exhaustive in discovery, ruthless in inclusion — the list's value is curation, not volume.
+            发现阶段务必穷尽，收录阶段务必严格——列表的价值在于策展，而不是数量。
 
-      # Reduces the execution log to a tool-call audit trail: tool NAME + INPUT only, with every
-      # tool_result dropped. Tool results are where `cat`/`Read` output — hence any env secret —
-      # would land, and artifact bytes are NOT secret-masked by the runner, so they must not ship.
-      # What survives is the one thing that answers "did the scan actually look?": which URLs it fetched.
-      # (`show_full_output` is deliberately left at its default "false": the execution file is already
-      # complete without it, so enabling it would add no audit value and only print tool results into
-      # this PUBLIC repo's Actions log.)
-      - name: Build tool-call audit trail
+      # 把执行日志精简成工具调用审计轨迹：仅保留工具名称和输入，丢弃所有 tool_result。
+      # 工具结果可能包含 `cat`／`Read` 输出及环境 secret；制品字节不会被运行器遮蔽，因此不能发布。
+      # 保留下来的内容恰好能回答“扫描是否真正查找过”：它抓取了哪些 URL。
+      # `show_full_output` 刻意保持默认 `false`；执行文件已完整，启用它不会增加审计价值，
+      # 只会把工具结果打印到这个公共仓库的 Actions 日志。
+      - name: 构建工具调用审计轨迹
         id: audit
         if: always()
         env:
@@ -156,16 +145,14 @@ jobs:
         run: |
           src="${EXEC_FILE:-$RUNNER_TEMP/claude-execution-output.json}"
           if [ ! -f "$src" ]; then
-            echo "::warning::No execution log at $src — nothing to audit."
+            echo "::warning::$src 中没有执行日志，无法审计。"
             exit 0
           fi
           out="$RUNNER_TEMP/claude-tool-calls.json"
-          # Every jq is guarded: this step runs under `bash -e`, and a truncated execution file
-          # must degrade to a warning, never kill the step and swallow the Slack summary.
-          # Captures BOTH halves of the evidence: the tool calls (did it look?) and the agent's
-          # final search report required by prompt step 7 (what did it find and reject?). Without
-          # the report the step-7 requirement would be unobservable — `show_full_output` is off,
-          # so the final assistant text appears nowhere else.
+          # 所有 jq 均有保护：该步骤在 `bash -e` 下运行，截断的执行文件应降级为警告，
+          # 而不能终止步骤并吞掉 Slack 摘要。
+          # 同时捕获两类证据：工具调用（是否查找）和提示步骤 7 要求的最终搜索报告（发现与淘汰内容）。
+          # 没有报告，步骤 7 的要求便不可观测；`show_full_output` 已关闭，最终助手文本不会出现在其他位置。
           if ! jq '{ tool_calls: [ .[]
                        | select(.type == "assistant")
                        | { uuid,
@@ -177,7 +164,7 @@ jobs:
                                 | select(.type == "result")
                                 | { subtype, is_error, num_turns, result: (.result // "") } ] | last) }' \
                   "$src" > "$out" 2>/dev/null; then
-            echo "::warning::Could not parse $src — SDK message shape may have changed."
+            echo "::warning::无法解析 $src，SDK 消息结构可能已变化。"
             exit 0
           fi
           calls=$(jq '[.tool_calls[].tool_calls[]] | length' "$out" 2>/dev/null || echo 0)
@@ -185,10 +172,10 @@ jobs:
                              | select(.name == "WebFetch" or .name == "WebSearch")
                              | (.input.url // .input.query // empty) ] | unique | length' "$out" 2>/dev/null || echo 0)
           echo "path=$out" >> "$GITHUB_OUTPUT"
-          echo "summary=${calls} tool calls · ${fetched} distinct fetches/searches" >> "$GITHUB_OUTPUT"
-          echo "Tool calls recorded: $calls (distinct fetches/searches: $fetched)"
+          echo "summary=${calls} 次工具调用 · ${fetched} 个不同的抓取／搜索" >> "$GITHUB_OUTPUT"
+          echo "已记录工具调用：$calls（不同抓取／搜索：$fetched）"
 
-      - name: Upload tool-call audit trail
+      - name: 上传工具调用审计轨迹
         if: always() && steps.audit.outputs.path != ''
         uses: actions/upload-artifact@v4
         with:
@@ -197,9 +184,9 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      # Threads the outcome under the start message: the finds preview + a link to review/merge
-      # the PR, or "no new items", or a failure note. Runs even if the scan step failed.
-      - name: Notify Slack — scan result
+      # 在启动消息下发布结果：发现项预览及审查／合并 PR 的链接，或“没有新条目”，或失败说明。
+      # 即使扫描步骤失败也会运行。
+      - name: 通知 Slack——扫描结果
         if: always() && env.SLACK_BOT_TOKEN != '' && env.SLACK_CHANNEL_ID != ''
         env:
           GH_TOKEN: ${{ github.token }}
@@ -208,16 +195,15 @@ jobs:
           JOB_STATUS: ${{ job.status }}
           TOOL_SUMMARY: ${{ steps.audit.outputs.summary }}
         run: |
-          # Only a scan/* PR opened DURING this run counts as this run's result. The old selector
-          # matched ANY open scan/* PR, so while #33 sat open the 06-30 and 07-01 runs re-announced
-          # it as that day's finds. Fails closed: no timestamp => no PR matched, never "match all".
-          # (`gh pr list --jq` takes no --arg, so the filter has to pipe into jq separately.)
+          # 只有本次运行期间创建的 scan/* PR 才算本次结果。旧选择器会匹配任意打开的 scan/* PR，
+          # 导致 #33 未关闭时，06-30 和 07-01 的运行都把它重新播报为当天发现。
+          # 失败时保持关闭：没有时间戳就不匹配 PR，绝不能“全部匹配”。
+          # `gh pr list --jq` 不接受 --arg，因此筛选必须单独通过管道交给 jq。
           pr=''
           lookup_ok=1
           if [ -n "${RUN_STARTED_AT:-}" ]; then
-            # Capture the query's exit status separately: `2>/dev/null || true` alone would turn an
-            # auth/API failure into an empty result, i.e. a green ":white_check_mark: no new items"
-            # on a day the scan may well have opened a PR.
+            # 单独捕获查询退出状态：仅使用 `2>/dev/null || true` 会把认证／API 失败变成空结果，
+            # 即使扫描可能已经创建 PR，也会错误显示绿色的“没有新条目”。
             if raw=$(gh pr list -R "$GITHUB_REPOSITORY" --base main --state open \
                        --json number,title,url,body,headRefName,createdAt 2>/dev/null); then
               pr=$(printf '%s' "$raw" | jq -c --arg since "$RUN_STARTED_AT" \
@@ -227,30 +213,30 @@ jobs:
               lookup_ok=0
             fi
           fi
-          # Status is checked FIRST: a failed run must never be reported green just because a PR is open.
+          # 首先检查状态：失败的运行绝不能仅因存在打开的 PR 就报告为绿色。
           if [ "$JOB_STATUS" != "success" ]; then
-            txt=$(printf ':x: Scan run *%s*. <%s|Check the logs>\n_%s_' "$JOB_STATUS" "$RUN_URL" "${TOOL_SUMMARY:-no tool-call audit available}")
-            [ -n "$pr" ] && txt="$txt$(printf '\n:warning: A PR was opened before the failure: %s' "$(echo "$pr" | jq -r .url)")"
+            txt=$(printf ':x: 扫描运行状态：*%s*。<%s|检查日志>\n_%s_' "$JOB_STATUS" "$RUN_URL" "${TOOL_SUMMARY:-没有可用的工具调用审计}")
+            [ -n "$pr" ] && txt="$txt$(printf '\n:warning: 失败前已创建一个 PR：%s' "$(echo "$pr" | jq -r .url)")"
           elif [ "$lookup_ok" -eq 0 ]; then
-            txt=$(printf ':warning: Scan finished, but the PR lookup failed — cannot tell whether a PR was opened. <%s|Check the run>\n_%s_' "$RUN_URL" "${TOOL_SUMMARY:-no tool-call audit available}")
+            txt=$(printf ':warning: 扫描已完成，但 PR 查询失败，无法判断是否创建了 PR。<%s|检查运行>\n_%s_' "$RUN_URL" "${TOOL_SUMMARY:-没有可用的工具调用审计}")
           elif [ -n "$pr" ]; then
             num=$(echo "$pr" | jq -r .number); url=$(echo "$pr" | jq -r .url); title=$(echo "$pr" | jq -r .title)
-            # Finds are entry lines (`- **[Title](url)** …`), not `### ` headings — those are section
-            # names in the PR body, so the old grep previewed the wrong thing (PR #33: 5 headings, 0 finds).
+            # 发现项是条目行（`- **[Title](url)** …`），不是 `### ` 标题；后者是 PR 正文中的章节名。
+            # 旧版 grep 因此预览了错误内容（PR #33：5 个标题，0 个发现项）。
             finds=$(echo "$pr" | jq -r '.body' | grep -E '^- \*\*\[' | sed -E 's/^- \*\*\[([^]]*)\].*/• \1/' | head -20 || true)
-            [ -z "$finds" ] && finds='(see the PR for the itemized finds)'
-            txt=$(printf ':sparkles: *%s*\n%s\n\n<%s|Review & merge PR #%s> — _human approval required before anything lands_' "$title" "$finds" "$url" "$num")
+            [ -z "$finds" ] && finds='（请在 PR 中查看逐项发现）'
+            txt=$(printf ':sparkles: *%s*\n%s\n\n<%s|审查并合并 PR #%s> — _任何内容落地前都需要人工批准_' "$title" "$finds" "$url" "$num")
           else
-            # The work-done counts ride along so a green tick is checkable at a glance: "0 distinct
-            # fetches" and "no new items" together mean the scan skipped the search, not that the week was quiet.
-            txt=$(printf ':white_check_mark: Scan finished — *no new items today* (nothing cleared the bar).\n_%s_ · <%s|run log + tool-call artifact>' "${TOOL_SUMMARY:-no tool-call audit available}" "$RUN_URL")
+            # 附带工作量统计，使绿色对勾可快速核查：“0 个不同抓取”和“没有新条目”同时出现时，
+            # 说明扫描跳过了搜索，而不是这一周确实没有内容。
+            txt=$(printf ':white_check_mark: 扫描完成——*今天没有新条目*（没有候选达到标准）。\n_%s_ · <%s|运行日志和工具调用制品>' "${TOOL_SUMMARY:-没有可用的工具调用审计}" "$RUN_URL")
           fi
-          # thread_ts is omitted when the start post failed, so the summary still lands in-channel
-          # rather than being suppressed entirely (the old `outputs.ts != ''` gate dropped it).
+          # 如果启动消息失败则省略 thread_ts，使摘要仍会发布到频道，而不是被完全抑制；
+          # 旧版 `outputs.ts != ''` 门禁会直接丢弃摘要。
           payload=$(jq -n --arg ch "$SLACK_CHANNEL_ID" --arg txt "$txt" --arg ts "${THREAD_TS:-}" \
             '{channel:$ch, text:$txt} + (if $ts == "" then {} else {thread_ts:$ts} end)')
           curl -sS -X POST https://slack.com/api/chat.postMessage \
             -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
             -H 'Content-type: application/json; charset=utf-8' \
             -d "$payload" \
-            | jq -e '.ok == true' >/dev/null || echo "::warning::Slack summary post failed"
+            | jq -e '.ok == true' >/dev/null || echo "::warning::Slack 摘要发布失败"

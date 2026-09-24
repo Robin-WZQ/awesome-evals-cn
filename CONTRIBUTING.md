@@ -1,25 +1,30 @@
-# Contributing to Awesome Agent Evals
+# 为 Awesome Agent Evals 贡献
 
-Thanks for helping keep this the best **non-BS** map of agent-evaluation resources.
+感谢你帮助我们把这里维护成最好的、**不吹不黑**的智能体评测资源地图。
 
-## What belongs here
-Resources for **building and evaluating AI agents**: papers, blog posts, talks/podcasts, courses, tools/frameworks, and benchmarks — that a practitioner at the Eugene-Yan / Han-Chung-Lee bar would actually send a colleague.
+## 哪些内容适合收录
 
-## Bar for inclusion
-- **Show your work.** Real data, code, war-stories, or a genuinely novel framework — not generic "you need evals" takes or SEO listicles.
-- **One-line *why*.** Every entry gets a short annotation: what it is + why it belongs in its section.
-- **Verify the URL.** Use the canonical repo/site (check for moved/archived repos). Note ⚠️ caveats.
-- **Prune the dead.** Discontinued or abandoned tools get removed or clearly flagged — never silently listed.
-- **Right section.** Match the theme; cross-list only when genuinely warranted.
-- **Tools need evidence someone else uses them.** Stars, external issues/PRs, or a third-party write-up. There is no fixed star threshold, and the current floor is low (several listed projects are under 50★) — but a brand-new repo with no users outside the authoring org is a "come back later," not a listing. `benchflow-ai` projects are held to the same bar.
-- **Disclose affiliation.** If you wrote or maintain the resource, say so in the PR body. Self-submissions are welcome and several listed entries are self-submitted — undisclosed ones are not, because the annotation is what asks a reader to trust the entry.
-- **Every number must be quotable.** If an annotation cites a figure, it has to appear verbatim in the linked source. Numbers that are only on a live leaderboard get pinned to a dated run, or dropped.
+面向**构建与评估 AI 智能体**的资源：论文、博客文章、演讲/播客、课程、工具/框架和基准。它们应达到 Eugene Yan / Han Chung Lee 这类从业者会真正转发给同事的质量门槛。
 
-## Format
+## 收录标准
+
+- **展示实际工作。**必须有真实数据、代码、实战经验，或真正新颖的框架；不接受泛泛而谈“你需要评测”的文章或 SEO 清单文。
+- **用一句话解释“为什么”。**每个条目都需要简短注释：它是什么，以及为什么应放在该章节。
+- **验证链接。**使用规范的仓库/网站链接，并检查仓库是否迁移或归档；必要时标注 ⚠️ 注意事项。
+- **清理失效项。**停止维护或已放弃的工具应当删除或清晰标记，不能悄然留在清单中。
+- **放在正确章节。**匹配主题；只在确有必要时才跨章节重复列出。
+- **工具需要外部使用证据。**例如 GitHub Star、外部 Issue/PR，或第三方文章。这里没有固定的 Star 门槛，目前下限也很低（若干已收录项目少于 50★）；但是，刚创建且没有作者所在组织以外用户的仓库，应当“以后再来”，而不是立即收录。`benchflow-ai` 项目适用相同标准。
+- **披露关联。**如果资源由你撰写或维护，请在 PR 正文中说明。欢迎自荐，已收录条目中也有多个自荐项；但不接受未披露的自荐，因为条目注释本身在请求读者信任它。
+- **每个数字都必须可直接引用。**如果注释引用数据，该数据必须在链接来源中逐字出现。只存在于实时排行榜的数字，应固定到某次有日期的运行，否则应删除。
+
+## 格式
+
+```text
+- **[标题](https://url)** — 作者/组织 — <https://url> · *类型* — 一句话注释。🆕（如为 2025–2026 年发布）
 ```
-- **[Title](https://url)** — Author/Org — <https://url> · *type* — one-line note. 🆕 (if 2025–2026)
-```
-Sections vary a little — the §5 tool subsections often drop `· *type*`, and talks end at the venue. When in doubt, copy the shape of the nearest existing entry in the section you're adding to. Caveats go last, after 🆕, as `⚠️ short reason.`
 
-## How
-Open a PR editing `README.md` — or `MENTIONS.md` if the resource only *mentions* evals (an agent-building post or talk with a good eval segment, rather than an eval-first resource). For a substantive source, consider adding a deep note under `notes/` (summary · key points · **verbatim** quotes · themes). One change per PR where possible. Be ready to say why it clears the bar.
+各章节格式略有差异：第 5 节的工具子章节通常省略 `· *类型*`，演讲条目则以会场结尾。如果不确定，请模仿所在章节最近的现有条目。注意事项放在最后，位于 🆕 之后，格式为 `⚠️ 简短原因。`
+
+## 如何贡献
+
+提交编辑 `README.md` 的 PR；如果资源只是**提到**评测（即一篇包含较好评测片段的智能体构建文章或演讲，而非以评测为核心的资源），则编辑 `MENTIONS.md`。对内容充实的来源，可考虑在 `notes/` 下添加深度笔记，包含摘要、要点、**逐字**引述和主题。尽可能每个 PR 只包含一项变更，并准备说明它为何达到收录标准。
