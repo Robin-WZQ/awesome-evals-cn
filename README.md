@@ -591,9 +591,6 @@
 - [`notes/papers/`](notes/papers/)——由引文图谱发现的论文
 
 <a id="contributing"></a>
-## 贡献
-
-欢迎提交 PR。请坚持高门槛：**展示实际工作**（真实数据、代码和实战经验优于观点输出），为每个条目提供一句话的*收录理由*，核验 URL，并标记注意事项。详见 [CONTRIBUTING.md](CONTRIBUTING.md)。质量高于数量——优秀清单的价值，同样来自它*排除了什么*。
 
 <a id="license"></a>
 ## 许可证
