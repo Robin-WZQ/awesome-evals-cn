@@ -1,6 +1,6 @@
 # Awesome Agent Evals [![Awesome](https://awesome.re/badge.svg)](https://awesome.re)
 
-> 一个经过策展、立场鲜明且**拒绝空话**的优质资源库，服务于**构建与评估 AI 智能体**，涵盖论文、博客文章、演讲、课程、工具和基准。
+> 一个服务于**构建与评估 AI 智能体**的优质资源库，涵盖论文、博客文章、演讲、课程、工具和基准。
 
 原始英文版本在[这里](https://github.com/benchflow-ai/awesome-evals)，本仓库仅提供一个中文翻译版本
 
