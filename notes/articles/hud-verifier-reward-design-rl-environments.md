@@ -1,37 +1,37 @@
-# Notes — "Verifier and Reward Design for RL Environments"
+# 笔记——《强化学习环境中的验证器与奖励设计》
 
-**Author:** HUD (Human Union Data, Inc.) — no individual byline · **URL:** https://www.hud.ai/resources/verifier-reward-design-rl-environments · **Type:** docs · **Found:** true
+**作者：** HUD（Human Union Data, Inc.，无个人署名）· **网址：** https://www.hud.ai/resources/verifier-reward-design-rl-environments · **类型：** 文档 · **已找到：** 是
 
-## Summary
-A practitioner guide from HUD (the team behind hud-python / RL-environment tooling) that reframes "scoring an agent" as a layered stack rather than a single reward number. It decomposes scoring into four distinct layers — verifier (binary task success), pass/fail checks (rule violations along the way), rubrics (graded quality dimensions), and the reward function (the combination that becomes the training signal) — and argues that each answers a different question and must be designed separately. Its core thesis is operational and a little dangerous-sounding: a bad verifier doesn't add noise, it actively trains the model to succeed at the wrong task. The guide ships a concrete 5-step authoring workflow and a strong, non-obvious warning grounded in reward-hacking research: shaping rewards that look harmless on a weak model become liabilities once the model gets stronger, because more capable agents are the ones that find and exploit the gaps. Published March 21, 2026.
+## 摘要
+这篇由 hud-python／强化学习环境工具团队 HUD 发布的实践指南，把“给智能体评分”重构为分层栈，而非单一奖励数字。它把评分拆成四层：验证器负责二元任务成功；通过／失败检查负责过程中的规则违规；评分规约评价渐进式质量维度；奖励函数把以上结果组合成训练信号。每一层回答不同问题，必须分别设计。其核心主张既实用又带有警示意味：糟糕的验证器不只是加入噪声，而会主动训练模型去完成错误任务。指南给出五步编写流程，并结合奖励投机研究提出一项不直观的警告：在弱模型上看似无害的塑形奖励，会在模型变强后成为负担，因为更有能力的智能体更善于发现并利用漏洞。发布于 2026 年 3 月 21 日。
 
-## Key points
-- **Scoring is a stack, not a scalar.** Four layers, each answering a different question: a verifier asks "did the task succeed?"; a pass/fail check asks "did the agent break any rules along the way?"; rubrics grade non-binary quality dimensions; the reward function combines all three into one numeric signal.
-- **Verifier = binary, state-based.** "Did the agent complete the task?" — defined as an observable state change or verifiable output (spreadsheet values, form submissions, API payloads), not as a judgment of the agent's narration.
-- **Pass/fail checks are orthogonal to success.** They enforce hard, non-negotiable constraints (policy violations, constraint breaches) independent of whether the task was completed — a task can succeed and still fail a gate.
-- **Rubrics only where they earn their keep.** Use small rubrics (3–5 criteria) for genuinely non-binary dimensions like efficiency, evidence completeness, and error recovery — not as a default.
-- **Terminal reward should dominate.** "The terminal reward should be the largest component of the total reward"; shaping rewards exist only to densify signal on long trajectories where a binary terminal check on a 50-step task gives "no gradient-useful information."
-- **The 5-step workflow:** (1) define the end state as verifiable assertions; (2) add hard failure checks for policy/constraint violations; (3) add small 3–5 criterion rubrics only where quality matters; (4) test on diverse real trajectories first; (5) tune reward weights only after grader stability is confirmed.
-- **Phase-transition warning (the non-obvious bit).** Citing Pan, Bhatia & Steinhardt (arXiv:2201.03544), more capable agents are more likely to exploit reward misspecifications — higher proxy reward, lower true reward — producing a "sharp qualitative shift into reward hacking." So a shaping reward that's harmless on a weak model becomes a liability once the model improves.
-- **Re-test on every model upgrade.** Because capability triggers exploitation, the explicit operational rule is to re-run your scoring system against new trajectories whenever you upgrade the underlying model.
-- **Grader stability is measurable.** Score the same set of trajectories multiple times to measure consistency; if agreement is low, tighten criteria, narrow the LLM grader's scope with programmatic checks, or average across multiple grading runs.
-- **A passing score ≠ training-useful trajectory.** Even a trajectory that earns a passing score may not be useful for training — score and training value are distinct.
-- **Concrete failure examples ground it:** an agent rewarded for "bottom-face height" flips a block upside-down instead of stacking it; an agent rewarded for API-call count just repeats one endpoint; references DeepMind's "Specification Gaming" catalog.
+## 要点
+- **评分是栈，而非标量。** 验证器回答任务是否成功；通过／失败检查回答智能体是否在途中违反规则；评分规约评价非二元质量；奖励函数把三者合并为数值信号。
+- **验证器是基于状态的二元判断。** 任务完成应体现为可观察状态变化或可核验输出，如电子表格数值、表单提交、API 载荷，而不是评判智能体如何叙述。
+- **通过／失败检查与成功正交。** 它独立强制执行政策或约束等不可妥协要求；任务可以完成，却仍因闸门失败而不合格。
+- **评分规约只在确有价值时使用。** 对效率、证据完整性、错误恢复等真正非二元维度，使用 3–5 项的小型评分规约，不应默认处处添加。
+- **终局奖励应占主导。** 它应是总奖励中最大的组成部分；塑形奖励只是为了在 50 步等长轨迹中增加信号密度，因为单个二元终局检查不能提供对梯度有用的信息。
+- **五步流程：** 将结束状态定义成可核验断言；加入政策／约束违规的硬失败检查；只在质量重要处添加 3–5 项评分规约；先用多样化真实轨迹测试；确认评分器稳定后再调奖励权重。
+- **能力相变警告：** 根据 Pan、Bhatia 与 Steinhardt（arXiv:2201.03544）的研究，更强智能体更可能利用奖励设定错误，以更高代理奖励换取更低真实奖励，并出现向奖励投机的急剧质变。弱模型上无害的塑形项，升级后可能成为漏洞。
+- **每次模型升级都重新测试。** 能力提高会触发利用行为，因此底层模型一旦升级，就应在新轨迹上重跑整套评分系统。
+- **评分器稳定性可测量。** 对同一组轨迹重复评分并测一致性；一致性低时应收紧标准，用程序化检查缩小大模型评分器范围，或对多次评分取平均。
+- **通过分数不等于有训练价值。** 即使轨迹获得通过分数，也未必适合训练；得分与训练价值是不同概念。
+- **具体失败案例：** 奖励“底面高度”的智能体会把积木倒置，而不是堆叠；奖励 API 调用次数的智能体会反复调用同一端点。文章也引用 DeepMind 的“规格投机”目录。
 
-## Verified quotes
-- "If the verifier is wrong, the reward is wrong, and the model learns the wrong thing." — https://www.hud.ai/resources/verifier-reward-design-rl-environments
-- "Weak scoring does not just add noise. It teaches the model to succeed at the wrong task." — https://www.hud.ai/resources/verifier-reward-design-rl-environments
-- "A verifier asks 'did the task succeed?', while a pass/fail check asks 'did the agent break any rules along the way?'" — https://www.hud.ai/resources/verifier-reward-design-rl-environments
-- "A shaping reward that seems harmless with a weak model can become a liability once the model improves." — https://www.hud.ai/resources/verifier-reward-design-rl-environments
-- "More capable agents are more likely to exploit reward misspecifications, achieving higher proxy reward while delivering lower true reward." — https://www.hud.ai/resources/verifier-reward-design-rl-environments
-- "The terminal reward should be the largest component of the total reward." — https://www.hud.ai/resources/verifier-reward-design-rl-environments
+## 已核验引述（中文翻译）
+- “如果验证器错了，奖励就是错的，模型也会学到错误的东西。”——https://www.hud.ai/resources/verifier-reward-design-rl-environments
+- “薄弱评分不只是增加噪声，它会教模型如何在错误任务上取得成功。”——同上
+- “验证器问‘任务是否成功’，而通过／失败检查问‘智能体途中是否违反任何规则’。”——同上
+- “对弱模型看似无害的塑形奖励，可能在模型改进后成为负担。”——同上
+- “能力更强的智能体更可能利用奖励设定错误，在获得更高代理奖励的同时交付更低真实奖励。”——同上
+- “终局奖励应是总奖励中最大的组成部分。”——同上
 
-## What it adds / why it's good
-Most "LLM-as-judge" and reward-design writing collapses everything into one fuzzy score. This guide's value is the explicit decomposition: separating the binary success verifier from the rule-checking gate from the graded rubric from the combined reward gives you four independently testable components instead of one opaque number — which is exactly the abstraction an evals library needs. The capability phase-transition point is the genuinely non-obvious takeaway: it inverts the usual intuition that you tune rewards once on a fixed model and move on. Instead it says your scoring stack has a shelf life tied to model capability, and the most dangerous shaping terms are the ones that pass review on today's weaker model. The 5-step workflow and the "re-test on every model upgrade" / "measure grader consistency by re-scoring" rules are concrete, falsifiable practices rather than platitudes. It's grounded in real research (Pan/Bhatia/Steinhardt, DeepMind specification gaming) rather than vibes. Caveats: it's vendor docs (HUD selling RL-env tooling), so examples lean on their stack, and there are no quantitative thresholds for "grader stability" — you're told to measure consistency but not what number is acceptable.
+## 它带来了什么／为什么值得读
+多数大模型裁判和奖励设计文章把所有内容压缩为一个模糊分数。本指南的价值在于明确拆分：二元成功验证器、规则检查闸门、渐进评分规约和组合奖励可以分别测试，而不是成为一个黑箱。能力相变是最不直观的结论，它推翻“在固定模型上一次调好奖励即可”的常见直觉：评分栈的寿命与模型能力绑定，最危险的塑形项可能恰恰是今天的弱模型无法利用、因而顺利通过审查的那些。五步流程、每次升级重新测试和通过重复评分衡量一致性，都是具体且可证伪的实践。局限在于这是销售强化学习环境工具的厂商文档，例子偏向其技术栈，也没有给出评分器稳定性的数值阈值。
 
-## Themes
-- **7 RL environments** — primary: it's explicitly about designing reward/verifier logic for RL training environments.
-- **8 judge/verifiers** — primary: the entire piece is a taxonomy and design method for verifiers, gates, and rubric graders (including LLM graders).
-- **10 safety/adversarial** — strong: reward hacking, specification gaming, and capability-driven exploitation are central.
-- **2 eval⇄capability⇄RL-env** — strong: the phase-transition argument directly links model capability to RL-env reward design.
-- **1 why-evals** — secondary: "if the verifier is wrong, the model learns the wrong thing" is a why-evals-matter argument for the training loop.
+## 主题
+- **7 强化学习环境**（主要）：为强化学习训练环境设计奖励与验证器。
+- **8 裁判／验证器**（主要）：验证器、闸门、评分规约及大模型评分器的分类与设计。
+- **10 安全／对抗：** 奖励投机、规格投机和能力驱动利用是核心。
+- **2 评测⇄能力⇄强化学习环境：** 能力相变把模型能力与奖励设计直接相连。
+- **1 为什么要评测：** 验证器错误会让模型学错，是训练循环中评测重要性的论据。

@@ -1,40 +1,40 @@
-# Notes — "Writing effective tools for AI agents—using AI agents"
+# 笔记——《借助 AI 智能体，为 AI 智能体编写高效工具》
 
-**Author:** Anthropic (Engineering) · **URL:** https://www.anthropic.com/engineering/writing-tools-for-agents · **Type:** eng-blog · **Found:** true
+**作者：** Anthropic 工程团队 · **网址：** https://www.anthropic.com/engineering/writing-tools-for-agents · **类型：** 工程博客 · **已找到：** 是
 
-## Summary (3-6 sentences)
-Anthropic argues that agent tools are a distinct class of software — a "contract between deterministic systems and non-deterministic agents" — and should not be thin wrappers over existing APIs but ergonomic affordances designed around how LLMs actually reason and consume context. The core method is a prototype → evaluate → collaborate loop: build a fast prototype (often via a local MCP server in Claude Code), run a realistic evaluation grounded in genuine workflows with verifiable outcomes, then collaborate with Claude itself to read the transcripts and refactor the tools. The eval is the heart of the piece: tasks should mirror real multi-tool workflows (dozens of calls), and metrics span accuracy, runtime, total tool calls, token consumption, and error rates. Most striking is the self-improvement loop — you concatenate eval transcripts and paste them into Claude Code, and the agent diagnoses its own failure modes and rewrites the tools, with a held-out test set guarding against overfitting. The article then distills concrete tool-design principles (consolidation, namespacing, meaningful context over raw IDs, token efficiency, prompt-engineered descriptions) that came out of exactly this loop.
+## 摘要（3–6 句）
+Anthropic 认为智能体工具是一类独特的软件，是“确定性系统与非确定性智能体之间的契约”。它们不应只是现有 API 的薄封装，而应围绕大模型实际如何推理和消费上下文来设计易用界面。核心方法是“原型→评测→协作”循环：快速搭建原型，通常在 Claude Code 中使用本地 MCP 服务器；基于真实工作流和可核验结果运行现实评测；再与 Claude 协作阅读轨迹并重构工具。评测是全文中心：任务应模拟包含数十次调用的真实多工具工作流，指标包括准确率、运行时间、工具调用总数、token 消耗和错误率。最醒目的是自我改进循环：拼接评测轨迹并交给 Claude Code，让智能体诊断自身失败并重写工具，再用留出测试集防止过拟合。文章最终提炼出合并功能、命名空间、以有意义上下文取代原始 ID、提高 token 效率，以及提示工程化工具描述等原则。
 
-## Key points (5-12 substantive bullets)
-- **The loop:** (1) prototype tools (wrap in a local MCP server or call via API, dogfood in Claude Code); (2) run comprehensive evals with realistic tasks; (3) collaborate with Claude to analyze transcripts and refactor — "most of the advice in this post came from repeatedly optimizing our internal tool implementations with Claude Code."
-- **Eval tasks must be grounded in real usage, not toy sandboxes.** Strong tasks come from "realistic data sources and services," require many tool calls (potentially dozens), and mirror actual workflows (e.g., schedule a meeting and attach context; resolve a customer issue spanning multiple systems). Weak tasks are single-tool, superficial operations.
-- **Verifiable outcomes** matter — eval tasks should have checkable end states so you can score accuracy programmatically rather than vibe-check.
-- **Metrics tracked:** accuracy, runtime, total tool calls, token consumption, and error rates — i.e., not just "did it succeed" but how efficiently.
-- **Self-refactoring via transcript analysis:** "You can even let agents analyze your results and improve your tools for you. Simply concatenate the transcripts from your evaluation agents and paste them into Claude Code." Claude reads its own failure traces and rewrites tool code/descriptions. A held-out test set prevents overfitting to the eval.
-- **War story (web search):** "When we launched Claude's web search tool, we identified that Claude was needlessly appending `2025` to the tool's `query` parameter, biasing search results and degrading performance." Fixed via a description change, not code — a clean example of prompt-engineering the tool surface.
-- **Consolidate functionality:** because agents have "limited context" whereas "computer memory is cheap and abundant," prefer a single `search_contacts` over list-everything-then-filter. One tool can hide multiple API calls / discrete operations under the hood.
-- **Namespacing** with common prefixes/suffixes (`asana_search`, `asana_projects_search`) helps tool selection; they found prefix- vs suffix-based namespacing has "non-trivial effects" on agent performance.
-- **Return meaningful context, not low-level identifiers:** replace cryptic UUIDs with semantic names; this "significantly improves Claude's precision in retrieval tasks by reducing hallucinations." Prioritize contextual relevance over flexibility.
-- **Token efficiency:** add `response_format` enum (`"concise"` vs `"detailed"`), pagination, filtering, truncation with sensible defaults. Concise Slack-thread responses used "~⅓ of the tokens." Claude Code caps tool responses at 25,000 tokens by default; truncated responses should include steering text nudging the agent toward more targeted strategies.
-- **Prompt-engineer tool descriptions** — called one of the most effective levers; be explicit about query formats, niche terminology, and resource relationships. "Even small refinements to tool descriptions can yield dramatic improvements" (cites Claude 3.5 Sonnet SWE-bench gains from description tuning).
-- **Reported gains:** held-out test-set improvements documented for both the internal Slack and Asana tool suites comparing human-written vs Claude-optimized implementations (article shows charts rather than a single headline %).
+## 要点
+- **循环：** 搭建工具原型，通过本地 MCP 服务器或 API 调用并在 Claude Code 中试用；用真实任务做综合评测；让 Claude 分析轨迹并重构。文中大部分建议都来自使用 Claude Code 反复优化内部工具实现。
+- **评测任务必须来自真实使用。** 优质任务使用现实数据源与服务，需要多次乃至数十次工具调用，并模拟安排会议并附加上下文、跨系统解决客户问题等真实流程；只调用一个工具的表层任务过弱。
+- **结果必须可核验：** 任务应有可检查的结束状态，以便程序化评分，而不是凭感觉判断。
+- **指标：** 准确率、运行时间、工具调用总数、token 消耗和错误率，同时衡量成功与效率。
+- **通过轨迹分析自我重构：** 拼接评测智能体的轨迹并粘贴进 Claude Code，Claude 就能读取自身失败并改写工具代码与描述；留出测试集用于防止对评测过拟合。
+- **网页搜索案例：** Claude 网页搜索工具上线时，团队发现 Claude 会无谓地给 `query` 参数附加 `2025`，导致搜索结果偏置和性能下降；只修改工具描述便修复问题。
+- **合并功能：** 智能体上下文有限，而计算机内存廉价充裕，因此应优先提供单个 `search_contacts`，而不是先列出全部再过滤。一个工具可以在底层隐藏多次 API 调用和离散操作。
+- **命名空间：** 使用 `asana_search`、`asana_projects_search` 等共同前后缀可帮助工具选择；前缀式与后缀式命名对智能体性能有不可忽视的影响。
+- **返回有意义的上下文而非底层标识符：** 用语义名称替换难懂 UUID，可减少幻觉并显著提高 Claude 检索精度；优先保证上下文相关性而非无限灵活性。
+- **token 效率：** 添加 `response_format` 枚举（`concise`／`detailed`）、分页、过滤和带合理默认值的截断。精简 Slack 线程响应约只需三分之一 token。Claude Code 默认把工具响应限制在 25,000 token；截断响应应加入引导文字，鼓励更精确的查询策略。
+- **对工具描述做提示工程：** 明确查询格式、专业术语和资源关系，是最有效杠杆之一；即使很小的描述改动也可能显著提升性能。
+- **结果：** 内部 Slack 与 Asana 工具套件都在留出集上比较了人工编写和 Claude 优化的实现，图表显示后者有所改善，但文章未给单一总百分比。
 
-## Verified quotes (1-4 VERBATIM lines with the URL)
-> "Tools are a new kind of software which reflects a contract between deterministic systems and non-deterministic agents." — https://www.anthropic.com/engineering/writing-tools-for-agents
+## 已核验引述（中文翻译）
+> “工具是一种新型软件，体现了确定性系统与非确定性智能体之间的契约。”——https://www.anthropic.com/engineering/writing-tools-for-agents
 
-> "You can even let agents analyze your results and improve your tools for you. Simply concatenate the transcripts from your evaluation agents and paste them into Claude Code." — same URL
+> “你甚至可以让智能体分析结果并自行改进工具。只需把评测智能体的轨迹拼接起来，粘贴到 Claude Code 中。”——同上
 
-> "When we launched Claude's web search tool, we identified that Claude was needlessly appending `2025` to the tool's `query` parameter, biasing search results and degrading performance." — same URL
+> “Claude 的网页搜索工具上线时，我们发现 Claude 会无谓地在工具的 `query` 参数后附加 `2025`，使搜索结果产生偏差并降低性能。”——同上
 
-> "In fact, most of the advice in this post came from repeatedly optimizing our internal tool implementations with Claude Code." — same URL
+> “事实上，本文大部分建议都来自使用 Claude Code 反复优化我们的内部工具实现。”——同上
 
-## What it adds / why it's good
-This is one of the few practitioner pieces that closes the full loop from eval → diagnosis → automated capability improvement, written by the lab that ships the model. The non-obvious value: (1) it treats the agent as the analyst of its own eval transcripts — turning evaluation output into a refactoring signal rather than just a scoreboard, with a held-out set to keep it honest; (2) it insists tasks be grounded in real services and span dozens of tool calls, which is a sharper bar than the usual single-call function-calling demos; (3) the concrete, falsifiable war stories (the `2025`-appending bug fixed by a description edit; ⅓-token concise responses; the 25k-token cap) give you specific, copyable levers rather than platitudes. Versus generic "write good docstrings" advice, it frames tools as the deterministic↔non-deterministic contract and shows that the highest-leverage edits are often in the tool description and the shape of returned context, not the underlying API.
+## 它带来了什么／为什么值得读
+这是少数由模型研发机构撰写、完整闭合“评测→诊断→自动提升能力”循环的实践文章。其独特价值在于：让智能体分析自己的评测轨迹，把评测输出变成重构信号，而非排行榜，并用留出集保持诚实；要求任务来自真实服务且横跨数十次工具调用，标准高于常见单函数调用演示；通过查询附加 `2025`、精简响应只需三分之一 token、25,000 token 上限等可证伪案例，提供可复制杠杆。相比泛泛的“写好文档字符串”，它把工具定位为确定性与非确定性系统之间的契约，并说明最高杠杆常在工具描述和返回上下文形态，而不在底层 API。
 
-## Themes
-- **1 why-evals** — evals are the central instrument for tool quality
-- **2 eval⇄capability⇄RL-env** — transcript-driven self-refactoring is the eval→capability feedback loop
-- **3 model/harness/skill** — tool design as harness/skill engineering
-- **5 eval infra** — grounded tasks, verifiable outcomes, held-out test sets, metric suite
-- **8 judge/verifiers** — verifiable-outcome scoring of tasks
-- **9 agent-specific** — entirely about agent tool-use ergonomics
+## 主题
+- **1 为什么要评测：** 评测是衡量工具质量的中心手段。
+- **2 评测⇄能力⇄强化学习环境：** 轨迹驱动的自我重构构成评测到能力的反馈闭环。
+- **3 模型／工具框架／Skill：** 把工具设计作为工具框架与 Skill 工程。
+- **5 评测基础设施：** 真实任务、可核验结果、留出集与多指标体系。
+- **8 裁判／验证器：** 对任务结果做可核验评分。
+- **9 智能体专项：** 全文讨论智能体工具使用体验。

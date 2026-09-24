@@ -1,8 +1,8 @@
 # 深度笔记中文翻译进度
 
-进度：`[█████████████████░░░] 83%（118/143）`
+进度：`[█████████████████░░░] 85%（121/143）`
 
-- 文章：43/68
+- 文章：46/68
 - 论文：28/28
 - 演讲与播客：47/47
 
@@ -133,3 +133,6 @@
 116. `notes/talks/talk-pod-ls-artificial-analysis.md`
 117. `notes/talks/talk-schulman-rlhf-progress-challenges.md`
 118. `notes/talks/talk-yan-llms-as-judges.md`
+119. `notes/articles/anthropic-writing-tools-for-agents.md`
+120. `notes/articles/hud-verifier-reward-design-rl-environments.md`
+121. `notes/articles/wolfe-stats-llm-evals.md`

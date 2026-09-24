@@ -1,35 +1,35 @@
-# Notes — "Applying Statistics to LLM Evaluations"
+# 笔记——《把统计学应用于大模型评测》
 
-**Author:** Cameron R. Wolfe (Ph.D.; Deep (Learning) Focus newsletter) · **URL:** https://cameronrwolfe.substack.com/p/stats-llm-evals · **Type:** newsletter · **Found:** true
+**作者：** Cameron R. Wolfe 博士（Deep (Learning) Focus 新闻简报）· **网址：** https://cameronrwolfe.substack.com/p/stats-llm-evals · **类型：** 新闻简报 · **已找到：** 是
 
-## Summary (3-6 sentences)
-Wolfe argues that LLM eval practice is statistically broken: results are reported with a "highest number is best" mentality, where a state-of-the-art score is bolded but never tested for significance, so teams routinely mistake noise for progress. The post is a from-first-principles statistics tutorial that reframes every eval score as an *estimate* with sampling error, and walks through the machinery to quantify that error: standard error and confidence intervals (via the Central Limit Theorem), clustered standard errors when questions aren't independent, variance decomposition (between-question vs. within-question), variance-reduction tricks (resampling, using token probabilities instead of binary correctness), paired-difference analysis for comparing two models, and power analysis for sizing a benchmark. It pairs the theory with a runnable Python reference implementation on toy data (two models, "Galleon" vs. "Dreadnought"). The throughline is practical: report mean ± SE, use paired tests when comparing models, prefer continuous metrics, and size your eval set before you run it. It also flags that CLT-based intervals break down below ~n=100, where Bayesian alternatives are safer.
+## 摘要（3–6 句）
+Wolfe 认为当前大模型评测在统计上存在严重问题：行业抱着“数字最高就是最好”的心态，加粗所谓最先进成绩，却不检验统计显著性，因此经常把噪声误认为进展。文章从基本原理出发，把每个评测分数重新视为带抽样误差的估计量，并讲解如何量化误差：用中心极限定理计算标准误和置信区间；问题不独立时使用聚类标准误；分解题目间与题目内方差；通过重采样或用 token 概率代替二元正确性来降低方差；以配对差值比较模型；用功效分析确定基准规模。理论配有可运行的 Python 示例，使用 Galleon 和 Dreadnought 两个玩具模型。实践原则是报告均值±标准误，模型比较使用配对检验，优先连续指标，并在运行前确定评测集规模。文章还警告，当 n 小于约 100 时，基于中心极限定理的区间可能失效，此时贝叶斯方法更稳健。
 
-## Key points
-- **The core gap:** eval results are reported as point estimates with no significance test. Wolfe's fix is to treat each score as a sample mean with quantifiable sampling error — report **mean ± standard error**, with SE = s/√n (s = sample std dev, n = number of questions); 95% CI ≈ ±1.96·SE.
-- **CLT is the engine:** as n grows, the sample-mean distribution approaches normal, which is what licenses the confidence interval. He derives this rather than asserting it.
-- **Clustered standard errors:** when questions aren't independent (e.g., multiple prompts drawn from the same document), naive SE *underestimates* uncertainty. The clustered SE interpolates between perfectly-correlated and perfectly-uncorrelated within-cluster scores — and can inflate reported SE by ~3× in realistic cases. A genuinely under-discussed failure mode for agentic/multi-turn evals where trajectories share context.
-- **Variance decomposition (law of total variance):** model a score as s_i = x_i + ε_i and split sample-mean variance into **between-question variance** (difficulty spread) and **within-question variance** (stochastic generation/judging). This tells you *which* lever to pull to tighten your interval.
-- **Variance reduction:** (a) **resample** K outputs per question and average — cuts within-question variance by ~K; (b) when you have logits, use the **probability of the correct answer** directly instead of binary right/wrong, which drives within-question variance to zero (σ²_i = 0). For multi-token answers, take the product of per-token probabilities.
-- **Paired-difference analysis:** to compare models A and B, analyze per-question score *differences* rather than two separate CIs. Because models are positively correlated across questions (they agree on what's hard), pairing is a "free" variance reduction and yields more statistical power.
-- **Power analysis / sample sizing:** he derives n ∝ (z_{α/2}+z_β)²·variance / δ² to detect an effect of size δ at significance α and power 1−β. Key intuition: **halving the detectable effect requires ~4× the samples** (quadratic). Use this at *design* time to decide how big a benchmark needs to be.
-- **Small-n caveat:** cites companion work that CLT-based intervals fail when n < 100; recommends more robust strategies (e.g., Bayesian confidence intervals) in the small-sample regime.
-- **Benchmark-variance findings (citing prior research):** small benchmarks (COPA, HumanEval) have wide CIs; continuous metrics (log-likelihood) beat discrete binary correctness on signal-to-noise; reformulating MMLU into a completion/cloze format (MMLU-Cloze) substantially reduces variability.
-- **Explicit don't:** do **not** lower sampling temperature as a variance-reduction hack — it changes what you're measuring rather than measuring it better.
-- **Deliverable:** a Python reference implementation computing CLT and clustered SEs, CIs, paired comparisons, and power analysis on toy n=10 binary scores — copy-pasteable scaffolding, not just prose.
+## 要点
+- **核心缺口：** 评测只报告点估计而不做显著性检验。应把分数视为样本均值并量化抽样误差，报告**均值±标准误**；`SE=s/√n`，95% 置信区间近似为 `±1.96·SE`。
+- **中心极限定理是基础：** n 增大时，样本均值分布趋近正态，由此才能使用上述置信区间；文章给出推导而非直接下结论。
+- **聚类标准误：** 多个提示来自同一文档等情况下，问题并不独立，朴素标准误会低估不确定性。聚类标准误在簇内完全相关与完全不相关之间插值，在现实案例中可能把标准误放大约三倍。这对共享上下文的智能体和多轮评测尤其重要，却很少被讨论。
+- **方差分解：** 将分数写作 `s_i=x_i+ε_i`，把样本均值方差分成题目间方差（难度差异）和题目内方差（生成或判断的随机性），据此选择收紧区间的手段。
+- **降低方差：** 每题重采样 K 个输出并取平均，可把题目内方差约缩小 K 倍；若有 logits，则直接使用正确答案概率而非二元对错，可把题目内方差降到零。多 token 答案使用各 token 概率乘积。
+- **配对差值分析：** 比较模型 A、B 时，应分析每题分数差而非两个独立置信区间。模型对题目难度通常正相关，因此配对相当于免费降低方差，并提高统计功效。
+- **功效分析／样本量设计：** 为在显著性 α、功效 `1−β` 下检测大小为 δ 的效应，`n ∝ (z_{α/2}+z_β)²·variance/δ²`。可检测效应减半需要约四倍样本，应在设计阶段用它决定基准规模。
+- **小样本警告：** n<100 时中心极限定理区间可能失效，建议使用贝叶斯置信区间等更稳健策略。
+- **基准方差发现：** COPA、HumanEval 等小基准置信区间较宽；对数似然等连续指标的信噪比优于离散对错；把 MMLU 改成补全／完形格式的 MMLU-Cloze 可显著降低变异性。
+- **明确不要做：** 不要通过降低采样温度来“降方差”，因为这改变了被测对象，而非提高测量质量。
+- **交付物：** Python 参考实现可计算中心极限定理和聚类标准误、置信区间、配对比较及功效分析，是可直接复用的脚手架。
 
-## Verified quotes
-- "Evals are commonly run and reported with a highest number is best mentality; industry practice is to highlight a state-of-the-art result in bold, but not necessarily to test that result for any kind of statistical significance." — https://cameronrwolfe.substack.com/p/stats-llm-evals
-- "we want to avoid mistaking noise for progress and instead equip ourselves with the statistical tools needed to run informative model evaluations." — https://cameronrwolfe.substack.com/p/stats-llm-evals
-- "Because eval question scores are likely to be positively correlated, even across unrelated models, paired differences represent a 'free' reduction in estimator variance when comparing two models." — https://cameronrwolfe.substack.com/p/stats-llm-evals
-- "the distribution of our sample mean becomes approximately normal with sufficiently large n, as shown in the orange distribution above." — https://cameronrwolfe.substack.com/p/stats-llm-evals
+## 已核验引述（中文翻译）
+- “评测通常以‘数字最高就是最好’的心态运行和报告；行业惯例是用粗体突出最先进结果，却不一定检验其任何统计显著性。”——https://cameronrwolfe.substack.com/p/stats-llm-evals
+- “我们希望避免把噪声误认为进展，并获得运行信息充分的模型评测所需的统计工具。”——同上
+- “由于评测题目分数即使在无关模型之间也很可能正相关，比较两种模型时，配对差值相当于免费降低估计量方差。”——同上
+- “当 n 足够大时，样本均值的分布近似正态，如上图橙色分布所示。”——同上
 
-## What it adds / why it's good
-Most eval blogs stop at "build good test sets and use an LLM judge." This is one of the very few practitioner pieces that takes the next, harder step: **is the score you just reported even real, or is it within the noise floor?** It supplies the actual estimators — clustered SE for non-independent questions, paired-difference tests for model-vs-model comparison, power analysis for sizing — that let you answer that, and it does so with derivations plus runnable code rather than hand-waving. The clustered-SE point is especially valuable and rarely mentioned: it directly applies to agentic and multi-turn evals where sub-tasks share context and naive SE lies to you. The "halve the effect → 4× the samples" rule and the "use token probabilities to kill within-question variance" trick are concrete, immediately actionable, and not obvious from the standard eval canon. The small-n (<100) CLT-failure warning is a useful guardrail given how many real eval sets are tiny.
+## 它带来了什么／为什么值得读
+多数评测博客止步于构建测试集和使用大模型裁判；本文继续追问更难的问题：刚报告的分数究竟真实存在，还是落在噪声底内？它提供聚类标准误、配对差值检验和功效分析等真实估计工具，并配有推导与代码。聚类标准误尤其珍贵，因为智能体和多轮评测中的子任务共享上下文，朴素标准误会误导使用者。“效应减半，样本增至四倍”以及“用 token 概率消除题目内方差”也是立即可用且并不显然的规则。考虑到现实评测集通常很小，n<100 时中心极限定理失效的警告同样重要。
 
-## Themes
-- **1 why-evals** — central thesis is about trusting (or not) the numbers evals produce.
-- **6 benchmark-vs-eval** — heavily about benchmark variance, sizing, and what a score actually estimates.
-- **5 eval infra** — provides reusable statistical tooling/reference code for computing SE, CIs, paired tests, power.
-- **8 judge/verifiers** — touches within-question variance from stochastic judging and using token probabilities vs. binary correctness.
-- **9 agent-specific** — clustered SE for non-independent questions maps directly to multi-turn/agentic eval correlation.
+## 主题
+- **1 为什么要评测：** 核心是评测数字是否可信。
+- **6 基准与评测：** 讨论基准方差、规模和分数实际估计的对象。
+- **5 评测基础设施：** 提供标准误、区间、配对检验和功效分析代码。
+- **8 裁判／验证器：** 涉及随机判断导致的题目内方差和连续概率指标。
+- **9 智能体专项：** 聚类标准误直接适用于相关的多轮／智能体评测。
