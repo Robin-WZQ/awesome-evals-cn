@@ -1,37 +1,37 @@
-# Notes — "My benchmark for large language models"
+# 深度笔记——《我的大语言模型基准》
 
-**Author:** Nicholas Carlini · **URL:** https://nicholas.carlini.com/writing/2024/my-benchmark-for-large-language-models.html · **Type:** blog · **Found:** true
+**作者：** Nicholas Carlini · **URL：** https://nicholas.carlini.com/writing/2024/my-benchmark-for-large-language-models.html · **类型：** 博客 · **已找到原文：** 是
 
-## Summary
-Carlini (a security/ML researcher, then at Google DeepMind) released a personal benchmark of nearly 100 tests harvested directly from his own real LLM conversations, plus a small dataflow DSL for authoring them. The thesis is that academic benchmarks measure the wrong thing — homework-style problems — while the tasks people actually bring to models (bootstrap a project, modify existing code, answer un-searchable questions) go untested. Each test is a chain of stages written with a `>>` ("and then do") operator: prompt the model, extract the code it writes, run that code safely in a Docker container, then check the output with an evaluator (substring match, a Python check, or even a vision-model judge). The core contribution is not a leaderboard but a reusable, extensible harness that turns "annoying things a model failed at" into regression tests, and an explicit, opinionated stance on what an eval built from real usage should optimize for. He is candid that this is deliberately *not* a general-capability benchmark — it measures utility for his use cases.
+## 摘要
 
-## Key points
-- **Built from real friction, not curated tasks.** The ~100 tests are extracted from Carlini's actual conversations, organized around his three real uses: starting a new project from a text description, modifying existing code (make it faster, convert language, add a feature), and answering questions "hard to search for because there's no good way to describe it with nice keywords."
-- **Dataflow DSL with a `>>` operator** ("and then do") chains stages: `LLMRun() >> ExtractCode() >> PythonRun() >> SubstringEvaluator("hello world")`. Disjunction (`|`) lets multiple answers count as correct.
-- **Rich stage vocabulary**: execution stages like `PythonRun()`, `CRun()`, `TerminalRun()`; evaluators like `SubstringEvaluator()`, `PyEvaluator()`, and `VisionLLMRun()` (using a vision model to grade image output). This makes the harness an LLM-as-judge / verifier framework as much as a test runner.
-- **Model-written code is actually executed, in Docker** — the eval doesn't just match text, it runs the program the model produced and checks behavior, sandboxed so untrusted generated code can't escape.
-- **Anti-prompt-engineering by design.** He rejects chain-of-thought scaffolding, role-play, and incentive tricks; the bar is typing a plain question and getting a right answer. He frames this partly as deliberate laziness — the eval should reflect how a normal user actually interacts.
-- **Outcome-only grading.** He explicitly doesn't care *why* a model is right (memorization vs. reasoning) — only whether the answer is correct. This sidesteps the contamination/reasoning debates that dominate academic benchmark discourse.
-- **Task variety is unusually concrete**: Python→C conversion, explaining minified JavaScript, identifying encodings (uuencoding), BNF grammar parsing, English→SQL, bash one-liners, reading assembly, generating .bmp images, interactive DB exploration, and creative tasks (encode a movie as emoji).
-- **Findings/signal**: GPT-4 does well at interactive SQL exploration and clever encodings (The Godfather as 👴🔫🍊💼🐴); models broadly fail at decoding uuencoded data, evaluating the gnarly C expression `-~++*x--`, reading novel assembly languages, and multi-step interactive terminal tasks.
-- **Honest scoping**: he states outright it is not a good general-capability benchmark and doesn't want it used in serious academic work — its value is being a faithful proxy for *his* daily usage, and a template anyone can fork.
-- **Open code**: https://github.com/carlini/yet-another-applied-llm-benchmark — tests are individually inspectable and results link to actual model outputs. Published 2024-02-19.
+安全与机器学习研究者 Nicholas Carlini 发布了一套个人基准：近 100 个测试直接取自他真实的 LLM 对话，并配有一个编写测试的小型数据流 DSL。其主张是，学术基准测的是作业题，而用户真正交给模型的任务——从零搭项目、修改已有代码、回答无法检索的问题——没有得到测试。每项测试用 `>>`（“然后执行”）连接多个阶段：提示模型、提取生成代码、在 Docker 中安全运行，再由子串匹配、Python 检查或视觉模型裁判评估。核心贡献不是排行榜，而是可扩展工具链，把“模型曾经搞砸的恼人问题”变成回归测试。作者坦率说明，这并非通用能力基准，只衡量模型对他个人用例的效用。
 
-## Verified quotes
-- "I just want to type my question and get the right answer." — https://nicholas.carlini.com/writing/2024/my-benchmark-for-large-language-models.html
-- "Specifically: this also means that I don't care _why_ the model managed to get the answer right." — same URL
-- "I'm fairly proud of the little data flow domain specific language I wrote to implement the test cases." — same URL
-- "Most questions are evalauted by actually running the code the model writes safely, in a docker container... don't worry too much." — same URL (typo "evalauted" is verbatim on the page)
-- "Now that people actually use models to do real things, we probably should have at least a few benchmarks that actually test for real uses." — same URL
-- "Does this make it a good benchmark for general model capabilities? No." — same URL
+## 要点
 
-## What it adds / why it's good
-Most "build your own eval" advice is abstract; this is a worked, open-source artifact from a serious researcher showing exactly how to convert lived annoyance into durable regression tests. The non-BS value is threefold: (1) the **dataflow DSL** is a genuinely good design pattern — composing prompt → extract → execute → judge as a pipeline maps cleanly onto how agent evals work, and it lowers the cost of adding a test to near-zero, which is the actual bottleneck for personal evals; (2) **executing model-written code in a Docker sandbox** is the canonical pattern for code/agent evals (functional correctness over text match, with isolation for untrusted output) shown in a tiny readable codebase rather than a heavyweight framework; (3) the **epistemics are unusually honest** — he explicitly disclaims generality and refuses prompt-engineering crutches, which is a useful counterweight to leaderboard culture. Compared to the obvious sources (MMLU/HumanEval papers, vendor cards), this is the rare primary document on *eval-as-personal-instrument*: small, opinionated, real-task-driven, and forkable.
+- **来自真实摩擦。** 约 100 项测试源于作者实际对话，覆盖从描述启动新项目、优化或转换已有代码、增加功能，以及回答难以用关键词搜索的问题。
+- **`>>` 数据流 DSL。** 例如 `LLMRun() >> ExtractCode() >> PythonRun() >> SubstringEvaluator("hello world")`；`|` 表示多个答案均可接受。
+- **丰富阶段。** 执行阶段包括 `PythonRun()`、`CRun()`、`TerminalRun()`；评估器包括 `SubstringEvaluator()`、`PyEvaluator()`、`VisionLLMRun()`。工具链同时也是验证器框架。
+- **真实执行模型代码。** 系统不只做文本匹配，而是在 Docker 沙箱中运行生成程序并检查行为，隔离不可信代码。
+- **刻意反对提示工程。** 不使用思维链脚手架、角色扮演或激励技巧；标准就是输入普通问题并获得正确答案，反映普通用户的真实交互。
+- **只按结果评分。** 作者不关心答案来自记忆还是推理，只关心是否正确，从而绕开学术基准中的污染与推理争论。
+- **任务具体多样。** 包括 Python 转 C、解释压缩 JavaScript、识别 uuencoding、解析 BNF、英语转 SQL、bash 单行命令、读汇编、生成 BMP、交互式数据库探索和用表情编码电影。
+- **观察结果。** GPT-4 擅长交互 SQL 和巧妙编码，例如用 👴🔫🍊💼🐴 表示《教父》；模型普遍无法解 uuencode 数据、求值复杂 C 表达式 `-~++*x--`、阅读新型汇编或完成多步交互终端任务。
+- **范围诚实。** 作者明确不建议把它当作通用能力基准或严肃学术工具；价值在于忠实代表个人日常用途，并可供任何人复刻。
+- **代码开放。** https://github.com/carlini/yet-another-applied-llm-benchmark ，各测试可检查，结果链接实际模型输出，发布于 2024-02-19。
 
-## Themes
-- **1 why-evals** — the central argument: benchmarks should test real uses, not homework.
-- **3 model/harness/skill** — the `>>` DSL and stage library are a concrete harness design.
-- **5 eval infra** — Docker-sandboxed execution, extractors, evaluators, regression-test workflow.
-- **6 benchmark-vs-eval/integrity** — explicitly an eval (his use cases) not a general benchmark; outcome-only grading sidesteps "why it's right."
-- **8 judge/verifiers** — `SubstringEvaluator`, `PyEvaluator`, `VisionLLMRun` as graders, including LLM-as-judge.
-- **9 agent-specific** — interactive terminal/DB tasks and run-the-code loops prefigure agentic evaluation.
+## 已核验引述（中文翻译）
+
+- “我只想输入问题并获得正确答案。”——https://nicholas.carlini.com/writing/2024/my-benchmark-for-large-language-models.html
+- “具体来说，这也意味着我不关心模型为什么能答对。”——同上
+- “我颇为自豪的是自己编写了一个小型数据流领域特定语言，用来实现测试案例。”——同上
+- “多数问题通过在 Docker 容器中安全运行模型编写的代码来评估……不用太担心。”——同上；原网页把 evaluated 拼成了 `evalauted`。
+- “既然人们已经用模型做真实事情，我们大概至少该有一些真正测试真实用途的基准。”——同上
+- “这会让它成为优秀的通用模型能力基准吗？不会。”——同上
+
+## 价值与贡献
+
+这是严肃研究者展示如何把亲身烦恼转成持久回归测试的开源成品。数据流 DSL 把“提示→提取→执行→裁判”组合成流水线，几乎把新增测试成本降到最低；Docker 中执行生成代码展示了代码与智能体评测的标准范式，即以功能正确性替代文本匹配，同时隔离不可信输出；作者又明确拒绝通用性主张和提示工程辅助，为排行榜文化提供了诚实制衡。它是少见的“评测即个人仪器”一手文档：小型、带立场、由真实任务驱动且可复刻。
+
+## 主题
+
+1 为什么需要评测 · 3 模型 / 工具链 / 技能 · 5 评测基础设施 · 6 基准与评测 / 完整性 · 8 裁判 / 验证器 · 9 智能体专项

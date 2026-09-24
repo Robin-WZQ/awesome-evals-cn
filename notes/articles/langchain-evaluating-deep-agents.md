@@ -1,33 +1,33 @@
-# Notes — "Evaluating Deep Agents: Our Learnings"
+# 深度笔记——《评估深度智能体：我们的经验》
 
-**Author:** The LangChain Team · **URL:** https://www.langchain.com/blog/evaluating-deep-agents-our-learnings · **Type:** eng-blog · **Found:** true
+**作者：** LangChain 团队 · **URL：** https://www.langchain.com/blog/evaluating-deep-agents-our-learnings · **类型：** 工程博客 · **已找到原文：** 是
 
-## Summary (3-6 sentences)
-LangChain distills five evaluation patterns learned while shipping four "Deep Agents" applications (DeepAgents CLI, LangSmith Assist, a Personal Email Assistant, and the no-code Agent Builder). Their core thesis: long-horizon, stateful agents break the standard assumption that you only score the final message — you must instead assert against the agent's *trajectory* (which tools were called), its *state/artifacts* (files written, memories updated), AND its final response, often with bespoke per-datapoint success criteria. About half their test cases were "single-step" evals that constrain the agent loop to one turn (via `interrupt_before=["tools"]`) to cheaply test a specific decision, while the rest run full turns or simulated multi-turn conversations with conditional early-exit logic. They emphasize reproducible environments: temp dirs per test, Docker/sandboxes, and recording/replaying HTTP via vcr (Python) or a Hono fetch proxy (JS). All of it is wired through LangSmith's pytest/Vitest integrations (`@pytest.mark.langsmith`, `log_inputs/outputs/feedback`).
+## 摘要
 
-## Key points (5-12 substantive bullets)
-- **Per-datapoint bespoke test logic.** Unlike classic LLM evals where every datapoint is scored the same way, Deep Agent success criteria differ per case and "may involve specific assertions against the agent's trajectory and state." Example: a calendar agent that learns preferences should be checked for (a) calling `edit_file` on the `memories.md` path, (b) telling the user it updated memory, and (c) the file actually containing the right content (validated via regex or LLM-as-judge).
-- **Single-step evals (~half of test cases).** Constrain the agent to run a single turn so you can validate one decision point cheaply, without paying for full execution. Implemented by invoking with `interrupt_before=["tools"]` and inspecting the messages/state captured *before* the tool executes.
-- **Full agent turns evaluated along three axes.** (1) **Trajectory** — were specific tools called, regardless of ordering/timing; (2) **Final response** — output quality for open-ended tasks like coding; (3) **Other state** — artifacts or files the agent produced. The point is you score more than the last message.
-- **Multi-turn simulation with conditional early-exit.** To avoid cascading/garbage failures, they add conditional logic in Pytest/Vitest: run turn 1, check output; only proceed to the next turn if the output was as expected, otherwise fail the test early.
-- **Clean, reproducible environments per run.** Coding agents get a fresh temp directory per test; agents run in Docker containers or sandboxes; reproducibility is treated as a first-class eval concern, not an afterthought.
-- **Mock the outside world by record/replay.** Record HTTP requests to the filesystem and replay them during tests — vcr for Python, and for JS they proxy fetch requests through a Hono app. This removes network flakiness and external-state drift from eval runs.
-- **Four real apps as the evidence base.** The learnings are grounded in production builds (DeepAgents CLI, LangSmith Assist, Personal Email Assistant, Agent Builder), not a toy benchmark.
-- **LangSmith pytest/Vitest plugin is the harness.** Decorator `@pytest.mark.langsmith` plus `log_inputs()`, `log_outputs()`, `log_feedback()` thread results into LangSmith experiments, so trajectory/state assertions become tracked, comparable eval data rather than ad-hoc asserts.
+LangChain 从四个“Deep Agents”应用——DeepAgents CLI、LangSmith Assist、个人邮件助理和无代码 Agent Builder——提炼出五种评测模式。核心观点是，长时程、有状态智能体打破了只给最终消息打分的惯例：必须同时断言其轨迹（调用了哪些工具）、状态与制品（写入文件、更新记忆）以及最终回复，且每条数据往往需要定制成功标准。约一半测试是“单步”评测，通过 `interrupt_before=["tools"]` 把循环限制为一轮，以低成本测试具体决策；其余运行完整轮次或带条件提前退出的多轮模拟。团队强调可复现环境，包括逐测试临时目录、Docker 或沙箱，以及用 Python vcr 或 JavaScript Hono fetch 代理记录与回放 HTTP。结果经 LangSmith 的 pytest/Vitest 集成追踪。
 
-## Verified quotes (1-4 VERBATIM lines with the URL)
-- "Deep Agents breaks this assumption. You'll want to test more than just the final message." — https://www.langchain.com/blog/evaluating-deep-agents-our-learnings
-- "When running our evals for Deep Agents, about half of our test cases looked like single step evals" — https://www.langchain.com/blog/evaluating-deep-agents-our-learnings
-- "We addressed this by adding conditional logic in our Pytest and Vitest tests. For example, we would: Run the first turn, and then check the agent output. If the output was expected, run the next turn. If it was not expected, fail the test early." — https://www.langchain.com/blog/evaluating-deep-agents-our-learnings
-- "For Python, vcr works well; for JS, we proxy fetch requests through a Hono app works." — https://www.langchain.com/blog/evaluating-deep-agents-our-learnings
+## 要点
 
-## What it adds / why it's good
-This is a rare *concrete, code-level* practitioner account rather than the usual "evals matter" hand-waving. The non-obvious, load-bearing ideas: (1) the explicit single-step-vs-full-turn split with a real number (~half single-step) gives a usable cost/coverage heuristic — most teams default to expensive full-trajectory runs; (2) `interrupt_before=["tools"]` as the mechanism to freeze the loop and assert on the *pre-tool* decision is a specific, reusable LangGraph technique; (3) the conditional early-exit pattern for multi-turn tests is a pragmatic answer to the "turn 2 fails because turn 1 already derailed" noise that plagues multi-turn evals; (4) record/replay (vcr / Hono proxy) names actual tooling for the hardest reproducibility problem — external API state. It also operationalizes the trajectory + state + final-response triad against state-bearing agents (filesystem, memories.md), which is exactly where final-answer-only scoring silently fails.
+- **逐数据点定制测试逻辑。** 深度智能体的成功标准因案例而异，可能需要同时断言轨迹和状态。日历智能体学习偏好时，应检查它是否对 `memories.md` 调用 `edit_file`、是否告知用户已更新记忆，以及文件内容是否正确，最后一项可用正则或 LLM 裁判。
+- **约半数是单步评测。** 用 `interrupt_before=["tools"]` 在工具执行前冻结循环，检查消息与状态，从而低成本验证一个决策点，而无需支付完整执行成本。
+- **完整轮次有三个维度。** 轨迹检查特定工具是否被调用，不强制顺序；最终回复检查编程等开放任务的输出质量；其他状态检查文件或制品。不能只看最后一条消息。
+- **多轮模拟采用条件提前退出。** 运行第一轮并检查输出；符合预期才继续，否则立即失败，避免前一轮已跑偏后产生级联垃圾和噪声。
+- **每次运行使用干净环境。** 编程智能体逐测试创建新临时目录，并运行于 Docker 或沙箱；可复现性是一等评测问题。
+- **通过记录与回放隔离外部世界。** 把 HTTP 请求记录到文件并在测试中重放；Python 使用 vcr，JavaScript 通过 Hono 应用代理 fetch，消除网络波动和外部状态漂移。
+- **证据来自四个真实应用，** 而非玩具基准。
+- **LangSmith pytest/Vitest 是工具链。** `@pytest.mark.langsmith` 与 `log_inputs()`、`log_outputs()`、`log_feedback()` 把轨迹和状态断言转成可追踪、可比较的实验数据。
 
-## Themes
-9 agent-specific · 5 eval infra · 8 judge/verifiers · 4 observability · 1 why-evals
-- **9 (agent-specific):** entire piece is about long-horizon, stateful Deep Agents and trajectory/state assertions.
-- **5 (eval infra):** LangSmith pytest/Vitest harness, single-step vs full-turn structure, reproducible envs, record/replay mocking.
-- **8 (judge/verifiers):** per-datapoint success criteria mixing programmatic assertions (regex, tool-call checks) with LLM-as-judge on file contents.
-- **4 (observability):** `log_inputs/outputs/feedback` into LangSmith experiments for tracked, comparable results.
-- **1 (why-evals):** opening argument that final-message-only evaluation is insufficient for these agents.
+## 已核验引述（中文翻译）
+
+- “深度智能体打破了这一假设。你需要测试的不只是最终消息。”——https://www.langchain.com/blog/evaluating-deep-agents-our-learnings
+- “运行深度智能体评测时，我们约有一半测试案例是单步评测。”——同上
+- “我们在 Pytest 与 Vitest 测试中加入条件逻辑：运行第一轮并检查智能体输出；若符合预期则继续下一轮，否则提前让测试失败。”——同上
+- “Python 中 vcr 很合适；JavaScript 中，我们通过 Hono 应用代理 fetch 请求。”——同上
+
+## 价值与贡献
+
+这是少见的代码级实践记录。单步与完整轮次的明确划分以及“约一半单步”的数据，给出成本与覆盖率启发；`interrupt_before=["tools"]` 是可复用的 LangGraph 技巧；条件提前退出解决多轮评测中第一轮跑偏导致后续噪声的问题；vcr 与 Hono 代理则是外部 API 可复现性的具体工具。文章还把轨迹、状态、最终回复三元组落实到文件系统与记忆型智能体上，准确覆盖只看最终答案会静默漏掉的故障。
+
+## 主题
+
+9 智能体专项 · 5 评测基础设施 · 8 裁判 / 验证器 · 4 可观测性 · 1 为什么需要评测

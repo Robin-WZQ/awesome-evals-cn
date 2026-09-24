@@ -1,39 +1,38 @@
-# Notes — "A Survey on Evaluation of LLM-based Agents"
+# 深度笔记——《LLM 智能体评估综述》
 
-**Author:** Asaf Yehudai, Lilach Eden, Alan Li, Guy Uziel, Yilun Zhao, Roy Bar-Haim, Arman Cohan, Michal Shmueli-Scheuer (IBM Research / Hebrew University / Yale) · **URL:** https://arxiv.org/abs/2503.16416 · **Type:** paper · **Found:** true
+**作者：** Asaf Yehudai、Lilach Eden、Alan Li、Guy Uziel、Yilun Zhao、Roy Bar-Haim、Arman Cohan、Michal Shmueli-Scheuer（IBM Research / Hebrew University / Yale） · **URL：** https://arxiv.org/abs/2503.16416 · **类型：** 论文 · **已找到原文：** 是
 
-## Summary
-This is the self-described "first comprehensive survey of evaluation methods" for LLM-based agents, organizing a fast-moving and fragmented landscape into a single map. It analyzes agent evaluation across five perspectives: (1) core LLM capabilities for agentic workflows (planning, tool use, self-reflection, memory), (2) application-specific benchmarks (web, software engineering, scientific, conversational agents), (3) generalist-agent evaluation, (4) the cross-cutting "core dimensions" of agent benchmarks (data, environment, interface, metrics, safety), and (5) evaluation frameworks and tooling aimed at agent developers. Its central diagnostic claim is a trend toward more realistic, harder, continuously-updated ("live") benchmarks, set against persistent gaps: cost-efficiency, safety/robustness, and fine-grained, scalable evaluation. The paper is a living document — later revisions (v2/v3) absorb newer benchmarks (e.g. GAIA2, SWE-bench Pro, τ²-Bench, HAL). It is an orientation source, not a new method or benchmark.
+## 摘要
 
-## Key points
-- **Five-perspective taxonomy** is the spine: capabilities → application benchmarks → generalist agents → benchmark dimensions → developer frameworks. This separates "what capability is being tested" from "what application domain" from "how the benchmark is built."
-- **Capability benchmarks** are split by sub-skill: planning (PlanBench, FlowBench), tool use (ToolBench, Berkeley Function Calling Leaderboard / BFCL v1–v3, NESTFUL, ComplexFuncBench), self-reflection (LLF-Bench, LLM-Evolve), and memory (MemGPT, StreamBench, MemBench).
-- **Application benchmarks** cluster into web agents (Mind2Web, WebArena, VisualWebArena, WebVoyager, WorkArena, Online-Mind2Web, ST-WebAgentBench), software engineering (SWE-bench and its many variants — Verified, Lite, Multimodal, Java — plus SWT-bench, TDD-bench, Terminal-Bench, SWE-Lancer), scientific (SciCode, ScienceAgentBench, CORE-Bench, PaperBench), and conversational/customer-service (τ-Bench, τ²-Bench, IntellAgent, ALMITA).
-- **Generalist-agent evaluation** covers cross-domain suites and leaderboards: GAIA, OSWorld, AppWorld, AgentBench, and the Holistic Agent Leaderboard (HAL).
-- **"Core dimensions" framing** is the most reusable contribution: it abstracts benchmarks into orthogonal axes — data curation, environment/interface, metrics, and safety — letting you compare benchmarks structurally rather than by leaderboard score.
-- **Trend it names:** a shift away from static, saturating benchmarks toward "live," continuously-updated, more realistic and adversarial evaluations — because "Static benchmarks quickly become obsolete, saturated, and abandoned."
-- **Gap 1 — cost/efficiency:** evaluations overweight task success and ignore token usage, API cost, and latency; the paper argues cost-efficiency should be a first-class metric, not an afterthought.
-- **Gap 2 — safety/robustness:** benchmarks "lack sufficient focus on safety, trustworthiness, and policy compliance," a notable hole given enterprise deployment.
-- **Gap 3 — granularity:** most benchmarks use coarse, end-to-end success metrics that can't diagnose *where* an agent failed (tool selection, reasoning step, recovery), so they argue for process-level / step-wise evaluation.
-- **Gap 4 — scalability of judging:** reliance on static, human-annotated data is a bottleneck; the paper points to LLM-as-a-judge and "agent-as-a-judge" as scalable (if imperfect) alternatives.
-- **Frameworks section** surveys the practitioner tooling layer — LangSmith, Langfuse, Arize, Galileo, Patronus AI, W&B Weave, Vertex AI, AutoGen — connecting academic benchmarks to production observability/eval stacks.
+本文自称首份 LLM 智能体评估方法综合综述，把快速变化且碎片化的领域整理为一张地图。它从五个视角分析：智能体工作流所需核心 LLM 能力（规划、工具、自反思、记忆）；应用专项基准（网页、软件工程、科学、对话）；通用智能体评估；智能体基准的共通核心维度（数据、环境、接口、指标、安全）；以及面向开发者的框架与工具。核心诊断是，评测正转向更真实、更困难、持续更新的“实时”基准，但成本效率、安全与稳健、细粒度和可扩展评估仍有缺口。论文作为活文档，在 v2/v3 加入 GAIA2、SWE-bench Pro、τ²-Bench、HAL 等新基准，适合定向入门，而非新方法。
 
-## Verified quotes
-- "This paper provides the first comprehensive survey of evaluation methods for these increasingly capable agents." — https://arxiv.org/abs/2503.16416
-- "We also identify critical gaps that future research must address—particularly in assessing cost-efficiency, safety, and robustness, and in developing fine-grained, scalable evaluation methods." — https://arxiv.org/abs/2503.16416
-- "Current benchmarks lack sufficient focus on safety, trustworthiness, and policy compliance." — https://arxiv.org/html/2503.16416v2
-- "Many current benchmarks rely on coarse-grained, end-to-end success metrics that fall short in diagnosing specific agent failures." — https://arxiv.org/html/2503.16416v2
-- "Current evaluations often prioritize performance while overlooking cost and efficiency measurements." — https://arxiv.org/html/2503.16416v2
-- "Static benchmarks quickly become obsolete, saturated, and abandoned...we see a rise in 'live' benchmarks." — https://arxiv.org/html/2503.16416v2
+## 要点
 
-## What it adds / why it's good
-Most agent-eval "overviews" are either listicles of benchmarks or vendor blog posts. This one earns its place by being a *structured* map: the five-perspective taxonomy plus the "core dimensions" abstraction give you a coordinate system for placing any new benchmark, and the explicit gap analysis (cost, safety, granularity, judge-scalability) reads like a research/roadmap agenda rather than a catalog. Crucially, it bridges two worlds the obvious sources keep separate — academic benchmarks (SWE-bench, GAIA, τ-Bench) and the production eval/observability tooling (LangSmith, Langfuse, Galileo, Patronus) — in one survey. It is also a living document, so the benchmark coverage stays current across revisions (v2/v3 add GAIA2, SWE-bench Pro, HAL, MCP-style tool-use benchmarks). Best used as an onboarding/orientation reference and a checklist of what good agent evals should measure, not as a source of novel methodology. Caveat: as a survey it's breadth-over-depth — it points at benchmarks rather than critiquing their construct validity in detail.
+- **五视角分类**区分测什么能力、在哪个应用域测，以及基准如何构建。
+- **能力基准。** 规划含 PlanBench、FlowBench；工具使用含 ToolBench、BFCL v1–v3、NESTFUL、ComplexFuncBench；自反思含 LLF-Bench、LLM-Evolve；记忆含 MemGPT、StreamBench、MemBench。
+- **应用基准。** 网页智能体包括 Mind2Web、WebArena、VisualWebArena、WebVoyager、WorkArena、Online-Mind2Web、ST-WebAgentBench；软件工程包括 SWE-bench 及 Verified、Lite、Multimodal、Java 变体，还有 SWT-bench、TDD-bench、Terminal-Bench、SWE-Lancer；科学类有 SciCode、ScienceAgentBench、CORE-Bench、PaperBench；客服对话有 τ-Bench、τ²-Bench、IntellAgent、ALMITA。
+- **通用智能体**包括 GAIA、OSWorld、AppWorld、AgentBench 与 Holistic Agent Leaderboard。
+- **核心维度最可复用。** 把基准抽象为数据整理、环境与接口、指标和安全等正交轴，可从结构而非排行榜分数比较。
+- **趋势。** 静态基准很快过时、饱和并被放弃，因此出现持续更新、更真实、更对抗的实时基准。
+- **缺口一：成本效率。** 现有评估偏重任务成功，忽略 token、API 成本和延迟，效率应成为一等指标。
+- **缺口二：安全稳健。** 安全、可信度和策略遵循不足，尤其不利于企业部署。
+- **缺口三：粒度。** 粗粒度端到端成功率不能定位工具选择、推理或恢复发生的故障，应做过程和逐步评估。
+- **缺口四：裁判扩展性。** 静态人工标注是瓶颈，LLM 裁判和“智能体裁判”虽不完美但更可扩展。
+- **框架层。** 综述 LangSmith、Langfuse、Arize、Galileo、Patronus AI、W&B Weave、Vertex AI、AutoGen，连接学术基准与生产可观测栈。
 
-## Themes
-- **9 agent-specific** (primary) — the entire survey is about evaluating LLM agents specifically (planning, tool use, web/SWE/generalist agents).
-- **1 why-evals** — frames the case for better agent evaluation and names the gaps that motivate it.
-- **6 benchmark-vs-eval/integrity** — the "core dimensions" framing, benchmark saturation/"live" benchmarks, and contamination/obsolescence concerns.
-- **5 eval infra** — Section on frameworks/tooling (LangSmith, Langfuse, Galileo, Patronus, Weave) for developer-facing evaluation.
-- **8 judge/verifiers** — discusses LLM-as-a-judge and "agent-as-a-judge" as scalable alternatives to human annotation.
-- **10 safety/adversarial** — explicitly flags safety, trustworthiness, policy compliance, and robustness as under-evaluated.
-- **2 eval⇄capability** — organizes evaluation by underlying agent capabilities (planning, memory, reflection, tool use).
+## 已核验引述（中文翻译）
+
+- “本文首次全面综述这些能力日益增强的智能体的评估方法。”——https://arxiv.org/abs/2503.16416
+- “我们还识别了未来必须解决的关键缺口，尤其是成本效率、安全和稳健，以及细粒度、可扩展评估。”——同上
+- “当前基准没有充分关注安全、可信度和策略合规。”——https://arxiv.org/html/2503.16416v2
+- “许多基准依赖粗粒度端到端成功指标，无法诊断具体智能体故障。”——同上
+- “当前评估常优先性能，忽视成本与效率测量。”——同上
+- “静态基准很快过时、饱和并被放弃……我们看到‘实时’基准兴起。”——同上
+
+## 价值与贡献
+
+本文不是基准清单，而用五视角和核心维度提供坐标系，可安放任何新基准；明确的成本、安全、粒度和裁判扩展性缺口也构成研究路线图。它把 SWE-bench、GAIA、τ-Bench 等学术基准与 LangSmith、Langfuse、Galileo 等生产工具放在同一综述中，并随版本更新。最适合作为入门定向和优质智能体评测检查清单；作为综述必然广度优先，只指向基准，较少深入批判各自构念效度。
+
+## 主题
+
+9 智能体专项 · 1 为什么需要评测 · 6 基准与评测 / 完整性 · 5 评测基础设施 · 8 裁判 / 验证器 · 10 安全 / 对抗 · 2 评测⇄能力

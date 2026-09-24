@@ -1,8 +1,8 @@
 # 深度笔记中文翻译进度
 
-进度：`[████░░░░░░░░░░░░░░░░] 22%（31/143）`
+进度：`[█████████░░░░░░░░░░░] 43%（61/143）`
 
-- 文章：3/68
+- 文章：33/68
 - 论文：28/28
 - 演讲与播客：0/47
 
@@ -46,3 +46,33 @@
 29. `notes/papers/retrieval-augmented-generation-knowledge-intensive-nlp.md`
 30. `notes/papers/workflow-guided-exploration-web-interfaces-rl.md`
 31. `notes/papers/playing-atari-with-deep-reinforcement-learning.md`
+32. `notes/articles/ai-resistant-technical-evaluations-hume.md`
+33. `notes/articles/aman-khan-beyond-vibe-checks-pm-guide-evals.md`
+34. `notes/articles/andon-labs-reality-final-eval-latent-space.md`
+35. `notes/articles/ankur-goyal-agent-driven-benchmarking-evals.md`
+36. `notes/articles/artificial-analysis-independent-llm-evals-latent-space.md`
+37. `notes/articles/beyond-pass-at-1-reliability-science-long-horizon-agents.md`
+38. `notes/articles/carlini-my-benchmark-for-llms.md`
+39. `notes/articles/dream-deep-research-evaluation-agentic-metrics.md`
+40. `notes/articles/epoch-faq-rl-environments.md`
+41. `notes/articles/eval-awareness-claude-opus-46-browsecomp.md`
+42. `notes/articles/evaluating-ai-agents-deeplearning-arize.md`
+43. `notes/articles/evaluating-ai-agents-in-practice-infoq.md`
+44. `notes/articles/florian-brand-prime-intellect-llm-benchmarks-era-of-agents.md`
+45. `notes/articles/godaddy-calibrating-llm-judge-scores.md`
+46. `notes/articles/goedecke-months-to-tell-new-models-good.md`
+47. `notes/articles/impossiblebench-measuring-test-case-exploitation.md`
+48. `notes/articles/jason-wei-successful-language-model-evals.md`
+49. `notes/articles/jxnl-only-6-rag-evals.md`
+50. `notes/articles/langchain-evaluating-deep-agents.md`
+51. `notes/articles/langfuse-agent-evaluation-guide.md`
+52. `notes/articles/mastra-scorers.md`
+53. `notes/articles/needle-in-a-haystack-kamradt.md`
+54. `notes/articles/open-reward-standard-ors.md`
+55. `notes/articles/paul-iusztin-ai-evals-dataset-error-analysis.md`
+56. `notes/articles/pragmatic-engineer-llm-evals-guide.md`
+57. `notes/articles/predictive-validity-llm-agent-evaluation.md`
+58. `notes/articles/recontextualization-mitigates-specification-gaming.md`
+59. `notes/articles/stochasticity-agentic-evals-icc.md`
+60. `notes/articles/survey-evaluation-llm-based-agents-yehudai.md`
+61. `notes/articles/vanishing-gradients-agents-evals.md`

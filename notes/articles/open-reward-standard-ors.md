@@ -1,36 +1,37 @@
-# Notes — "What is ORS? — Open Reward Standard"
+# 深度笔记——《什么是 ORS？——开放奖励标准》
 
-**Author:** General Reasoning (GR Inc) / OpenReward · **URL:** https://openrewardstandard.io/ · **Type:** docs · **Found:** true
+**作者：** General Reasoning（GR Inc）/ OpenReward · **URL：** https://openrewardstandard.io/ · **类型：** 文档 · **已找到原文：** 是
 
-## Summary
-The Open Reward Standard (ORS) is an open-source, HTTP-based protocol specification for connecting language-model agents to reinforcement-learning environments. Its core design move is "actions are tools": agents interact with an environment using the same function-calling primitives modern LLMs already support, and ORS adds the RL/eval-specific pieces that plain tool-calling lacks — reward signals, episode termination (a `finished` flag), task definitions, and reproducible task splits (train/validation/test plus custom splits). It is explicitly positioned as a complement to MCP rather than a replacement: MCP for general tool access and workflows, ORS for RL training and structured evaluation. The standard is language-agnostic (any language with HTTP), uses HTTP + Server-Sent Events for transport, and is paired with OpenReward (openreward.ai / gr.inc), a managed platform hosting 330+ environments built on ORS. The pitch is portability: the same environment runs locally, on your own infra, or on managed hosting, and works "with any compatible training or evaluation stack." This makes ORS an emerging interoperability layer for verifiable-reward environments.
+## 摘要
 
-## Key points
-- **Core abstraction — "actions are tools":** agents manipulate environment state only by calling tools/functions; the same function-calling interface LLMs already use, extended with RL primitives. The spec says "the only way agents interact with environments is by calling tools."
-- **Episodes:** a session *is* an RL episode. It continues until a tool returns `finished: true` — episode termination is an explicit, in-band signal, unlike MCP which has no notion of it.
-- **Rewards:** tool results carry numeric reward feedback for RL training (can be sparse/dense/shaped per implementation). Plain MCP has no reward concept.
-- **Four server-provided components:** an ORS environment server exposes **tools** (actions), **tasks** (problems to solve), **splits** (task groupings), and **prompts** (initial instructions per task).
-- **Splits / curriculum:** standard splits are `train`, `validation`, `test`; plus *custom* splits (e.g. different environment versions or different hardware requirements). Splits group tasks into deterministic orderings for reproducible training and eval workflows — this is the curriculum/reproducibility lever.
-- **Transport:** HTTP for control operations + Server-Sent Events for streaming tool-call results. Language-agnostic — implementable in anything that speaks HTTP.
-- **Explicit MCP positioning:** a side-by-side table shows ORS adds episode termination (Yes vs No), rewards (Yes vs No), and tasks & splits (Yes vs No). Guidance: "Use MCP for general tool access, ORS for RL training and structured evaluation."
-- **Portability is the thesis:** environment code stays on GitHub; the same env can be served on your machine, your infra, or OpenReward; works with any compatible training/eval stack and any sandbox provider (Daytona, E2B, Modal). ORS environments are described as "portable assets that you can run anywhere."
-- **Platform layer (OpenReward):** managed hosting on top of the open standard, 330+ environments, including community efforts like nebius/SWE-rebench-V2, Eigent/SETA, and kanishk/EndlessTerminals. "Switch between local and managed hosting anytime."
-- **Provenance:** built by GR Inc / General Reasoning — a team that says it previously built Papers with Code and helped kick off the open-weight movement (Llama 2/3). Note: this "OpenReward platform/standard" is distinct from the separate arXiv paper "OpenReward: Learning to Reward Long-form Agentic Tasks via RL" (a reward *model*, OpenRM) — don't conflate them.
+开放奖励标准（ORS）是连接语言模型智能体与强化学习环境的开源 HTTP 协议。核心设计是“动作即工具”：智能体使用现代 LLM 已支持的函数调用操作环境，而 ORS 增补普通工具调用缺失的强化学习和评测要素——奖励、回合结束的 `finished` 标志、任务定义，以及可复现的训练/验证/测试和自定义切分。它明确补充而非取代 MCP：MCP 用于通用工具访问与工作流，ORS 用于强化学习训练和结构化评估。协议与语言无关，通过 HTTP 和 Server-Sent Events 传输，并有托管 330 多个环境的 OpenReward 平台配套。同一环境可在本地、自有基础设施或托管服务运行，并兼容任意训练与评测栈，目标是成为可验证奖励环境的互操作层。
 
-## Verified quotes
-- "The Open Reward Standard (ORS) is an open-source HTTP-based protocol for connecting AI models to reinforcement learning (RL) environments." — https://openrewardstandard.io/
-- "It specifies how an AI model can interact with an environment to manipulate its state and obtain results and rewards." — https://openrewardstandard.io/
-- "Sessions are RL episodes that continue until a `finished` signal" — https://openrewardstandard.io/
-- "The episode continues until a tool returns `finished: true`." — https://openrewardstandard.io/introduction
-- "Use MCP for general tool access, ORS for RL training and structured evaluation." — https://openrewardstandard.io/
-- "Tasks are organised into splits for training and evaluation" — https://openrewardstandard.io/
+## 要点
 
-## What it adds / why it's good
-The non-BS value is that ORS names and standardizes the exact things that turn a "tool server" into a *trainable, evaluable environment*: reward, episode termination, and reproducible splits. MCP gives you tool access but is agnostic to whether you're training or evaluating; OpenAI-style function-calling gives you actions but no reward or episode boundary; Gym/Gymnasium-style RL APIs give you reward/termination but assume a Python in-process loop, not a portable HTTP service usable by arbitrary LLM agents and remote trainers. ORS sits in the gap: it reuses LLM-native function-calling as the action space (so any tool-calling model is already an ORS agent) while bolting on the RL/eval contract over HTTP+SSE so the *same environment artifact* is portable across training stacks, eval harnesses, and sandbox providers. The deliberate "complement to MCP, not competitor" framing plus a working platform with 330+ real environments (SWE-rebench, terminal envs, etc.) makes it more credible as an interoperability layer than a paper-only spec. The main caveat: it is vendor-originated (GR Inc) and early, so "open standard" adoption breadth beyond OpenReward's own platform is the thing to watch, and the train/val/test split discipline is only as good as each environment author's honesty about leakage.
+- **动作即工具。** 智能体只能调用工具或函数来改变环境状态，复用 LLM 原生函数调用并增加强化学习原语。
+- **回合。** 会话就是强化学习回合，持续到工具返回 `finished: true`；这是 MCP 没有的显式带内结束信号。
+- **奖励。** 工具结果携带数值奖励，可稀疏、稠密或塑形；普通 MCP 没有奖励概念。
+- **四种服务组件。** 工具表示动作，任务表示待解决问题，切分组织任务，提示为每项任务提供初始指令。
+- **切分与课程。** 标准切分为 `train`、`validation`、`test`，另支持环境版本或硬件需求等自定义切分。任务按确定顺序组织，以支持可复现训练和评估。
+- **传输。** HTTP 负责控制，Server-Sent Events 流式返回工具调用结果；任何支持 HTTP 的语言都可实现。
+- **与 MCP 的关系。** ORS 比 MCP 多回合结束、奖励、任务和切分；“通用工具访问用 MCP，强化学习训练和结构化评估用 ORS。”
+- **可移植性。** 环境代码保留在 GitHub，可在本机、自有设施或 OpenReward 运行，并兼容 Daytona、E2B、Modal 等沙箱。
+- **OpenReward 平台。** 基于开放标准托管 330 多个环境，包括 nebius/SWE-rebench-V2、Eigent/SETA、kanishk/EndlessTerminals；可随时在本地与托管间切换。
+- **来源。** GR Inc 称团队曾构建 Papers with Code 并推动 Llama 2/3 开源权重。需注意该平台与论文《OpenReward: Learning to Reward Long-form Agentic Tasks via RL》的奖励模型 OpenRM 不是一回事。
 
-## Themes
-- **7 RL environments** (primary — this is the portable env interface/standard)
-- **2 eval⇄capability⇄RL-env** (explicitly unifies train and eval splits over one environment contract)
-- **5 eval infra** (HTTP+SSE serving, splits, reproducible task orderings, hosting platform)
-- **6 benchmark-vs-eval/integrity** (train/validation/test splits and deterministic orderings target reproducibility and leakage control)
-- **3 model/harness/skill** (decouples environment from training/eval harness so envs are harness-portable)
+## 已核验引述（中文翻译）
+
+- “开放奖励标准（ORS）是一种开源、基于 HTTP 的协议，用于连接 AI 模型与强化学习环境。”——https://openrewardstandard.io/
+- “它规定 AI 模型如何与环境交互、改变状态并获得结果与奖励。”——同上
+- “会话是强化学习回合，一直持续到 `finished` 信号。”——同上
+- “回合持续到某个工具返回 `finished: true`。”——https://openrewardstandard.io/introduction
+- “通用工具访问使用 MCP；强化学习训练与结构化评估使用 ORS。”——主页
+- “任务被组织为训练与评估切分。”——主页
+
+## 价值与贡献
+
+ORS 命名并标准化了让“工具服务器”成为可训练、可评估环境所需的奖励、回合终止和可复现切分。MCP 有工具却不关心训练评估；函数调用有动作却无奖励边界；Gym 式 API 有奖励终止，但通常假设 Python 进程内循环。ORS 用 LLM 原生函数调用作动作空间，再以 HTTP+SSE 补齐强化学习合同，使环境制品可跨训练栈、评测工具链与沙箱移动。它有 330 多个实际环境支撑，但毕竟由供应商 GR Inc 推动且尚早，外部采用广度仍待观察；切分纪律也依赖环境作者诚实防泄漏。
+
+## 主题
+
+7 强化学习环境 · 2 评测⇄能力⇄强化学习环境 · 5 评测基础设施 · 6 基准与评测 / 完整性 · 3 模型 / 工具链 / 技能

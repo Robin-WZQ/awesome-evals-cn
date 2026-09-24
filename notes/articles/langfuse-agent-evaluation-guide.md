@@ -1,30 +1,37 @@
-# Notes — "Agent Evaluation: How to Evaluate LLM Agents"
+# 深度笔记——《智能体评估：如何评估 LLM 智能体》
 
-**Author:** Langfuse (no individual byline) · **URL:** https://langfuse.com/guides/cookbook/example_pydantic_ai_mcp_agent_evaluation · **Type:** eng-blog · **Found:** true
+**作者：** Langfuse（无个人署名） · **URL：** https://langfuse.com/guides/cookbook/example_pydantic_ai_mcp_agent_evaluation · **类型：** 工程博客 · **已找到原文：** 是
 
-## Summary (3-6 sentences)
-This is a framework-agnostic, code-backed Langfuse guide that decomposes agent evaluation into three levels of granularity: final-response (black-box), trajectory (glass-box), and single-step (white-box). Its core argument is that because an agent is a multi-step loop of reasoning and action ("a trajectory"), evaluating only the final answer is insufficient — you also need to score the reasoning path and each individual decision to diagnose *where* failures happen. The guide frames evaluation as evolving across three maturity phases (manual tracing → online evaluation with user feedback → automated offline evaluation with datasets), and argues most teams should start with manual trace inspection before automating. It grounds all of this in a concrete worked example: a Pydantic AI agent that answers Langfuse questions by calling the Langfuse Docs MCP server, evaluated against a gold-standard dataset using three LLM-as-judge evaluators (one per level). It also shows how to A/B compare prompts and models against the same dataset via `dataset.run_experiment` and `functools.partial`.
+## 摘要
 
-## Key points (5-12 substantive bullets)
-- **Three orthogonal evaluation levels, each answering a different question.** Final-response evaluation looks only at user input + final answer ("ignoring the internal steps entirely") — simplest to build but can't explain *why* a failure happened. Trajectory evaluation checks "whether the agent took the 'correct path'" by comparing the actual tool-call sequence against an expected/gold sequence. Single-step evaluation is "the most granular evaluation strategy, acting like a unit test for agent reasoning" — validates one decision (a search query, a tool choice, an API param) in isolation.
-- **Trajectory eval's payoff is diagnosis, not just a pass/fail.** "When the final answer is wrong, trajectory evaluation pinpoints exactly where in the reasoning process the failure occurred." This is the explicit motivation for going glass-box rather than black-box.
-- **Evaluation maturity is staged, not a one-time task.** Phase 1 Early Development = inspect traces manually; Phase 2 First Users = online evaluation with feedback mechanisms on production traces; Phase 3 Scaling = automated offline pipeline against a benchmark dataset (the focus of the guide).
-- **Manual trace review precedes automation.** "Before you build automated evaluations, spend time manually reviewing agent traces. The patterns you observe will inform what metrics matter most for your use case." This is a practitioner sequencing claim — don't pick metrics before you've looked at real traces.
-- **Worked example is genuinely concrete.** A Pydantic AI agent answers Langfuse questions by calling the Langfuse Docs MCP server (`https://langfuse.com/api/mcp`) exposing tools `getLangfuseOverview` and `searchLangfuseDocs`. Test cases carry expected trajectories, e.g. "What is Langfuse?" → `["getLangfuseOverview"]`; "How to trace a python application?" → `["getLangfuseOverview", "searchLangfuseDocs"]`.
-- **Three LLM-as-judge evaluators, one per level.** A Final Response evaluator graded factual correctness against expected facts; a Trajectory evaluator compared tool-call sequences; a Search Quality evaluator validated whether the search terms were appropriate. Each level gets its own judge prompt.
-- **Instrumentation is lightweight.** `Agent.instrument_all()` wires Pydantic AI into Langfuse tracing; `langfuse.update_current_observation(...)` attaches input, output, and a `tool_call_history` into metadata so the trajectory is captured for scoring.
-- **Datasets drive the offline pipeline.** Gold-standard examples are created with `langfuse.create_dataset()` / `create_dataset_item()`, then executed with `dataset.run_experiment(name=..., description=..., task=run_agent)`.
-- **Built-in A/B harness for config sweeps.** Multiple system prompts and models are tested against the same dataset using `functools.partial` to bind each configuration into the task function — a cheap way to compare harness/prompt variants on identical inputs.
-- **Online vs offline are both first-class.** Online = real-time scoring of production traces via automated evaluators; offline = controlled experimentation against a fixed benchmark dataset.
+这是一份带代码且不依赖特定框架的 Langfuse 指南，把智能体评估分成三个粒度：最终回复（黑盒）、轨迹（玻璃盒）和单步（白盒）。智能体是推理与行动构成的多步循环，仅评最终答案不足；还需给推理路径和每项决策评分，才能定位故障。评估成熟度也分三阶段：人工追踪、结合用户反馈的线上评估、使用数据集的自动离线评估；多数团队应先人工检查轨迹。示例是一个通过 Langfuse Docs MCP 回答问题的 Pydantic AI 智能体，针对金标准数据集使用三个 LLM 裁判，并用 `dataset.run_experiment` 与 `functools.partial` 对比提示和模型。
 
-## Verified quotes (verbatim, from the URL above)
-- "An LLM agent is more than just a single call to a language model. It's an autonomous system that operates in a continuous loop of reasoning and action."
-- "When the final answer is wrong, trajectory evaluation pinpoints exactly where in the reasoning process the failure occurred."
-- "This is the most granular evaluation strategy, acting like a unit test for agent reasoning." (on single-step evaluation)
-- "Before you build automated evaluations, spend time manually reviewing agent traces. The patterns you observe will inform what metrics matter most for your use case."
+## 要点
 
-## What it adds / why it's good (non-BS practitioner value)
-Most "how to evaluate agents" content stops at vocabulary. This guide is load-bearing because it ties each evaluation level to a runnable artifact: expected-trajectory test cases, three concrete judge prompts, the exact tracing calls (`instrument_all`, `update_current_observation` with `tool_call_history`), and a dataset experiment runner — all against a real MCP-backed agent rather than a toy. The single most useful practitioner takeaway is the explicit sequencing: manual trace inspection first (to discover which metrics matter), then online feedback, then offline dataset automation — which inverts the common mistake of writing judges before looking at traces. The trajectory-as-diagnosis framing ("pinpoints exactly where the failure occurred") is the concrete reason to pay the cost of glass-box eval over cheap final-answer scoring. And because the example uses MCP + Pydantic AI but the three-level taxonomy is framework-neutral, it transfers cleanly to other stacks. Caveat: it's vendor-tied to Langfuse tooling and the example is a relatively simple docs-QA agent (short, mostly deterministic trajectories), so it doesn't stress-test long-horizon or branching trajectories.
+- **三个评估层级。** 最终回复评估只看用户输入和答案，简单但无法解释失败；轨迹评估对比实际与期望工具调用路径；单步评估像推理单元测试，隔离检查搜索词、工具选择或 API 参数。
+- **轨迹评估重在诊断。** 最终答案错误时，它能指出推理过程具体在哪一步失败。
+- **成熟度分阶段。** 早期开发人工看轨迹；首批用户阶段对生产轨迹进行带反馈的线上评估；规模化阶段建立固定基准数据集的自动离线流水线。
+- **先人工再自动。** 先检查真实轨迹，发现具体模式后再决定指标，而不是预先想象指标。
+- **示例具体。** Pydantic AI 通过 `https://langfuse.com/api/mcp` 调用 `getLangfuseOverview` 与 `searchLangfuseDocs`。如“What is Langfuse?”的期望轨迹仅调用前者；“How to trace a python application?”依次调用两者。
+- **三个层级各配一个裁判。** 最终回复裁判按期望事实评估正确性；轨迹裁判比较工具调用序列；搜索质量裁判判断检索词是否合适。
+- **轻量插桩。** `Agent.instrument_all()` 接入 Pydantic AI 追踪；`langfuse.update_current_observation(...)` 把输入、输出与 `tool_call_history` 写入元数据。
+- **数据集驱动离线流水线。** 用 `langfuse.create_dataset()` 与 `create_dataset_item()` 创建金标准，再由 `dataset.run_experiment(..., task=run_agent)` 执行。
+- **内置配置 A/B。** 用 `functools.partial` 给任务绑定不同系统提示和模型，并在同一数据集上比较。
+- **线上与离线同等重要。** 线上用自动评估器实时评分生产轨迹；离线对固定基准做受控实验。
 
-## Themes
-1 why-evals · 4 observability · 5 eval infra · 8 judge/verifiers · 9 agent-specific
+## 已核验引述（中文翻译）
+
+- “LLM 智能体不只是一次语言模型调用，而是持续执行推理与行动循环的自主系统。”
+- “最终答案出错时，轨迹评估能精确指出推理过程中故障发生的位置。”
+- “这是粒度最高的评估策略，如同智能体推理的单元测试。”——谈单步评估
+- “构建自动评估前，先花时间人工检查智能体轨迹；观察到的模式会告诉你哪些指标对用例最重要。”
+
+以上均来自文首 URL。
+
+## 价值与贡献
+
+这份指南把每个层级连接到可运行制品：带期望路径的测试案例、三个具体裁判提示、确切的追踪调用和数据集实验运行器，而且对象是真实 MCP 智能体。最有用的顺序是先人工发现指标，再开展线上反馈，最后做离线数据集自动化，纠正了没看轨迹就先写裁判的常见错误。局限是工具实现绑定 Langfuse，文档问答示例也较短、路径确定，没有压力测试长时程分支轨迹。
+
+## 主题
+
+1 为什么需要评测 · 4 可观测性 · 5 评测基础设施 · 8 裁判 / 验证器 · 9 智能体专项

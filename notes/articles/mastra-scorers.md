@@ -1,35 +1,36 @@
-# Notes — "Introducing Scorers in Mastra"
+# 深度笔记——《Mastra Scorers 发布》
 
-**Author:** Yujohn Nattrass (Software Engineer, Mastra) · **URL:** https://mastra.ai/blog/mastra-scorers · **Type:** eng-blog · **Found:** true
+**作者：** Yujohn Nattrass（Mastra 软件工程师） · **URL：** https://mastra.ai/blog/mastra-scorers · **类型：** 工程博客 · **已找到原文：** 是
 
-## Summary (3-6 sentences)
-Mastra (a TypeScript agent framework) replaces its older `evals` API with a new primitive called **Scorers**: composable functions that run asynchronously after an agent or workflow step responds and emit a normalized **0–1 quality signal plus a reason string**. The post's central engineering insight is that LLMs are unreliable at directly emitting numeric scores, so Mastra splits scoring into a structured-extraction phase (LLM outputs structured data) and a **deterministic `generateScore` function** that converts that structure into the number. Scorers are built on a four-step pipeline — `preprocess` → `analyze` → `generateScore` → `generateReason` — where only `generateScore` is required, and the whole pipeline runs on Mastra's own workflow engine to get async execution, error handling, and retries "for free." Scorers attach directly to agents with a `sampling.rate` knob (score 100%, 50%, etc. of live traffic), results land in a `mastra_scorers` DB table and a Playground "Scorers" tab, making this an online/live-eval story as much as an offline one. This is a useful TypeScript-ecosystem counterpoint to the Python-heavy corpus (DeepEval/Ragas/Braintrust): same model-graded-vs-deterministic tension, different framing and naming.
+## 摘要
 
-## Key points (5-12 substantive bullets)
-- **Naming as a design statement.** Mastra deliberately rejected "evaluator" as "overly academic" and chose "scorers" because "that's what they do—they score things." Signals a practitioner-first, anti-jargon stance.
-- **The core trick: don't let the LLM produce the number.** "LLMs are terrible at producing consistent numerical scores—ask the same model to rate something from 0-1 five times and you'll get five different numbers." Fix: LLM emits *structured data*, then a deterministic `generateScore` function maps structure → 0–1. This is the headline reusable lesson.
-- **Four-step pipeline:** `preprocess` (data prep/extraction) → `analyze` (core eval logic) → `generateScore` (deterministic number) → `generateReason` (human-readable explanation). **Only `generateScore` is required**; the others are optional, so you can scale from a one-liner rule-based scorer up to a full LLM-judge pipeline.
-- **Three scorer families** in the framing: model-graded (LLM-judge), rule-based/deterministic, and statistical — all returning the same 0–1 contract so they're interchangeable and comparable across agents/steps.
-- **Async, non-blocking by design:** "Each scorer runs asynchronously after your agent responds, evaluating the output without blocking the response." Scoring is observability on the side, not in the request critical path.
-- **Sampling for live traffic:** scorers attach to agents via config with `sampling: { type: "ratio", rate: 0.5 }` — "Set it to 1 to score everything, 0.5 for half, etc." This is an online-eval cost/coverage dial, important because LLM-judge scoring on 100% of prod traffic is expensive.
-- **Built-in scorers shipped:** a **Bias scorer** (detects discriminatory language) and an **Answer Relevancy scorer** (does the response actually address the query), each parameterized with a judge model, e.g. `createAnswerRelevancyScorer({ model: openai("gpt-4o") })`.
-- **Implementation eats its own dogfood:** "we use Mastra workflows to run the scoring pipeline. Each step…is a workflow step. This gives us async execution, error handling, and all the other workflow benefits for free." Each pipeline step is literally a workflow step.
-- **Persistence + UI:** results auto-persist to a `mastra_scorers` table when storage is configured, and surface in a new Playground "Scorers" tab that auto-populates when you run scored agents/workflows in `mastra dev`.
-- **Migration path:** old `evals` API → `createScorer`; "The core evaluation logic stays the same, you're just wrapping it differently." Install via `pnpm add @mastra/core@latest @mastra/evals@latest`.
-- **Roadmap:** "Golden answers soon" — reference outputs that scorers compare against (i.e. ground-truth/reference-based scoring is not yet in this release).
+TypeScript 智能体框架 Mastra 用新原语 **Scorers** 替代旧 `evals` API。Scorer 是可组合函数，在智能体或工作流步骤响应后异步运行，输出归一化的 **0–1 质量信号和原因字符串**。核心洞见是 LLM 无法稳定直接生成数值，所以 Mastra 把评分拆为结构化提取和确定性 `generateScore`：LLM 输出结构数据，再由代码映射为分数。四步流水线是 `preprocess`→`analyze`→`generateScore`→`generateReason`，只有 `generateScore` 必需；底层复用 Mastra 工作流引擎，自动获得异步执行、错误处理与重试。Scorer 可通过 `sampling.rate` 附着到智能体并抽样线上流量，结果写入 `mastra_scorers` 表和 Playground 的 Scorers 页签。因此它不仅是离线评测，也是在线评测与可观测性方案。
 
-## Verified quotes (VERBATIM, from https://mastra.ai/blog/mastra-scorers)
-1. "LLMs are terrible at producing consistent numerical scores—ask the same model to rate something from 0-1 five times and you'll get five different numbers. So we have LLMs output structured data instead, then use a deterministic `generateScore` function to convert that into a number."
-2. "Each scorer runs asynchronously after your agent responds, evaluating the output without blocking the response"
-3. "So we went with 'scorers' because that's what they do—they score things." (the post frames "evaluator" as overly academic)
-4. "we use Mastra workflows to run the scoring pipeline. Each step…is a workflow step. This gives us async execution, error handling, and all the other workflow benefits for free."
+## 要点
 
-## What it adds / why it's good (non-BS practitioner value)
-- **The structured-extraction-then-deterministic-score pattern is the real takeaway** and is provider/language-agnostic. Most LLM-judge advice tells you to ask the model for a score; Mastra explicitly argues against that and splits the judgment (LLM, fuzzy) from the scoring (code, deterministic and reproducible). That directly attacks the non-determinism/variance problem that plagues judge-based evals.
-- **Strong TypeScript-ecosystem data point.** The Python corpus (DeepEval, Ragas, Braintrust, OpenAI Evals) dominates eval discourse; this shows the same model-graded/rule-based/statistical taxonomy converging independently in the TS/Node agent world, with the unified 0–1 contract as the interop layer.
-- **Online > offline framing.** The `sampling.rate` knob and the async-after-response design make this an in-production live-eval/observability tool, not just a CI harness — and the explicit cost dial is the kind of detail benchmark-style posts omit.
-- **Honest about what's missing:** no golden/reference answers yet ("soon"), so today it's mostly reference-free scoring (relevancy, bias) — useful to know before adopting.
-- **Reusable-by-design:** "only `generateScore` required" is a clean minimal-contract API that lets a trivial regex rule and a multi-step LLM judge live under the same interface.
+- **命名体现设计。** 团队认为 evaluator 过于学术，选择 scorer，因为“它做的就是评分”，强调实践和去术语化。
+- **不要让 LLM 直接给数字。** 同一模型五次给 0–1 分会出现五个数字；应让 LLM 输出结构化判断，再由确定性 `generateScore` 映射为 0–1。
+- **四阶段流水线。** `preprocess` 做数据准备，`analyze` 执行评测逻辑，`generateScore` 确定性打分，`generateReason` 生成人可读解释。只有打分必需，可从单行规则扩展到完整 LLM 裁判。
+- **三类 scorer。** 模型评分、规则或确定性评分、统计评分统一返回 0–1，因而可互换比较。
+- **异步不阻塞。** 响应返回后再评分，不进入请求关键路径。
+- **线上抽样。** `sampling: { type: "ratio", rate: 0.5 }` 表示评分一半流量；1 为全部。它是控制线上 LLM 裁判成本和覆盖率的旋钮。
+- **内置 Bias 与 Answer Relevancy scorer，** 可指定裁判模型，如 `createAnswerRelevancyScorer({ model: openai("gpt-4o") })`。
+- **用自家产品实现。** 每个评分阶段本身就是 Mastra 工作流步骤，因此复用异步、错误处理和重试。
+- **持久化与界面。** 配置存储后自动写入 `mastra_scorers`；`mastra dev` 中的 Playground 页签自动展示结果。
+- **迁移。** 旧 `evals` 包装为 `createScorer`，核心逻辑不变；安装命令为 `pnpm add @mastra/core@latest @mastra/evals@latest`。
+- **尚缺金标准答案。** 参考答案对比仍在路线图中，当前主要是相关性和偏差等无参考评分。
 
-## Themes
-1 why-evals · 3 model/harness/skill · 4 observability · 5 eval infra · 8 judge/verifiers · 9 agent-specific
+## 已核验引述（中文翻译）
+
+1. “LLM 很不擅长稳定生成数值分数——让同一模型五次给 0–1 分，会得到五个不同数字。因此我们让 LLM 输出结构化数据，再用确定性 `generateScore` 函数转成数字。”——https://mastra.ai/blog/mastra-scorers
+2. “每个 scorer 都会在智能体响应后异步运行，在不阻塞响应的情况下评估输出。”——同上
+3. “所以我们选择‘scorers’，因为它们做的就是评分。”——同上
+4. “我们使用 Mastra 工作流运行评分流水线。每个步骤……都是工作流步骤，因此免费获得异步执行、错误处理和其他工作流能力。”——同上
+
+## 价值与贡献
+
+“LLM 结构化判断+代码确定性打分”是最可迁移的洞见，它把模糊判断和可复现数值分离，直接处理裁判方差。统一 0–1 协议也说明 TypeScript 智能体生态正在独立收敛到模型、规则、统计评分三分法。抽样率与响应后异步设计把重点放到生产在线评估，并明确提供成本旋钮。最小接口只要求 `generateScore`，让正则规则和多步裁判共享抽象；但参考答案评分尚未交付。
+
+## 主题
+
+1 为什么需要评测 · 3 模型 / 工具链 / 技能 · 4 可观测性 · 5 评测基础设施 · 8 裁判 / 验证器 · 9 智能体专项

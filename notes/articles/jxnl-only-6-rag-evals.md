@@ -1,42 +1,34 @@
-# Notes — "There Are Only 6 RAG Evals"
+# 深度笔记——《RAG 评测只有六种》
 
-**Author:** Jason Liu (jxnl) · **URL:** https://jxnl.co/writing/2025/05/19/there-are-only-6-rag-evals/ · **Type:** blog · **Found:** true
+**作者：** Jason Liu（jxnl） · **URL：** https://jxnl.co/writing/2025/05/19/there-are-only-6-rag-evals/ · **类型：** 博客 · **已找到原文：** 是
 
-## Summary
-Jason Liu argues that the entire RAG-eval landscape — the sprawling zoo of frameworks, metrics, and dashboards — collapses into exactly six fundamental evaluations, derived from first principles. A RAG system has only three variables: the Question (Q), the retrieved Context (C), and the Answer (A). Every possible RAG failure is one *conditional relationship* between two of these three components, and since there are exactly six ordered pairs (C|Q, A|C, A|Q, C|A, Q|C, Q|A), there are exactly six evals. The piece is a closure argument: the framework is *complete* because there are no other relationships between Q, C, and A to measure. He stratifies the six into tiers (with cheap non-LLM retrieval precision/recall as a "Tier 1" foundation underneath) and prescribes a debugging workflow that maps each observed failure to the specific conditional that broke.
+## 摘要
 
-## Key points
-- **Three variables, full stop.** "RAG systems have three core components: A question (Q), Retrieved context (C), An answer (A). That's it. Three variables." Every eval is a relationship among them.
-- **The closure claim is the whole point.** Exhaustively enumerating the conditional relationships between three components yields exactly six ordered pairs — and that set is exhaustive. "There are no other relationships between Q, C, and A." This is what justifies "only 6."
-- **The six evals (as conditional probabilities P(X|Y) — "quality of X given Y"):**
-  - **C|Q — Context Relevance:** do retrieved chunks address the question's information need? (retrieval quality)
-  - **A|C — Faithfulness / Groundedness:** is the answer restricted to verifiable claims from the context? (no hallucination)
-  - **A|Q — Answer Relevance:** does the answer directly address the specific question asked?
-  - **C|A — Context Support Coverage:** does the context actually contain everything needed to support the answer's claims?
-  - **Q|C — Question Answerability:** can the question even be answered given the retrieved context?
-  - **Q|A — Self-Containment:** can the original question be inferred from the answer alone?
-- **Directionality matters — the conditionals are asymmetric.** C|Q (is the context relevant to the question) is a different eval from Q|C (is the question answerable from the context). Treating P(X|Y) ≠ P(Y|X) is what generates six evals instead of three pairs.
-- **Tiered prioritization, not equal weight:**
-  - *Tier 1 (foundation, pre-RAG):* retrieval precision & recall — classic IR metrics, fast, no LLM required, used for retriever tuning.
-  - *Tier 2 (primary):* C|Q, A|C, A|Q — the three you almost always need.
-  - *Tier 3 (advanced):* C|A, Q|C, Q|A — deeper diagnostics when the primaries aren't enough.
-- **Prescriptive workflow:** "Start with Tier 1... Focus on Tier 2... Extend to Tier 3 when you need deeper insights." Add cost/complexity only when the cheaper layer can't explain the failure.
-- **Failure localization is the payoff.** When a RAG system breaks, it breaks along exactly one of these six dimensions — so debugging becomes "which conditional failed?" rather than open-ended flailing. Bad retrieval is C|Q; hallucination is A|C; off-topic-but-grounded answers are A|Q; etc.
-- **Anti-complexity stance.** The framing is explicitly a rebuke of "complexity theater" — the implication that you need a PhD's worth of metrics and dashboards to evaluate RAG. Six relationships cover it.
-- **Traditional metrics (BLEU/ROUGE/BERTScore) get a limited role**; nuanced relationship judgments lean on LLM-based evaluation.
+Jason Liu 从第一性原理出发，主张看似庞杂的 RAG 评测框架、指标和仪表盘其实可归约为六种基本评测。RAG 系统只有三个变量：问题 Q、检索上下文 C、答案 A。每一种失败都对应三者中两个变量间的有向条件关系；三个变量恰有六个有序对（C|Q、A|C、A|Q、C|A、Q|C、Q|A），因此恰有六种评测。这是一个闭包论证：Q、C、A 之间没有其他待测关系，所以分类是完备的。作者将其分层，并把廉价、无需 LLM 的检索精确率与召回率放在基础层，再提供把每种故障映射到具体条件关系的调试流程。
 
-## Verified quotes
-- "RAG systems have three core components: A question (Q), Retrieved context (C), An answer (A). That's it. Three variables." — https://jxnl.co/writing/2025/05/19/there-are-only-6-rag-evals/
-- "if we look at this through the lens of conditional relationships — the quality of one component given another — we get exactly six possible relationships" — https://jxnl.co/writing/2025/05/19/there-are-only-6-rag-evals/
-- "The beauty of this framework is that it's complete. There are no other relationships between Q, C, and A." — https://jxnl.co/writing/2025/05/19/there-are-only-6-rag-evals/
-- "When your RAG system fails, it fails along one of these dimensions. Every time." — https://jxnl.co/writing/2025/05/19/there-are-only-6-rag-evals/
-- "Every time you're debugging a RAG system, don't waste time on complexity theater. Focus on these six relationships" — https://jxnl.co/writing/2025/05/19/there-are-only-6-rag-evals/
+## 要点
 
-## What it adds / why it's good
-The non-BS value is the **closure argument**: instead of yet another laundry list of tools (RAGAS, TruLens, ARES, etc.), Liu gives a *generative* taxonomy that proves it's exhaustive. If you accept that RAG = (Q, C, A), then the six conditionals are forced — you can derive the eval set rather than memorize a vendor's menu. That's a genuinely different epistemic move from "here are 14 metrics." Two practical edges fall out of it: (1) **failure localization** — a single observed bug maps to exactly one conditional, turning eval into a decision tree; and (2) **anti-overbuild discipline** — the tiering tells you most teams only need three LLM-judged evals on top of cheap precision/recall, so the dashboards-and-frameworks sprawl is mostly noise. The asymmetry insight (C|Q ≠ Q|C; A|C ≠ C|A) is also subtler than the usual relevance/faithfulness/answer-relevance triad and explains *why* you sometimes need the "reverse" evals (e.g., Q|A self-containment to detect answers that smuggle in assumptions). The framing is the contribution; the actual scoring is left to LLM judges.
+- **只有三个变量。** RAG 由问题 Q、检索上下文 C 和答案 A 组成，评测都衡量它们之间的关系。
+- **闭包论证。** 穷举三者间的有向条件关系得到六个有序对，而且集合完备；这正是“只有六种”的依据。
+- **六种条件评测 P(X|Y)，即给定 Y 时 X 的质量：** `C|Q` 上下文相关性，检索片段是否满足问题的信息需求；`A|C` 忠实性或事实依据，答案是否只包含可由上下文核验的主张；`A|Q` 答案相关性，是否直接回答问题；`C|A` 上下文支持覆盖度，上下文是否包含支撑答案所有主张的信息；`Q|C` 问题可回答性，给定上下文能否回答问题；`Q|A` 自包含性，仅凭答案能否推回原问题。
+- **方向性不可忽略。** `C|Q` 与 `Q|C` 不同。条件关系不对称，才会产生六种而不是三个无向关系。
+- **分层优先级。** 第一层是 RAG 前的检索精确率和召回率，速度快且无需 LLM；第二层是几乎总需的 `C|Q`、`A|C`、`A|Q`；第三层是深度诊断所需的 `C|A`、`Q|C`、`Q|A`。
+- **推荐流程。** 从第一层开始，重点建设第二层，只有需要更深洞察时才扩展第三层；便宜层无法解释故障时再增加成本和复杂度。
+- **收益是故障定位。** 检索差对应 `C|Q`，幻觉对应 `A|C`，有依据却跑题对应 `A|Q`。调试从漫无目的变成识别失败的条件关系。
+- **反对复杂性表演。** 无须堆砌大量框架与仪表盘，六个关系已经覆盖全部问题。BLEU、ROUGE、BERTScore 等传统指标只适合有限场景，细微关系判断通常依赖 LLM 评测。
 
-## Themes
-- **1 why-evals** — argues for a principled, minimal eval set over tool sprawl ("complexity theater").
-- **8 judge/verifiers** — the six relationships are operationalized primarily as LLM-judge evaluations.
-- **9 agent-specific** — RAG-specific, but the Q/C/A conditional-decomposition pattern generalizes as a way to derive evals for any structured pipeline.
-- **6 benchmark-vs-eval/integrity** (secondary) — pushes "eval as targeted unit test of a specific relationship" over aggregate leaderboard-style scoring.
+## 已核验引述（中文翻译）
+
+- “RAG 系统有三个核心组件：问题 Q、检索上下文 C、答案 A。仅此而已，三个变量。”——https://jxnl.co/writing/2025/05/19/there-are-only-6-rag-evals/
+- “若从条件关系——给定一个组件时另一组件的质量——来看，恰好得到六种可能关系。”——同上
+- “这个框架的美在于完备：Q、C 与 A 之间没有其他关系。”——同上
+- “RAG 系统一旦失败，就会沿这些维度之一失败，每一次都是如此。”——同上
+- “调试 RAG 系统时，不要把时间浪费在复杂性表演上；专注这六种关系。”——同上
+
+## 价值与贡献
+
+真正的价值是闭包论证：它不是再列一张 RAGAS、TruLens、ARES 等工具清单，而是给出可以推导且证明完备的生成式分类。接受 RAG=(Q,C,A)，六种条件关系便自然成立，无须记供应商菜单。由此产生两个实用优势：故障能映射到某个条件关系，形成决策树；分层又约束过度建设，多数团队只需在廉价精确率/召回率之上增加三种 LLM 裁判评测。不对称性也解释了为何有时必须评估“反向”关系，例如用 `Q|A` 发现答案偷带前提。文章的贡献是框架，实际评分仍留给 LLM 裁判。
+
+## 主题
+
+1 为什么需要评测 · 8 裁判 / 验证器 · 9 智能体专项 · 6 基准与评测 / 完整性（次要）

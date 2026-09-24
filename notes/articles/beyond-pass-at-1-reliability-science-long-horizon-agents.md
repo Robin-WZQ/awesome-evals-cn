@@ -1,39 +1,36 @@
-# Notes — "Beyond pass@1: A Reliability Science Framework for Long-Horizon LLM Agents"
+# 深度笔记——《超越 pass@1：长时程 LLM 智能体的可靠性科学框架》
 
-**Author:** Aaditya Khanal, Yangyang Tao, Junxiu Zhou (Northern Kentucky University) · **URL:** https://arxiv.org/abs/2603.29231 · **Type:** paper · **Found:** true
+**作者：** Aaditya Khanal、Yangyang Tao、Junxiu Zhou（Northern Kentucky University） · **URL：** https://arxiv.org/abs/2603.29231 · **类型：** 论文 · **已找到原文：** 是
 
-## Summary
-The paper argues that benchmarks measure *capability* (can a model succeed on a single attempt, i.e. pass@1) while production needs *reliability* (does it succeed *consistently* across repeated attempts on tasks of varying duration), and that these two properties diverge systematically as task horizon grows. Because mainstream benchmarks report only pass@1 on short, atomic tasks, they are "structurally blind" to this divergence. The core contribution is a four-metric reliability framework — Reliability Decay Curve (RDC), Variance Amplification Factor (VAF), Graceful Degradation Score (GDS), and Meltdown Onset Point (MOP) — built on a pass^k formulation (all k repeats must succeed). They construct a 396-task benchmark across four duration buckets and three domains, and run 10 open-source models over 23,392 episodes. The headline finding: capability and reliability rankings diverge substantially at long horizons (with multi-rank inversions), and "frontier" models melt down up to ~19% of the time precisely because they attempt ambitious multi-step strategies that spiral.
+## 摘要
 
-## Key points
-- **Capability ≠ reliability.** Capability is single-attempt success; reliability is consistent success across repeated invocations on longer tasks. The paper's whole thesis is that pass@1 conflates these and that they separate as duration increases.
-- **pass^k, not pass@k.** The reliability primitive is pass^k — the probability that *all* k independent repeated episodes succeed — which is far harsher than the usual pass@k (probability at least one of k succeeds). This inverts the optimistic framing of standard sampling metrics.
-- **Four metrics:**
-  - **RDC (Reliability Decay Curve)** — how pass^k degrades with task duration.
-  - **VAF (Variance Amplification Factor)** — how duration amplifies stochastic failure modes / run-to-run variance.
-  - **GDS (Graceful Degradation Score)** — a partial-credit metric for agents that partially complete long tasks (rewards getting most of the way vs. binary fail).
-  - **MOP (Meltdown Onset Point)** — detects behavioral collapse via sliding-window entropy over tool-call sequences; flags where the agent's tool-use distribution degenerates.
-- **MOP mechanism:** window entropy at step t is H(t) = −Σ_i p_t(tool_i) log p_t(tool_i) over a sliding window [t−w, t] — a cheap, model-agnostic signal of looping/thrashing computed purely from the trace.
-- **Scale:** 10 open-source models, 396 tasks, 23,392 episodes (k=3 repeats, two scaffolds), four duration buckets (≤5 min, 5–30 min, 30–120 min, ≥120 min), three domains: Software Engineering (SE), Agentic Web Research (WR), Multi-file Document Processing (DP).
-- **Domain-stratified collapse:** SE GDS drops from 0.90 to 0.44 over the full duration range, while DP stays nearly flat (0.74 to 0.71). Reliability decay is highly domain-dependent, not a single model-level scalar.
-- **Ranking inversions:** capability-based and reliability-based leaderboards reorder substantially between medium and very-long horizons — a model that looks best at pass@1 is not the most reliable long-horizon agent.
-- **Frontier meltdown ~19%:** the strongest models show the *highest* meltdown rates (up to 19%) because they pursue ambitious multi-step strategies that sometimes spiral — capability and robustness can be in tension.
-- **Memory scaffolds backfire:** memory scaffolds universally hurt long-horizon GDS — negative or neutral for all 10 models — a counterintuitive negative result for a popular agent design pattern.
+论文指出，基准测量的是**能力**，即模型能否在单次尝试成功（pass@1）；生产需要的是**可靠性**，即在不同持续时间的任务上反复调用时能否稳定成功。任务时间跨度越长，两者越系统性分离，而主流基准只报告短原子任务的 pass@1，对此“结构性失明”。核心贡献是基于 pass^k（k 次都必须成功）的四指标框架：可靠性衰减曲线 RDC、方差放大因子 VAF、优雅退化分数 GDS、崩溃起始点 MOP。作者构建 396 项任务，跨四种时长和三个领域，让 10 个开源模型运行 23,392 个回合。长时程下能力与可靠性排名显著背离；最强模型因尝试雄心勃勃的多步策略，反而最多约 19% 的时间发生崩溃。
 
-## Verified quotes
-- "Machine learning benchmarks evaluate _capability_ — whether a model succeeds on a single attempt. Production deployments require _reliability_ — whether a model _consistently_ succeeds across repeated invocations on tasks of varying duration." — https://arxiv.org/html/2603.29231v1
-- "existing benchmarks are structurally blind to this divergence because they report only pass@1 on short, atomic tasks." — https://arxiv.org/html/2603.29231v1
-- "Passk is the probability that _all_ kk independent repeated episodes succeed." — https://arxiv.org/html/2603.29231v1
-- "frontier models exhibit the highest meltdown rates (up to 19%) because they pursue ambitious multi-step strategies" — https://arxiv.org/html/2603.29231v1
-- "memory scaffolds universally hurt long-horizon GDS (negative or neutral for all 10 models)" — https://arxiv.org/html/2603.29231v1
-- "SE GDS drops from 0.90 to 0.44 over the full duration range, while DP is nearly flat (0.74 to 0.71)" — https://arxiv.org/html/2603.29231v1
+## 要点
 
-## What it adds / why it's good
-Most "agents are unreliable" commentary is anecdotal; this paper operationalizes reliability as a measurable, separable axis from capability and gives four concrete, trace-derivable metrics to quantify it. The pass^k reframing is the load-bearing idea — it makes the metric *pessimistic in the right direction* for production (everything must succeed, repeatedly), which is exactly the regime pass@1 and pass@k hide. The MOP entropy signal is practical: it's computed from tool-call sequences alone, so it's a cheap observability hook you could bolt onto a live agent without ground-truth labels. Two findings have real teeth beyond the framing: (1) ranking inversions mean capability leaderboards actively mislead for long-horizon deployment, and (2) the negative results — frontier models melting down *more*, and memory scaffolds universally hurting — are the kind of counterintuitive, falsifiable claims that justify the measurement apparatus. Caveats for the skeptical reader: it's open-source models only (no closed frontier labs despite "frontier" language), n=10 models with k=3 is modest statistical power for variance claims, and partial-credit GDS scoring quality hinges on task-specific rubrics not fully scrutinized here.
+- **能力不等于可靠性。** 前者是单次成功，后者是长任务多次调用都成功，持续时间增加时两者分离。
+- **pass^k 而非 pass@k。** pass^k 是 k 个独立回合全部成功的概率，比“至少一次成功”的 pass@k 严格得多，把标准指标的乐观方向反转为生产所需的保守方向。
+- **四指标。** RDC 描述 pass^k 随任务时长的退化；VAF 衡量时长如何放大随机故障和运行间方差；GDS 为长任务部分完成提供部分分，而非全或无；MOP 通过工具调用滑窗熵检测行为崩溃。
+- **MOP 机制。** `H(t)=−Σ_i p_t(tool_i) log p_t(tool_i)`，窗口为 `[t−w,t]`；只需轨迹即可低成本发现循环或抖动，与模型无关。
+- **规模。** 10 个开源模型、396 项任务、23,392 个回合，k=3，两种脚手架；时长为≤5 分钟、5–30、30–120、≥120 分钟；领域为软件工程、智能体网页研究、多文件文档处理。
+- **领域差异。** 软件工程 GDS 从 0.90 降至 0.44，文档处理几乎保持 0.74→0.71；可靠性衰减不是单一模型标量。
+- **排名反转。** 中长到超长任务上，能力排行榜与可靠性排行榜重新排序。
+- **前沿崩溃约 19%。** 最强模型因采用更复杂策略，有时更易进入螺旋，能力与稳健性存在张力。
+- **记忆脚手架反效果。** 对全部 10 个模型，长时程 GDS 都是负向或中性，这是对流行设计的反直觉结果。
 
-## Themes
-- **1 why-evals** — central: argues pass@1 is the wrong target and reliability is a distinct, deployment-relevant axis evals miss.
-- **6 benchmark-vs-eval/integrity** — capability vs reliability ranking inversions; leaderboards mislead at long horizons.
-- **9 agent-specific** — long-horizon agent behavior, tool-call traces, scaffolds, meltdown dynamics.
-- **4 observability/surfaces** — MOP sliding-window entropy over tool calls is a label-free runtime collapse detector.
-- **5 eval infra** — a concrete 396-task, multi-domain, multi-duration benchmark with 23k episodes and repeat/scaffold structure.
+## 已核验引述（中文翻译）
+
+- “机器学习基准评估能力，即模型单次是否成功；生产部署需要可靠性，即模型在不同持续时间任务上反复调用时能否稳定成功。”——https://arxiv.org/html/2603.29231v1
+- “现有基准只报告短原子任务的 pass@1，因此在结构上看不到这种分离。”——同上
+- “pass^k 是 k 个独立重复回合全部成功的概率。”——同上
+- “前沿模型具有最高崩溃率（最高 19%），因为它们追求雄心勃勃的多步策略。”——同上
+- “记忆脚手架普遍损害长时程 GDS，所有 10 个模型均为负或中性。”——同上
+- “软件工程 GDS 从 0.90 降至 0.44，而文档处理几乎保持 0.74 到 0.71。”——同上
+
+## 价值与贡献
+
+本文把“智能体不可靠”从轶事变成与能力分离的可测轴，并提供四个可从轨迹推导的指标。pass^k 是关键，它要求每次都成功，恰好暴露 pass@1/pass@k 隐藏的生产风险。MOP 只从工具序列计算，无需标签，可直接接到线上智能体。排名反转说明能力榜会误导长时程部署；最强模型更易崩溃、记忆脚手架普遍有害，也都是可证伪的反直觉结果。局限是只有开源模型，n=10、k=3 对方差主张统计功效有限，GDS 又依赖尚未充分审查的任务量规。
+
+## 主题
+
+1 为什么需要评测 · 6 基准与评测 / 完整性 · 9 智能体专项 · 4 可观测性 · 5 评测基础设施

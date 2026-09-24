@@ -1,34 +1,35 @@
-# Notes — "Beyond Static Leaderboards: Predictive Validity for the Evaluation of LLM Agents"
+# 深度笔记——《超越静态排行榜：LLM 智能体评估的预测效度》
 
-**Author:** Dhaval C. Patel et al. (IBM Research; ~60+ co-authors, incl. Columbia HPML) · **URL:** https://arxiv.org/abs/2606.19704 · **Type:** paper · **Found:** true
+**作者：** Dhaval C. Patel 等（IBM Research；约 60 余位合著者，包括 Columbia HPML） · **URL：** https://arxiv.org/abs/2606.19704 · **类型：** 论文 · **已找到原文：** 是
 
-## Summary
-This paper consolidates fourteen parallel extension studies of an industrial MCP-based agent benchmark (AssetOpsBench), spanning ~6,000 judged trajectories across six extension axes (asset class, orchestration, knowledge/retrieval, infrastructure, reasoning mode, evaluation methodology). Its central empirical hook comes from a 149-team agentic competition where the Spearman correlation between public-leaderboard rankings and hidden-evaluation rankings was ρ=−0.13 on the execution track — statistically indistinguishable from zero. The authors argue that aggregate-score leaderboards systematically underspecify the dimensions on which deployed agents are actually judged, and that mean score is the wrong ranking criterion. Their corrective is to rank agents by **predictive validity** — the correlation between in-sample rank and out-of-sample rank — supported by a twelve-tier measurement apparatus and three falsifiable out-of-distribution (OOD) criteria. The framing reframes evaluation as a question of *rank transfer under distribution shift* rather than headline accuracy.
+## 摘要
 
-## Key points
-- **The killer stat:** In a 149-team agentic competition, public-to-hidden leaderboard rank correlation was ρ=−0.13 (n=13, execution track) — essentially zero, and slightly negative. Public standings did not predict hidden performance at all.
-- **Core thesis:** "The right ranking criterion is therefore predictive validity: the correlation between in-sample rank and out-of-sample rank, not in-sample mean." Leaderboards optimize the wrong target.
-- **Why aggregation fails:** Mean scores collapse qualitatively distinct behaviors into one number — "Aggregate scores treat these as equivalent; deployment treats them as not." Distinct failure modes hide behind identical headline scores.
-- **Deployment ≠ leaderboard:** "Deployed systems do not encounter the training set or the leaderboard set." They face (i) distributionally-similar held-out cases, (ii) cross-domain transfer, or (iii) adversarial user phrasing — none of which a static leaderboard measures.
-- **Twelve-tier measurement framework.** Core capability (T1–T7): T1 Success (pass/fail), T2 Tool-Call Hygiene, T3 Planning Quality, T4 Capability Axes, T5 Cost & Efficiency, T6 Failure Modes, T7 Integrity & Reproducibility. Deployment extensions (T8–T12): T8 Deployment Infrastructure, T9 Multi-Turn Dialog, T10 Reasoning Mode, T11 Knowledge Augmentation, T12 Evidence Grounding & Verification.
-- **Three falsifiable OOD criteria** (escalating shift): A) Held-Out Scenarios (mild shift); B) Cross-Subset Transfer (rank on k−1 subsets, test on held-out); C) Adversarial Perturbation (paraphrases, identifier renaming, time-window shifting, distractor injection).
-- **Scale of evidence:** ~6,000 judged trajectories, fourteen parallel implementation studies, six extension axes — framed as the largest coordinated extension of a single agent benchmark.
-- **Coverage gap motivation:** "no single benchmark touches more than four or five of the dimensions that deployment exposes" — agents add trajectory- and orchestration-level axes that HELM/Dynabench-style frameworks don't score.
-- **Honest cost caveat:** measuring predictive validity is more expensive than aggregate scoring and could concentrate evaluation capacity in well-resourced institutions; they recommend community-maintained reference adversarial-perturbation suites and rule pipelines to mitigate this.
+论文汇总工业 MCP 智能体基准 AssetOpsBench 的 14 项并行扩展研究，覆盖约 6,000 条已评分轨迹和六类扩展轴：资产类别、编排、知识与检索、基础设施、推理模式、评估方法。关键证据来自 149 支队伍的智能体竞赛：执行赛道中，公共排行榜与隐藏评估排名的 Spearman 相关仅为 ρ=−0.13，与零无统计差异。作者认为，聚合分数排行榜系统性遗漏部署真正关心的维度，均值不是合适排名标准。替代方案是按**预测效度**排名，即样本内与样本外排名的相关性，并辅以十二层测量体系和三项可证伪分布外标准。评估由此转为“分布偏移下排名能否迁移”，而非头条准确率。
 
-## Verified quotes
-- "In a recent 149-team agentic competition (Patel et al., 2026), the Spearman correlation between public-leaderboard rankings and hidden-evaluation rankings was ρ=−0.13 on the execution track (n=13, statistically indistinguishable from zero)." — https://arxiv.org/html/2606.19704v1
-- "The right ranking criterion is therefore predictive validity: the correlation between in-sample rank and out-of-sample rank, not in-sample mean." — https://arxiv.org/html/2606.19704v1
-- "Deployed systems do not encounter the training set or the leaderboard set. They encounter scenarios that are either (i) distributionally similar to held-out cases, (ii) distributionally distinct (cross-domain transfer), or (iii) adversarially perturbed by user phrasing." — https://arxiv.org/html/2606.19704v1
-- "Aggregate scores treat these as equivalent; deployment treats them as not." — https://arxiv.org/html/2606.19704v1
-- "Agent benchmarks are growing fast, but no single benchmark touches more than four or five of the dimensions that deployment exposes." — https://arxiv.org/html/2606.19704v1
+## 要点
 
-## What it adds / why it's good
-Most leaderboard critiques (e.g. the Leaderboard Illusion) attack *gaming, contamination, or arena dynamics*. This paper attacks something more fundamental and rarely measured: **rank transfer under distribution shift**, and it ships a hard number for it (ρ=−0.13 from a real 149-team competition). That's a falsifiable, quantitative indictment of the entire "mean score → ranking" pipeline, not just a complaint about a specific leaderboard. The reframing — that the metric you should optimize is the *correlation of in-sample to out-of-sample rank*, not the score itself — is genuinely actionable and borrows construct-validity language from psychometrics in a way agent evals badly need. The twelve-tier apparatus and the three escalating OOD criteria (held-out → cross-subset → adversarial) give a concrete protocol rather than just a manifesto. The non-BS value: it operationalizes "does the leaderboard predict deployment?" as a measurable quantity. Caveats worth flagging: the n=13 sample on the execution track is tiny (one negative correlation is not the same as a robust effect across many competitions), the work is heavily tied to one IBM industrial benchmark (AssetOpsBench/MCP) so external validity is unproven, and the 60+ author / fourteen-study structure reads partly as a coordinated class/course effort. Treat the ρ=−0.13 figure as a striking existence proof, not a settled population estimate.
+- **关键数字。** 149 队竞赛执行赛道中，公共与隐藏排名相关 ρ=−0.13（n=13），略为负且与零无差别，公共排名完全不能预测隐藏表现。
+- **核心主张。** 正确标准是预测效度，即样本内与样本外排名相关，而非样本内均值。
+- **聚合为何失败。** 均值把定性不同的行为压成一数；聚合认为等价的失败，在部署中并不等价。
+- **部署不同于排行榜。** 生产面对的是与留出案例相似的分布、跨域迁移或用户措辞造成的对抗扰动，不会遇到训练集或排行榜集。
+- **十二层框架。** T1 成功，T2 工具调用规范，T3 规划质量，T4 能力轴，T5 成本效率，T6 失败模式，T7 完整性与可复现性；部署扩展为 T8 基础设施，T9 多轮对话，T10 推理模式，T11 知识增强，T12 证据依据与核验。
+- **三项递进 OOD 标准。** A 留出场景；B 跨子集迁移，在 k−1 子集排名后测试留出子集；C 对抗扰动，包括改写、标识符重命名、时间窗口平移和干扰项注入。
+- **证据规模。** 约 6,000 条已评分轨迹、14 项实现研究和六个扩展轴，被表述为针对单一智能体基准规模最大的协同扩展。
+- **覆盖缺口。** 没有单一基准覆盖部署暴露的四五个以上维度，智能体新增轨迹与编排层因素，HELM、Dynabench 式框架未计分。
+- **成本局限。** 预测效度比聚合分数昂贵，可能让评估能力集中到富裕机构；建议社区维护参考对抗扰动套件和规则流水线。
 
-## Themes
-- **1 why-evals** — direct evidence that leaderboards don't predict what they claim to.
-- **6 benchmark-vs-eval/integrity** — core contribution: predictive validity vs aggregate score; includes a dedicated Integrity & Reproducibility tier (T7).
-- **9 agent-specific** — trajectory/orchestration-level axes, MCP agent benchmark, multi-turn and reasoning-mode tiers.
-- **10 safety/adversarial** — Criterion C adversarial perturbation suite (paraphrase, identifier renaming, distractor injection) as a ranking stressor.
-- (Secondary) **5 eval infra** — twelve-tier apparatus and reference perturbation pipelines proposed as community artifacts.
+## 已核验引述（中文翻译）
+
+- “在近期 149 队智能体竞赛中，执行赛道的公共排行榜与隐藏评估排名 Spearman 相关为 ρ=−0.13（n=13，与零无统计差异）。”——https://arxiv.org/html/2606.19704v1
+- “正确排名标准因此是预测效度：样本内与样本外排名的相关，而非样本内均值。”——同上
+- “部署系统不会遇到训练集或排行榜集，而会遇到分布相似的留出案例、跨域分布或被用户措辞对抗扰动的场景。”——同上
+- “聚合分数把它们视为等价；部署不会。”——同上
+- “智能体基准增长很快，但没有一个覆盖部署暴露的四五个以上维度。”——同上
+
+## 价值与贡献
+
+相比围绕投机、污染或竞技场动力的排行榜批评，本文测量更根本的问题：分布偏移下排名迁移，并用真实竞赛的 ρ=−0.13 给出可证伪证据。把目标从分数转成样本内外排名相关，借用了心理测量的构念效度思想；十二层框架和留出→跨子集→对抗三阶标准又提供具体协议。局限是执行赛道 n=13 很小，单次负相关只能是存在性证据；工作高度依赖 IBM 的 AssetOpsBench，外部效度尚未证明；60 多作者与 14 项研究也带有协同课程项目色彩。
+
+## 主题
+
+1 为什么需要评测 · 6 基准与评测 / 完整性 · 9 智能体专项 · 10 安全 / 对抗 · 5 评测基础设施（次要）

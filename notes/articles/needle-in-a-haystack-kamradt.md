@@ -1,36 +1,37 @@
-# Notes — "Pressure Testing GPT-4 / Claude 2.1 — Needle In A Haystack"
-**Author:** Greg Kamradt · **URL:** https://github.com/gkamradt/LLMTest_NeedleInAHaystack · **Type:** repo · **Found:** true
+# 深度笔记——《压力测试 GPT-4 / Claude 2.1：大海捞针》
 
-## Summary
-This is the original "needle in a haystack" (NIAH) long-context eval: the practitioner project, run with early model access in November 2023, that everyone else cites. The method is brutally simple — hide one out-of-place fact (the "needle") at a controlled depth inside a large body of filler text (the "haystack," built from Paul Graham essays), then ask the model to retrieve it, sweeping across two axes: **context length** (1K tokens up to each model's limit) and **needle depth** (0% = top to 100% = bottom). Each cell is scored and the grid is rendered as a depth × context-length **heatmap** of retrieval accuracy, which became the canonical visual for long-context recall. The headline finding: at the largest context lengths neither GPT-4 (128K) nor Claude 2.1 (200K) reliably retrieves a placed fact, and recall degrades non-uniformly — facts near the top of long documents are recalled worse than facts at the very top/bottom. The repo has since been rewritten into a "v2" CLI (`niah`) that generalizes the idea into pluggable tasks (single, multi, uuid, uuid_chain) with reproducible YAML run configs.
+**作者：** Greg Kamradt · **URL：** https://github.com/gkamradt/LLMTest_NeedleInAHaystack · **类型：** 代码仓库 · **已找到原文：** 是
 
-## Key points
-- **The needle (original):** an out-of-place sentence — "The best thing to do in San Francisco is eat a sandwich and sit in Dolores Park on a sunny day." — inserted into Paul Graham essay text; the model is then asked what the best thing to do in San Francisco is, using only the provided context.
-- **Two-axis sweep → heatmap.** The core artifact is a grid of (context length × document depth) cells, each scored for retrieval, visualized as a heatmap. This depth × length heatmap is the format the entire field copied.
-- **Depth matters, and not symmetrically.** Facts at the very top and very bottom were recalled with near-100% accuracy; facts placed near the *top* of long documents were recalled worse than those near the bottom — a "lost in the middle"-style effect, observed on both models.
-- **Length matters.** GPT-4 (GPT-4-128K, run 11/8/2023) recall started degrading well below the limit; Claude 2.1 (200K, run 11/21/2023) held near-perfect to ~90K tokens, after which bottom-of-document recall got increasingly worse. Practitioner-reported, not formal: ~65K (GPT-4 Turbo) vs ~90K (Claude 2.1) as rough onset points.
-- **Scale of the runs.** GPT-4 was a ~15×15 grid (~225 cells, hundreds of API calls, ~$215); Claude 2.1 was scaled up to a ~35×35 grid (~1,225 calls), with Anthropic providing credits but not influencing results.
-- **Evaluation = LLM-as-judge.** The original harness used LangChain evals with GPT-4 grading whether the model's answer contained the needle — an early, influential instance of LLM-judged retrieval scoring rather than exact string match.
-- **Practitioner provenance.** Built with pre-release access from OpenAI/Anthropic and published as code + heatmaps on Twitter and a blog; this is the primary source, not a paper, which is why it spread so fast and is reproducible.
-- **v2 generalization.** The current repo is a CLI (`niah run/validate/reconstruct/demo`) driven by YAML, with sweep controls (`context_lengths`, `depth_percents`, scales, seeds, concurrency, retries, resume) and JSONL output (token usage + cost per cell).
-- **Pluggable tasks in v2:** `single` (one fact, exact-match), `multi` (N facts, fractional score), `uuid` (repeat a fresh UUID), and `uuid_chain` (A→B→C hops the model must discover unaided) — pushing past pure retrieval toward multi-hop reasoning. Providers: OpenAI, Anthropic, Cohere.
-- **The actionable conclusion** for builders: placed facts are not guaranteed to be retrieved, so don't assume retrieval in your apps; RAG remains important; and reducing context tends to increase recall accuracy.
+## 摘要
 
-## Verified quotes
-- "Pressure-test LLM long-context retrieval. Now in v2." — https://github.com/gkamradt/LLMTest_NeedleInAHaystack
-- "Chain of A → B → C → … links spread through the context. The question asks 'what is the value associated with A?' without revealing the chain structure — the model has to discover the hops on its own." — https://github.com/gkamradt/LLMTest_NeedleInAHaystack
-- "Supported providers out of the box: OpenAI, Anthropic, Cohere." — https://github.com/gkamradt/LLMTest_NeedleInAHaystack
-- "At the largest token lengths, neither GPT-4 or Claude 2.1 can reliably retrieve placed facts" — https://mail.gregkamradt.com/posts/pressure-testing-gpt-4-claude-2-1-long-context
-- "Your facts are not guaranteed to be retrieved." — https://mail.gregkamradt.com/posts/pressure-testing-gpt-4-claude-2-1-long-context
-- "They didn't bias the results at all, just gave credits" — https://mail.gregkamradt.com/posts/pressure-testing-gpt-4-claude-2-1-long-context
+这是最初的“大海捞针”（NIAH）长上下文评测，也是后来大量工作引用的 2023 年 11 月实践项目。方法极其简单：把一个不合上下文的事实“针”插入大量 Paul Graham 随笔构成的“草堆”，控制插入深度，再要求模型取回；对**上下文长度**（1K token 至模型上限）和**针深度**（0% 顶部至 100% 底部）二维扫描。每格打分并画成深度×长度的召回热力图，成为长上下文评测经典视觉。最大上下文下 GPT-4 128K 与 Claude 2.1 200K 都无法可靠检索，且退化不均匀。仓库后来重写为 v2 CLI `niah`，通过可复现 YAML 配置支持 single、multi、uuid、uuid_chain 等插件任务。
 
-## What it adds / why it's good
-This is the **primary source** for an eval pattern that became a de-facto industry standard, so it's worth citing directly rather than through the dozens of secondary writeups (Arize, TDS, vendor blogs) that paraphrase it. Its non-BS value is threefold: (1) it shows how a single sharp, cheap, reproducible probe — one inserted sentence + a two-axis sweep — can surface a real, previously-underappreciated capability gap (position- and length-dependent recall failure) that vendor context-window numbers hide; (2) it's an early, concrete template for **LLM-as-judge scoring of retrieval** wired into a real harness (LangChain evals, GPT-4 grader); and (3) the v2 rewrite is a clean, honest evolution of an eval that got saturated — adding multi-needle and `uuid_chain` multi-hop tasks precisely because plain single-needle retrieval became too easy for frontier models. It's also a candid case study in benchmark integrity: the author flags the Anthropic credits and that they didn't bias results, and the heatmap-everyone-copies later drew scrutiny (prompt-sensitivity, the needle being too salient/contrived), which is itself a useful lesson about how popular evals get gamed or misread.
+## 要点
 
-## Themes
-- **1 why-evals** — canonical demonstration that a simple, targeted eval reveals capability gaps that spec-sheet numbers (context window size) obscure.
-- **3 model/harness/skill** — a concrete harness with pluggable tasks, sweep configs, scoring, and reproducible runs.
-- **5 eval infra** — YAML-driven CLI, JSONL outputs, cost/token tracking, seeds, resume/concurrency.
-- **6 benchmark-vs-eval/integrity** — saturation of the original test (driving v2's harder tasks), prompt-sensitivity caveats, and disclosed vendor credits.
-- **8 judge/verifiers** — LLM-as-judge (GPT-4 + LangChain evals) grading retrieval, alongside exact-match and fractional scorers in v2.
-- **9 agent-specific** — `uuid_chain` pushes from retrieval toward multi-hop reasoning the model must discover unaided.
+- **原始针。** 插入句子“在旧金山最棒的事，是晴天吃三明治并坐在 Dolores Park”，再只依据上下文提问旧金山最佳活动。
+- **二维热力图。** 每格对应上下文长度和文档深度，显示检索准确率；整个领域沿用了这种图。
+- **深度影响不对称。** 最开头和最末尾接近 100%，长文靠近顶部的事实反而比靠近底部更差，在两模型均呈现类似“迷失中间”现象。
+- **长度影响。** GPT-4-128K 在上限前很早就退化；Claude 2.1 到约 90K 仍近完美，此后底部召回恶化。实践者粗略起点为 GPT-4 Turbo 约 65K、Claude 2.1 约 90K，并非正式统计。
+- **运行规模。** GPT-4 约 15×15=225 格，数百次 API，约 215 美元；Claude 2.1 扩展到约 35×35=1,225 次，Anthropic 提供额度但未干预结果。
+- **LLM 裁判。** 原工具链通过 LangChain evals 用 GPT-4 判断答案是否包含针，是早期影响广泛的模型评分检索案例。
+- **实践来源。** 使用 OpenAI/Anthropic 预发布权限，代码、热力图、推文和博客均公开，属于一手来源而非论文。
+- **v2。** `niah run/validate/reconstruct/demo` 由 YAML 驱动，控制长度、深度、比例尺、种子、并发、重试与续跑，JSONL 记录每格 token 和成本。
+- **插件任务。** `single` 单事实精确匹配；`multi` 多事实分数；`uuid` 复述随机 UUID；`uuid_chain` 要求模型自行发现 A→B→C 多跳链。支持 OpenAI、Anthropic、Cohere。
+- **行动结论。** 应用不能假设上下文中的事实必会取回；RAG 仍重要，缩短上下文通常提高召回。
+
+## 已核验引述（中文翻译）
+
+- “压力测试 LLM 长上下文检索，现已推出 v2。”——https://github.com/gkamradt/LLMTest_NeedleInAHaystack
+- “A→B→C→……的链分散在上下文中。问题询问‘A 对应的值是什么？’而不揭示链结构，模型必须自行发现跳转。”——同上
+- “开箱支持 OpenAI、Anthropic、Cohere。”——同上
+- “在最大 token 长度下，GPT-4 和 Claude 2.1 都无法可靠取回插入事实。”——https://mail.gregkamradt.com/posts/pressure-testing-gpt-4-claude-2-1-long-context
+- “事实并不能保证被取回。”——同上
+- “他们完全没有影响结果，只提供了额度。”——同上
+
+## 价值与贡献
+
+这是已成为事实行业标准的评测模式的一手来源。一个插入句加二维扫描，就揭示了供应商上下文窗口数字掩盖的位置和长度依赖召回缺口；它也展示了 GPT-4+LangChain 对检索做 LLM 裁判的早期实现。v2 在单针被前沿模型逐渐饱和后加入多针和 `uuid_chain`，是评测随能力升级的诚实演进。Anthropic 额度披露，以及后来暴露的提示敏感、针过于显眼等争议，也说明流行评测如何被投机或误读。
+
+## 主题
+
+1 为什么需要评测 · 3 模型 / 工具链 / 技能 · 5 评测基础设施 · 6 基准与评测 / 完整性 · 8 裁判 / 验证器 · 9 智能体专项

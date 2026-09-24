@@ -1,34 +1,36 @@
-# Notes — "DREAM: Deep Research Evaluation with Agentic Metrics"
-**Author:** Elad Ben Avraham, Changhao Li, Ron Dorfman, Roy Ganz, Oren Nuriel, Amir Dudai, Aviad Aberdam, Noah Flynn, Elman Mansimov, Adi Kalyanpur, Ron Litman (AWS Agentic AI / Georgia Tech) · **URL:** https://arxiv.org/abs/2602.18940 · **Type:** paper · **Found:** true
+# 深度笔记——《DREAM：用智能体指标评估深度研究》
 
-## Summary
-DREAM is an evaluation protocol for Deep Research Agents — agents that produce analyst-grade, long-form, multi-source reports for which no single ground-truth answer exists. Its central diagnosis is the "Mirage of Synthesis": fluent, well-cited reports score highly on existing benchmarks even when they contain obsolete facts or broken reasoning, because static LLM judges lack the tools to actually check. DREAM's fix is the principle of *capability parity* — the evaluator should be as capable as the researcher, including the ability to retrieve, verify, and reason. It combines a set of fixed query-agnostic metrics (writing, factuality, citation integrity, domain authority) with two query-adaptive metrics built on the fly by a tool-calling agent (key-information coverage and reasoning quality). The result is a reference-free paradigm shown to be far more sensitive to factual and temporal decay than prior benchmarks, evaluated across three Deep Research systems and three datasets.
+**作者：** Elad Ben Avraham、Changhao Li、Ron Dorfman、Roy Ganz、Oren Nuriel、Amir Dudai、Aviad Aberdam、Noah Flynn、Elman Mansimov、Adi Kalyanpur、Ron Litman（AWS Agentic AI / Georgia Tech） · **URL：** https://arxiv.org/abs/2602.18940 · **类型：** 论文 · **已找到原文：** 是
 
-## Key points
-- **Core problem framing:** deep-research reports have no single ground truth and are multidimensional, so a single final-answer score is the wrong abstraction. Surface fluency and citation alignment mask factual/reasoning defects — the "Mirage of Synthesis."
-- **Capability parity** is the load-bearing idea: a static, tool-less judge structurally cannot assess dimensions (currency, verification, depth) it has no ability to probe. So the evaluator is made *agentic*, mirroring the researcher's retrieve/verify/reason loop.
-- **Four assessment verticals:** Presentation Quality, Task Compliance, Analytical Depth, Source Quality (split into citation faithfulness = intrinsic, vs factual correctness = extrinsic world knowledge).
-- **Static / query-agnostic metrics** (fixed across all tasks): Writing Quality (Ideas/Content, Organization, Sentence Fluency); Factuality (validates claims against external knowledge *independent* of citation support); Citation Integrity (claims actually attributed to and supported by cited content); Domain Authoritativeness (are cited sources reputable).
-- **Adaptive / query-specific metrics** (built per query by an agent): Key-Information Coverage (KIC) — agent retrieves up-to-date sources and converts each key point into a verifiable yes/no question, i.e. a time-sensitive checklist; Reasoning Quality (RQ) — agent generates query-specific questions paired with structured validation plans to cross-reference findings.
-- **Two-phase agent design:** a Protocol Creation Agent (a `CodeAgent` with web search, ArXiv, GitHub tools) constructs the adaptive metrics/validation plan; then an Agent Evaluator (also a `CodeAgent`) autonomously follows that plan, retrieves evidence as needed, and assigns the score. This separates *what to check* from *checking it*.
-- **Reference-free:** no gold report required — the agent gathers current evidence itself, which is what enables sensitivity to temporal decay (stale facts get caught).
-- **Systems evaluated:** LangChain Open Deep Research (GPT-5), Smolagents Open DR (Claude Opus 4.6), Tongyi Deep Research. **Datasets:** DeepResearch Bench (50 PhD-level questions, 22 fields), LiveResearchBench (80 queries), ResearchRubrics (101 queries with expert rubrics).
-- **Headline finding on citations:** all three systems scored critically low on Citation Integrity — Smolagents and Tongyi near-zero, LangChain ~15.92 — even while scoring well on coverage/writing. Concrete evidence that citation alignment ≠ citation integrity.
-- **Robustness:** swapping the judge backbone (DeepSeek-V3.2, Kimi-K2.5) preserved relative agent rankings ("perfect alignment"), arguing the metric ranks systems, not judges.
+## 摘要
 
-## Verified quotes
-- "We term this the *Mirage of Synthesis* – an illusion of quality created by surface-level coherence despite underlying factual and reasoning flaws." — https://arxiv.org/html/2602.18940v1
-- "This motivates the principle of capability parity – the evaluator should possess a similar set of capabilities as the researcher, including the ability to retrieve, verify, and reason over information." — https://arxiv.org/html/2602.18940v1
-- "Controlled evaluations demonstrate DREAM is significantly more sensitive to factual and temporal decay than existing benchmarks, offering a scalable, reference-free evaluation paradigm." — https://arxiv.org/html/2602.18940v1
-- "DREAM structures assessment through an evaluation protocol that combines query-agnostic static metrics with query-adaptive ones constructed by a tool-calling agent" — https://arxiv.org/html/2602.18940v1
-- "Finally, we evaluate whether Presentation Quality can be reliably assessed without a reference report." — https://arxiv.org/html/2602.18940v1
+DREAM 用于评估生成分析师级、多来源长报告且不存在单一金标准答案的深度研究智能体。核心诊断是“综合幻象”：现有基准中，语言流畅、引用充足的报告即使含过时事实或推理断裂也会获高分，因为静态 LLM 裁判没有工具去核验。DREAM 提出**能力对等**：评估器应与研究者具有相近的检索、验证和推理能力。它结合跨查询固定的写作、事实性、引用完整性和领域权威指标，以及由工具调用智能体按题构建的关键信息覆盖和推理质量指标。这个无参考范式在三个系统、三个数据集上比旧基准更敏感于事实和时间衰减。
 
-## What it adds / why it's good
-The non-obvious move is *capability parity*: most "LLM-as-judge for reports" work bolts a rubric onto a static model and calls it agentic eval. DREAM argues that's a category error — if the thing being graded retrieved live evidence and reasoned over it, a tool-less judge literally cannot verify currency or grounding, only plausibility. That reframes the judge as a research agent in its own right. The other genuinely useful design pattern is the **query-agnostic + query-adaptive split**: fixed metrics give comparability across tasks, while an agent synthesizes a fresh, time-sensitive checklist (KIC) and a validation plan (RQ) per query — a clean template for grading open-ended report generators where the rubric *should* change with the question. The citation-integrity result (near-zero despite high fluency) is a concrete, reproducible demonstration that the "Mirage" is real and not hypothetical. Reference-free + backbone-robustness are the two properties you need for this to scale as an eval rather than a one-off benchmark.
+## 要点
 
-## Themes
-- **9 agent-specific** — purpose-built for deep-research/report-generating agents; decomposes multi-step research quality (coverage, synthesis, workflow) instead of one final-answer score.
-- **8 judge/verifiers** — the core contribution is an *agentic* judge with retrieval/verification tooling; capability parity is a thesis about judge design.
-- **6 benchmark-vs-eval/integrity** — "Mirage of Synthesis," reference-free protocol, and the citation-integrity exposé directly attack benchmark gaming and surface-level metrics.
-- **1 why-evals** — strong articulation of *why* single-score evals fail for open-ended, ground-truth-free tasks.
-- **2 eval⇄capability⇄RL-env** (secondary) — capability parity ties evaluator capability to the agent's capability surface; the adaptive checklists are reusable as verifiable signals.
+- **问题。** 深度报告无单一事实答案且多维，单一最终分数错误；表面流畅和引用对齐会掩盖事实与推理缺陷。
+- **能力对等。** 无工具静态裁判无法测量时效、核验和深度，因此评估器也应执行检索→验证→推理。
+- **四条纵向维度。** 表达质量、任务遵循、分析深度、来源质量；来源质量又区分引用忠实性这一内部属性与外部世界事实正确性。
+- **静态指标。** 写作质量含思想内容、组织和句子流畅；事实性独立于引用核验外部知识；引用完整性检查主张是否正确归因并受来源支持；领域权威性评估来源信誉。
+- **自适应指标。** KIC 由智能体检索最新来源，把关键点转为可验证的是非问题；RQ 生成问题及结构化验证计划以交叉核对发现。
+- **两阶段。** Protocol Creation Agent 是带网页、ArXiv、GitHub 工具的 `CodeAgent`，先构建自适应指标和验证计划；另一个 `CodeAgent` 按计划自主检索证据并打分，分离“检查什么”与“实际检查”。
+- **无参考。** 不需金标准报告，智能体自行搜集当前证据，因此能识别过时事实。
+- **系统与数据。** LangChain Open Deep Research（GPT-5）、Smolagents Open DR（Claude Opus 4.6）、Tongyi Deep Research；数据为含 22 领域 50 个博士级问题的 DeepResearch Bench、80 个查询的 LiveResearchBench、101 个专家量规查询的 ResearchRubrics。
+- **引用结果。** 三系统引用完整性都极低：Smolagents 与 Tongyi 近零，LangChain 约 15.92，尽管覆盖与写作得分高，证明引用对齐不等于完整性。
+- **稳健性。** 换用 DeepSeek-V3.2、Kimi-K2.5 裁判后相对排名“完全对齐”，说明指标更像在排系统而非排裁判。
+
+## 已核验引述（中文翻译）
+
+- “我们称之为‘综合幻象’：表层连贯创造质量错觉，底层却有事实和推理缺陷。”——https://arxiv.org/html/2602.18940v1
+- “这引出能力对等原则：评估器应与研究者具有相近能力，包括检索、核验和推理信息。”——同上
+- “受控评估表明 DREAM 对事实和时间衰减显著更敏感，提供可扩展、无参考的评估范式。”——同上
+- “DREAM 结合查询无关静态指标和由工具调用智能体构建的查询自适应指标。”——同上
+- “最后，我们评估表达质量能否在没有参考报告时可靠判断。”——同上
+
+## 价值与贡献
+
+非显然的关键是能力对等：若被评对象检索实时证据并推理，无工具裁判只能判断似真性，无法核验时效与依据。另一个可复用模式是固定+自适应指标：固定项保证跨任务可比，智能体又按问题生成时效清单和验证计划。近零引用完整性与高流畅度并存，具体证明了综合幻象；无参考和更换裁判骨干后排名稳定，则是规模化的必要属性。
+
+## 主题
+
+9 智能体专项 · 8 裁判 / 验证器 · 6 基准与评测 / 完整性 · 1 为什么需要评测 · 2 评测⇄能力⇄强化学习环境（次要）

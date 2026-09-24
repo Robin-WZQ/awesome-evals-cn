@@ -1,37 +1,42 @@
-# Notes — "An FAQ on Reinforcement Learning Environments"
+# 深度笔记——《强化学习环境常见问题解答》
 
-**Author:** Jean-Stanislas Denain & Chris Barber (Epoch AI) · **URL:** https://epochai.substack.com/p/an-faq-on-reinforcement-learning · **Type:** blog · **Found:** true
+**作者：** Jean-Stanislas Denain 与 Chris Barber（Epoch AI） · **URL：** https://epochai.substack.com/p/an-faq-on-reinforcement-learning · **类型：** 博客 · **已找到原文：** 是
 
-## Summary
-An Epoch AI "Gradient Updates" FAQ that synthesizes interviews with 18 practitioners across RL-environment startups, neolabs, and frontier labs into a practitioner-grounded snapshot of how the RL-environments industry actually works. It is structured as six questions: what RL environments and tasks are, how labs use them, who builds them, what they cost, what domains they cover, and what the top priorities and challenges are. The core contribution is hard numbers that are otherwise locked inside vendor conversations — target pass rates (2-3%, or ~1 success in 64-128 rollouts), per-task costs ($200-$2,000), full-environment costs (a website replica ~$20k, a Slack-like product ~$300k), and the order-of-magnitude scale of lab spend (Anthropic reportedly discussing $1B+ on RL environments). Its central qualitative claim is that robustness to reward hacking — making "high reward" actually mean "task solved" — is the dominant quality bar, and that maintaining quality while scaling is the number-one bottleneck. For an evals library, this is essentially a field report on the verifier/grader economy that sits underneath agentic RL.
+## 摘要
 
-## Key points
-- **Sample is explicitly bounded**: 9 live calls + 9 text/email inputs + 4 sanity-check-only contacts = the "18 people" figure. The authors are honest that this is interview-derived, not a measured dataset.
-- **Target difficulty is calibrated, not maximized**: practitioners aim for a *minimum* pass rate of ~2-3%, i.e. roughly 1 success per 64-128 rollouts. Too-hard tasks give no learning signal; the band is chosen so RL gets gradient.
-- **Reward hacking is the #1 quality dimension.** A good environment must guarantee that high reward implies the task was genuinely solved, not gamed (e.g. model searching up the answer, or checking out future git commits to read the solution). This takes "many many iterations" to harden.
-- **Per-task economics**: $200-$2,000 per task is the common range, with $20k as a rare ceiling. Tasks are the unit of cost, and quality verification dominates that cost.
-- **Per-environment economics**: a website replica runs ~$20k; a complex product clone like Slack ~$300k. Exclusive deals command a 4-5x premium over non-exclusive.
-- **Scale of demand**: Anthropic reportedly discussed $1B+ on RL environments for the following year — signal that env-buying is now a first-class lab capex line, not a side experiment.
-- **The bottleneck is scaling quality, not generating volume.** "Maintaining quality while scaling is the number one bottleneck" — i.e. the hard part is keeping verifiers sound as you multiply tasks.
-- **Skill profile is inverted from ML intuition**: domain expertise and expert-level prompting matter more than ML chops for building good environments — because the work is task design + verification, not model training.
-- **Direction of travel is long-horizon, end-to-end agentic tasks** rather than short single-step problems — which makes verification harder and reward hacking more dangerous.
-- **Soundness > coverage**: the framing is that a verifier that is gameable is worse than useless because it teaches the model to hack, making robustness the binding constraint on the whole pipeline.
+这是 Epoch AI“Gradient Updates”栏目的一篇问答。文章综合了对强化学习环境创业公司、新型实验室和前沿实验室中 18 位从业者的访谈，给出一幅由实践支撑的强化学习环境产业现状图。全文围绕六个问题组织：强化学习环境与任务是什么、实验室如何使用它们、谁在构建、成本多高、覆盖哪些领域，以及最重要的优先事项和挑战。文章的核心贡献是公开了通常只存在于供应商沟通中的硬数据，包括目标通过率（2%–3%，即约每 64–128 次 rollout 成功一次）、单任务成本（200–2,000 美元）、完整环境成本（网站复刻约 2 万美元、类似 Slack 的产品约 30 万美元），以及实验室支出的数量级（据称 Anthropic 曾讨论为强化学习环境投入超过 10 亿美元）。其核心定性判断是：抵御奖励投机，让“高奖励”真正意味着“任务已解决”，是最主要的质量标准；在扩大规模的同时维持质量，则是头号瓶颈。对评测资料库而言，这基本是一份关于智能体强化学习底层验证器与评分器经济的田野报告。
 
-## Verified quotes
-- "Multiple interviewees mentioned wanting a minimum pass rate of around 2-3%, or at least one success out of 64 or 128 rollouts." — https://epochai.substack.com/p/an-faq-on-reinforcement-learning
-- "Reward hacking is a big issue. The model might cheat by searching up a solution, or if you're not careful with how you script the repo, by checking out future commits. It needs to be robust." — https://epochai.substack.com/p/an-faq-on-reinforcement-learning
-- "Soundness matters most: high reward must mean the task was actually solved, not hacked." — https://epochai.substack.com/p/an-faq-on-reinforcement-learning
-- "It takes many many iterations to check against reward hacking." — https://epochai.substack.com/p/an-faq-on-reinforcement-learning
-- "Maintaining quality while scaling is the number one bottleneck that people see." — https://epochai.substack.com/p/an-faq-on-reinforcement-learning
-- "I've seen $200 to $2000 mostly. $20k per task would be rare but possible." — https://epochai.substack.com/p/an-faq-on-reinforcement-learning
+## 要点
 
-## What it adds / why it's good
-Most public writing on RL environments is either abstract ("RL is the second half") or vendor marketing. This FAQ does the un-glamorous thing: it puts numbers on the verifier economy. The 2-3% / 1-in-64-128 pass-rate target is the single most useful artifact — it operationalizes "good task difficulty" as a measurable property, and it's exactly the kind of design constraint an evals library needs when deciding whether a benchmark task carries usable signal. The cost figures ($200-$2k/task, $20k-$300k/env, $1B-scale lab budgets) let you reason about *why* verifier quality is rationed and where the incentives to cut corners on soundness come from. And the reward-hacking material is the bridge from "RL environment" to "eval integrity": the failure mode that vendors fight (high reward without real solving) is the same failure mode that makes a benchmark a bad proxy for capability. The non-BS value is that it's sourced from people who ship these environments and is candid about its own methodology limits.
+- **样本边界有明确说明。** “18 人”由 9 次实时通话、9 份文字或邮件回复，以及 4 位仅用于合理性复核的联系人构成。作者坦率说明这是访谈所得，而非测量数据集。
+- **目标难度需要校准，而非越难越好。** 从业者希望最低通过率约为 2%–3%，即大致每 64–128 次 rollout 至少成功一次。任务过难便无法提供学习信号；这个区间旨在让强化学习获得梯度。
+- **奖励投机是首要质量维度。** 优质环境必须确保高奖励意味着任务真的被解决，而不是被钻空子，例如模型通过搜索找到答案，或检出未来的 Git 提交读取解法。要使环境对此稳健，需要“非常非常多轮迭代”。
+- **单任务经济成本。** 常见范围是每项任务 200–2,000 美元，2 万美元是少见上限。任务是计价单位，而质量核验占据成本主体。
+- **单环境经济成本。** 复刻一个网站约需 2 万美元；克隆 Slack 这样的复杂产品约需 30 万美元。独家交易的价格是非独家交易的 4–5 倍。
+- **需求规模。** 据称 Anthropic 曾讨论次年投入超过 10 亿美元采购强化学习环境。这说明环境采购已经是实验室的一等资本支出，而非附带实验。
+- **瓶颈是规模化质量，而非生成数量。** “在扩大规模的同时维持质量，是人们眼中的头号瓶颈。”困难在于任务成倍增加时仍保持验证器可靠。
+- **所需技能与机器学习直觉相反。** 构建优质环境时，领域专长和专家级提示能力比机器学习技巧更重要，因为核心工作是任务设计与验证，而非模型训练。
+- **发展方向是长时程、端到端的智能体任务，** 而不是短促的单步问题；这会使验证更困难，也让奖励投机更危险。
+- **可靠性优先于覆盖面。** 可被投机的验证器不只是无用，还会教会模型投机，因此稳健性是整条流水线的约束因素。
 
-## Themes
-- **7 RL environments** (primary — this is a direct field report on the RL-environment industry)
-- **8 judge/verifiers** (the soundness/reward-hacking core is fundamentally about verifier robustness)
-- **2 eval⇄capability⇄RL-env** (pass-rate targeting and long-horizon direction tie env design to capability signal)
-- **6 benchmark-vs-eval/integrity** (reward hacking = gameable graders, the integrity failure mode)
-- **10 safety/adversarial** (reward hacking is an adversarial-robustness problem against the model itself)
-- **5 eval infra** (cost/economics and scaling-quality bottleneck are infra-level concerns)
+## 已核验引述（中文翻译）
+
+- “多位受访者提到，希望最低通过率约为 2%–3%，或者至少在 64 或 128 次 rollout 中成功一次。”——https://epochai.substack.com/p/an-faq-on-reinforcement-learning
+- “奖励投机是一个大问题。模型可能通过搜索解法作弊；如果仓库脚本设计不谨慎，它还可能检出未来提交。环境必须对此保持稳健。”——https://epochai.substack.com/p/an-faq-on-reinforcement-learning
+- “可靠性最重要：高奖励必须意味着任务确实已解决，而不是被投机攻破。”——https://epochai.substack.com/p/an-faq-on-reinforcement-learning
+- “需要非常非常多轮迭代，才能检查奖励投机问题。”——https://epochai.substack.com/p/an-faq-on-reinforcement-learning
+- “在扩大规模的同时维持质量，是人们眼中的头号瓶颈。”——https://epochai.substack.com/p/an-faq-on-reinforcement-learning
+- “我看到的大多是 200 到 2,000 美元。每项任务 2 万美元很少见，但也有可能。”——https://epochai.substack.com/p/an-faq-on-reinforcement-learning
+
+## 价值与贡献
+
+关于强化学习环境的公开文章，大多要么很抽象，例如“强化学习是下半场”，要么属于供应商营销。本文做了不够光鲜却更有用的事情：给验证器经济标上数字。2%–3%，或 64–128 次中成功一次的目标通过率，是最有用的结果；它把“适当任务难度”转化为可测属性，也正是评测资料库判断基准任务能否提供有效信号时所需的设计约束。成本数据（每任务 200–2,000 美元、每环境 2 万–30 万美元、实验室十亿美元级预算）有助于解释为什么验证器质量是一种稀缺资源，以及在哪些环节会产生牺牲可靠性的激励。关于奖励投机的讨论也连接了“强化学习环境”和“评测完整性”：供应商竭力防止的高奖励但未真正解决任务，与让基准不再代表能力的失败模式，本质相同。文章的务实价值在于信息来自实际交付环境的人，同时清楚承认了自身方法的局限。
+
+## 主题
+
+- **7 强化学习环境**——首要主题；这是对强化学习环境产业的一线调查。
+- **8 裁判 / 验证器**——可靠性与奖励投机的核心，本质上关乎验证器稳健性。
+- **2 评测⇄能力⇄强化学习环境**——通过率校准和长时程方向把环境设计与能力信号联系起来。
+- **6 基准与评测 / 完整性**——奖励投机即评分器可被利用，是完整性失效。
+- **10 安全 / 对抗**——奖励投机是针对模型自身的对抗稳健性问题。
+- **5 评测基础设施**——成本、经济性和规模化质量瓶颈属于基础设施问题。

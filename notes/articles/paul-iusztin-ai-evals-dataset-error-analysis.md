@@ -1,36 +1,37 @@
-# Notes — "No Evals Dataset? Here's How to Build One from Scratch"
+# 深度笔记——《没有评测数据集？如何从零构建》
 
-**Author:** Paul Iusztin (Decoding ML / Decoding AI Magazine) · **URL:** https://www.decodingai.com/p/build-an-ai-evals-dataset-with-error-analysis · **Type:** newsletter (part of the multi-part "AI Evals & Observability" series) · **Found:** true
+**作者：** Paul Iusztin（Decoding ML / Decoding AI Magazine） · **URL：** https://www.decodingai.com/p/build-an-ai-evals-dataset-with-error-analysis · **类型：** 通讯，“AI Evals & Observability”系列 · **已找到原文：** 是
 
-## Summary (3-6 sentences)
-This is the hands-on, code-forward entry in Iusztin's "AI Evals & Observability" series where he walks the full flywheel from production traces to a working evals dataset and specialized evaluators. The core thesis (lifted directly from Hamel Husain / Shreya Shankar's error-analysis school) is data-first: start with 20–50 real production traces, have a single domain expert binary-label them Pass/Fail with written critiques, fix the obvious bugs, then bootstrap LLM judges whose real signal comes from few-shot examples (the expert critiques) rather than the system prompt. He then runs error analysis as a coding exercise — open codes → axial codes (clustered with LLM help) → a Frequency × Severity × Business-Value prioritization — and only builds 4–7 specialized single-failure-mode evaluators for the persistent high-impact clusters. The running example is "Brown," his writer agent from the Agentic AI Engineer course capstone (the broader course/series also features "Nova," a deep-research agent). Tooling is concrete: Opik for observability/tracing, Eugene Yan's AlignEval for the labeling loop, and an MCP server over the Opik API to pull traces.
+## 摘要
 
-## Key points (5-12 substantive bullets)
-- **6-step flywheel**: (1) build dataset from 20–50 real traces, (2) manual binary labeling + critiques, (3) manually fix obvious errors and convert fixes into regression tests, (4) build evaluators iteratively, (5) error analysis, (6) build specialized evaluators. The cycle is explicitly continuous, not one-shot.
-- **Data-first, not criteria-first**: the entire piece is organized against the failure mode of "crafting elaborate eval criteria without first looking at the data" (quoting Hamel Husain). Look at traces before writing any judge.
-- **Binary Pass/Fail only** — no Likert/5-star scoring. A "3.2 out of 5" is uninterpretable and unactionable; binary forces you to articulate what "good enough" actually means. (Echoes his separate "The 5-Star Lie" piece.)
-- **One domain expert labels, focusing on the first/most-upstream error** rather than exhaustively cataloguing every problem in a trace — keeps labeling tractable and causally meaningful.
-- **The judge's signal lives in few-shot examples, not the prompt**: the expert critiques written during labeling become the few-shot examples; the LLM-judge system prompt "can be almost neutral." This is the load-bearing practitioner insight.
-- **Open codes → axial codes → prioritization matrix**: informal per-failure notes (open codes) are clustered into higher-level categories (axial codes) with LLM assistance, then ranked by a 2×2 Frequency × Severity matrix, with Priority = Frequency × Severity × Business Value.
-- **Concrete numbers**: 20–50 traces minimum (grow to 50–100 early); first error-analysis round is a ~3–4 day one-time investment, then ~30 min/week maintenance; target 4–7 specialized evaluators initially, adding more only when error analysis demands it.
-- **War-story metric**: a first error-analysis pass over 200 new traces surfaced 60 failures (~30% failure rate), used to illustrate the clustering/prioritization step.
-- **Code vs LLM split**: objective/deterministic criteria get code-based checks; reserve LLM judges for genuinely subjective judgments — avoids paying LLM cost/variance where an assertion suffices.
-- **Train/Dev/Test discipline on the labeled set**: build/tune on train, iterate on dev, validate judge↔human agreement before trusting it; final check on a held-out test split — applying ML hygiene to eval development.
-- **Tooling**: Opik (LLMOps observability, 25K spans/month free tier, multimodal trace rendering) + Eugene Yan's open-source AlignEval for labeling/optimizing + an MCP server wired to the Opik API to extract traces programmatically.
-- **Running example is a real shipped agent** ("Brown," the writer agent capstone), not a toy — the series' deep-research agent is "Nova."
+本文以代码为主，完整展示如何从生产轨迹建立评测数据集和专用评估器。核心沿用 Hamel Husain 与 Shreya Shankar 的误差分析路线：从 20–50 条真实轨迹开始，由一位领域专家按通过/失败做二元标注并写批注，先修明显缺陷，再把专家批注作为少样本示例构建 LLM 裁判；真正的信号主要来自示例，而非系统提示。误差分析流程为开放编码→借助 LLM 聚合的主轴编码→频率×严重度×业务价值排序，最终只为持续存在且高影响的类别构建 4–7 个单故障模式评估器。贯穿案例是写作智能体 Brown；工具包括 Opik 可观测平台、Eugene Yan 的 AlignEval，以及通过 MCP 调用 Opik API 的轨迹提取服务器。
 
-## Verified quotes (verbatim, from the article URL)
-1. "Many teams make the mistake of crafting elaborate eval criteria without first looking at the data" (attributed in-article to Hamel Husain). — https://www.decodingai.com/p/build-an-ai-evals-dataset-with-error-analysis
-2. "The real power lies in your few-shot examples and dataset, not your prompt... the system prompt for your LLM judge can be almost neutral... The real guidance comes from the few-shot examples you include in the prompt." — same URL
-3. "The first round of error analysis is a one-time investment of about 3–4 days. After the initial setup, 30 minutes per week is enough to review the latest failures." — same URL
-4. "Binary decisions force clarity. A score of '3.2 out of 5' is hard to interpret and even harder to act on... Pass/fail forces you to articulate exactly what 'good enough' means." — same URL
+## 要点
 
-## What it adds / why it's good (non-BS practitioner value)
-Most "evals" content stays abstract; this is an end-to-end, reproducible recipe on a real shipped agent with real tooling (Opik, AlignEval, MCP) and hard numbers (20–50 traces, 3–4 days, 4–7 evaluators, 200 traces → 60 fails). It faithfully operationalizes the Husain/Shankar error-analysis methodology but adds the engineer's plumbing the canonical sources gloss over: how to pull traces via an MCP server over an observability API, where the train/dev/test split goes, and the code-check-vs-LLM-judge decision boundary. The standout, non-obvious takeaway is the insistence that an LLM judge's quality is dominated by curated few-shot critiques rather than prompt wording — a concrete, testable claim a practitioner can act on immediately. It's a good complement to Eugene Yan and Hamel Husain (it cites both) by being the "here's the actual pipeline and the buttons to click" version rather than the conceptual framing.
+- **六步飞轮。** 从 20–50 条真实轨迹建集；人工二元标注与批注；手工修复明显错误并转成回归测试；迭代构建评估器；误差分析；构建专用评估器。循环持续运行而非一次结束。
+- **数据优先。** 不要没看数据就制定复杂准则，应先检查轨迹再写裁判。
+- **只用通过/失败。** 3.2/5 不可解释也难行动；二元决定迫使团队明确“足够好”。
+- **由一位领域专家标注，** 只聚焦最先或最上游错误，不穷举轨迹所有问题，以保持工作量可控和因果意义。
+- **裁判信号来自少样本示例。** 人工标注时的专家批注直接变成少样本；系统提示甚至可以近乎中性。
+- **编码与排序。** 逐故障开放编码被聚合为主轴类别，再放入频率×严重度矩阵；优先级=频率×严重度×业务价值。
+- **具体规模。** 起步 20–50 条，早期增到 50–100；首次误差分析一次投入约 3–4 天，此后每周约 30 分钟；初期目标是 4–7 个专用评估器。
+- **案例数字。** 对 200 条新轨迹的首轮分析发现 60 条失败，约 30%，用于说明聚类与排序。
+- **代码与 LLM 分工。** 客观确定性标准用代码，LLM 仅处理真正主观判断，避免不必要成本与方差。
+- **训练/开发/测试纪律。** 在训练集构建调优、开发集迭代，核验裁判与人工一致性后，再用留出测试集最终检查。
+- **工具。** Opik 每月免费 25K spans 并支持多模态轨迹；AlignEval 用于标注优化；MCP 服务对接 Opik API 自动抽取轨迹。
+- **案例来自真实智能体。** Brown 是 Agentic AI Engineer 课程结课写作智能体，系列中的深度研究智能体名为 Nova。
 
-## Themes
-- **1 why-evals** — frames evals against the cost of un-actionable metrics and unmeasured failure modes.
-- **4 observability** — production traces via Opik are the raw material; tracing is step zero.
-- **5 eval infra** — datasets, train/dev/test splits, MCP-to-Opik trace extraction, AlignEval labeling loop.
-- **8 judge/verifiers** — binary LLM judges, few-shot-driven critiques, code-checks vs LLM-judges, specialized single-failure-mode evaluators.
-- **9 agent-specific** — built on a real shipped agent (Brown/Nova), evaluating multi-step agent traces (tool calls, retrieved docs, spans).
+## 已核验引述（中文翻译）
+
+1. “许多团队还没查看数据，就开始制定复杂的评测准则。”——文中归于 Hamel Husain，https://www.decodingai.com/p/build-an-ai-evals-dataset-with-error-analysis
+2. “真正的力量在少样本示例和数据集，不在提示……LLM 裁判的系统提示几乎可以保持中性……真正指导来自提示中包含的少样本示例。”——同上
+3. “第一轮误差分析是约 3–4 天的一次性投入；初始设置后，每周 30 分钟足以审查最新失败。”——同上
+4. “二元决定迫使人清晰。‘3.2/5’很难解释，更难采取行动……通过/失败会迫使你准确说清‘足够好’的含义。”——同上
+
+## 价值与贡献
+
+本文给真实智能体提供端到端、可复现的方案和硬数字：20–50 条轨迹、3–4 天、4–7 个评估器、200 条中 60 次失败。它在 Husain/Shankar 方法上补齐了工程管线，包括 MCP 如何从可观测 API 拉轨迹、训练/开发/测试切分放在哪里，以及代码检查与 LLM 裁判的边界。最重要且可检验的主张是，裁判质量主要由精选批注示例决定，而非提示措辞。这是 Eugene Yan 与 Hamel Husain 概念框架的可执行版本。
+
+## 主题
+
+1 为什么需要评测 · 4 可观测性 · 5 评测基础设施 · 8 裁判 / 验证器 · 9 智能体专项

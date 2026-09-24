@@ -1,36 +1,41 @@
-# Notes — "Successful language model evals"
+# 深度笔记——《成功的语言模型评测》
 
-**Author:** Jason Wei · **URL:** https://www.jasonwei.net/blog/evals · **Type:** blog · **Found:** true
+**作者：** Jason Wei · **URL：** https://www.jasonwei.net/blog/evals · **类型：** 博客 · **已找到原文：** 是
 
-## Summary
-A practitioner's checklist from inside a frontier lab (Wei was at Google Brain / OpenAI) on why most evals never get adopted, even when the task seems reasonable. The framing thesis is that evals are *incentives*: they function as the objective function the research community optimizes against, so a successful eval is one that gets buy-in and survives, not merely one that is well-designed on paper. The bulk of the post is a list of seven properties of a good eval — equivalently, seven common ways people "mess up" an eval — covering sample size, data quality, simplicity, cost to run, task meaningfulness, grading correctness, and resistance to saturation. The recurring message is that adoption is fragile: a single visible grading or parsing error makes researchers distrust and abandon an eval immediately. It is a distinct, more pragmatic companion to Wei's "verifier's law" writing — this one is about what makes a benchmark *actually used* rather than about the theory of verifiability.
+## 摘要
 
-## Key points
-- **Evals are incentives.** "Evals are incentives for the research community, and breakthroughs are often closely linked to a huge performance jump on some eval." Good evals with buy-in become the objective function AI researchers optimize.
-- **Enough examples (≥1,000).** Too few examples makes the eval noisy and creates a "bad UI" — score fluctuations between checkpoints swamp real signal. Rule of thumb: at least ~1,000 examples, possibly more for multiple-choice evals (where guessing inflates variance).
-- **High-quality data.** Errors in the ground-truth labels destroy community trust. Wei cites stopping use of Natural Questions once GPT-4-level models surfaced cases where the "wrong" model answer was actually right and the label was wrong.
-- **Simplicity / single-number metric.** "It's critical to have a single-number metric—I can't think of any great evals that don't have one." Over-complicated evals (original HELM is cited as having too many metrics/subsets) are hard to understand and therefore used less.
-- **Low cost to run.** If an eval takes too much work to run it won't gain traction even if everything else is good. BIG-Bench is the cautionary example — needing different infra for log-prob vs. generation evals created adoption friction.
-- **Meaningful task.** Researchers won't deeply care unless the eval measures something central to intelligence (language understanding, exam problems, math) rather than peripheral tasks (e.g., movie recommendations).
-- **Grading must be extremely correct.** Parsing bugs or a poor autograder/judge prompt cause researchers to distrust the whole eval the moment they spot one bad grade. This is the highest-leverage failure mode — correctness of the grader matters as much as correctness of the data.
-- **Avoid saturation.** For an eval to stand the test of time, performance must not saturate too quickly. GLUE/SuperGLUE are cited as evals abandoned once models plateaued near ceiling.
-- **Pairwise/side-by-side evals are a double-edged sword.** Their generality is appealing, but "you aren't exactly sure what you're measuring" — you trade interpretability for coverage.
-- **Meta-point on craft:** building an eval that lasts "takes a lot of care"; it's far easier to mess one up than to make a good one.
+这是一份来自前沿实验室内部实践者的检查清单（Wei 曾任职于 Google Brain 和 OpenAI），解释了为什么许多任务设计看似合理的评测最终仍未被采用。文章的核心判断是：评测即激励。评测相当于研究共同体所优化的目标函数，因此成功的评测不只要在纸面上设计良好，更要获得认同并长期存续。正文列出优质评测的七项属性，也就是评测最常见的七种失败方式，涉及样本量、数据质量、简洁性、运行成本、任务意义、评分正确性和抗饱和能力。反复出现的主线是：采用意愿非常脆弱，一处明显的评分或解析错误，就足以让研究者立刻失去信任并放弃评测。本文可视为 Wei 关于“验证器定律”文章的一篇更务实的姊妹篇；它讨论的是基准如何真正被使用，而非可验证性的理论。
 
-## Verified quotes
-- "Evals are incentives for the research community, and breakthroughs are often closely linked to a huge performance jump on some eval." — https://www.jasonwei.net/blog/evals
-- "It's critical to have a single-number metric—I can't think of any great evals that don't have one." — https://www.jasonwei.net/blog/evals
-- "It's good to have at least 1,000 examples for your eval; perhaps more if it's a multiple choice eval." — https://www.jasonwei.net/blog/evals
-- "If an eval takes too much work to run, it won't gain traction" (even if everything else is good). — https://www.jasonwei.net/blog/evals
-- "For the eval to stand the test of time, performance must not become saturated." — https://www.jasonwei.net/blog/evals
-- "Good evals (with proper buy-in) are the objective function for AI researchers." — https://www.jasonwei.net/blog/evals
+## 要点
 
-## What it adds / why it's good
-Most eval writing is either academic (how to design a fair benchmark) or alarmist (contamination, gaming). This post is about the *sociology of adoption* from someone who shipped and used internal lab evals: the binding constraint on an eval's value isn't its statistical design, it's whether researchers trust it enough to make it their objective function. The concrete, opinionated thresholds (≥1,000 examples, mandatory single-number metric) and the named failure cases (HELM's metric sprawl, BIG-Bench's dual-infra cost, Natural Questions' label rot, GLUE/SuperGLUE saturation) give it teeth the generic "make good benchmarks" advice lacks. The sharpest insight is that grading/parsing correctness is a *trust* problem, not just an accuracy problem — one visible bad grade poisons the whole eval — which is a non-obvious, high-leverage point for anyone building an eval harness or LLM-judge pipeline. Note it does not deeply cover contamination/leakage; the "why it's flagged" mention of contamination overstates that angle — its real emphasis is sample size, single-metric simplicity, grading correctness, cost, and saturation.
+- **评测即激励。** “评测会为研究共同体提供激励，而突破往往与某项评测上的巨大性能跃升密切相关。”获得充分认同的优质评测会成为 AI 研究者实际优化的目标函数。
+- **样本必须充足（至少 1,000 个）。** 样本过少会带来高噪声和糟糕的使用体验，检查点之间的分数波动会淹没真实信号。经验法则是至少约 1,000 个样本；对于选择题评测，猜测会放大方差，因此可能需要更多。
+- **数据必须高质量。** 真实标签中的错误会摧毁共同体的信任。Wei 提到，当 GPT-4 水平的模型暴露出 Natural Questions 中一些“错误”的模型答案其实正确、反而标签有误后，他们停止了对该数据集的使用。
+- **简洁并提供单一数值指标。** “拥有一个单一数值指标至关重要——我想不出任何不具备这一点的优秀评测。”过度复杂的评测很难理解，因此使用率更低；原始 HELM 就因指标和子集过多而被作为例子。
+- **运行成本要低。** 如果运行评测需要过多工作，即使其余方面都很好，也难以获得采用。BIG-Bench 是反例：对数概率评测和生成式评测需要不同基础设施，形成了采用阻力。
+- **任务应有实质意义。** 除非评测衡量的是智能的核心方面，例如语言理解、考试题或数学，否则研究者不会真正重视它；电影推荐等外围任务很难产生同样影响。
+- **评分必须极其准确。** 解析缺陷、拙劣的自动评分器或裁判提示，会让研究者在发现一次错误评分后就怀疑整项评测。这是杠杆最高的失败模式：评分器正确性与数据正确性同样重要。
+- **避免饱和。** 要经受时间检验，性能就不能太快触顶。GLUE 和 SuperGLUE 都是在模型接近上限后逐渐被放弃的例子。
+- **成对或并排评测是双刃剑。** 它们的通用性很有吸引力，但“你并不完全清楚自己测量的是什么”；覆盖面是以可解释性为代价换来的。
+- **关于工艺的元观点。** 打造一项持久评测“需要非常多的细心”；把评测搞砸远比做好容易。
 
-## Themes
-- **1 why-evals** — central; evals as incentives / the field's objective function.
-- **6 benchmark-vs-eval / integrity** — core; data-label quality, saturation, what makes a benchmark durable and trusted.
-- **8 judge / verifiers** — grading correctness, autograder prompts, and the trust cost of a single bad grade.
-- **5 eval infra** — cost-to-run and implementation friction as an adoption gate (BIG-Bench dual-infra example).
-- (Light) **2 eval⇄capability⇄RL-env** — evals as the optimization target that drives capability jumps.
+## 已核验引述（中文翻译）
+
+- “评测会为研究共同体提供激励，而突破往往与某项评测上的巨大性能跃升密切相关。”——https://www.jasonwei.net/blog/evals
+- “拥有一个单一数值指标至关重要——我想不出任何不具备这一点的优秀评测。”——https://www.jasonwei.net/blog/evals
+- “一项评测最好至少包含 1,000 个样本；如果是选择题评测，可能还需要更多。”——https://www.jasonwei.net/blog/evals
+- “如果运行一项评测需要做太多工作，它就不会获得广泛采用”，即使其他方面都很好。——https://www.jasonwei.net/blog/evals
+- “要让评测经受时间检验，性能就不能趋于饱和。”——https://www.jasonwei.net/blog/evals
+- “得到充分认同的优质评测，是 AI 研究者的目标函数。”——https://www.jasonwei.net/blog/evals
+
+## 价值与贡献
+
+多数评测文章要么偏学术，讨论如何设计公平基准；要么偏警示，聚焦污染和投机。本文关注的是采用的社会机制，且作者确实发布和使用过实验室内部评测：决定评测价值的约束不只是统计设计，还包括研究者是否足够信任它，从而愿意把它当作目标函数。至少 1,000 个样本、必须提供单一数值指标等明确且带立场的门槛，以及 HELM 指标膨胀、BIG-Bench 双基础设施成本、Natural Questions 标签腐化、GLUE/SuperGLUE 饱和等具名失败案例，使文章比泛泛的“做好基准”建议更具操作性。最尖锐的洞见在于，评分与解析的正确性首先是一个信任问题，而不只是准确率问题：一次肉眼可见的错误评分就会污染整项评测。这对构建评测工具链或 LLM 裁判流水线的人尤其重要。需要注意，本文并未深入讨论污染或泄漏；把它概括为主要关注污染会夸大这一角度，其真正重点是样本量、单指标简洁性、评分正确性、成本与饱和。
+
+## 主题
+
+- **1 为什么需要评测**——核心主题；评测是激励，也是领域的目标函数。
+- **6 基准与评测 / 完整性**——核心主题；数据标签质量、饱和，以及基准如何保持持久和可信。
+- **8 裁判 / 验证器**——评分正确性、自动评分提示，以及单次错误评分造成的信任成本。
+- **5 评测基础设施**——运行成本和实现阻力是采用门槛，BIG-Bench 的双基础设施即为案例。
+- （次要）**2 评测⇄能力⇄强化学习环境**——评测作为优化目标推动能力跃升。

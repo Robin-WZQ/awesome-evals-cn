@@ -1,38 +1,40 @@
-# Notes — "Evaluating AI Agents in Practice: Benchmarks, Frameworks, and Lessons Learned"
+# 深度笔记——《实践中的 AI 智能体评估：基准、框架与经验》
 
-**Author:** Amit Kumar Padhy (reviewed by Arthur Casals) · **URL:** https://www.infoq.com/articles/evaluating-ai-agents-lessons-learned/ · **Type:** eng-blog · **Found:** true
+**作者：** Amit Kumar Padhy（Arthur Casals 审阅） · **URL：** https://www.infoq.com/articles/evaluating-ai-agents-lessons-learned/ · **类型：** 工程博客 · **已找到原文：** 是
 
-## Summary (3-6 sentences)
-An InfoQ practitioner article (March 16, 2026) arguing that AI agents are *systems, not models*, and that classical metrics (BLEU, ROUGE, single-turn accuracy) miss how agents actually fail — because agents plan, call tools, hold state, and adapt across multiple turns. The piece organizes agent evaluation into five pillars (intelligence/accuracy, performance/efficiency, reliability/resilience, responsibility/governance, user experience) and grounds them in concrete e-commerce production scenarios (order triage, refund investigation, catalog enrichment, L2/L3 incident response). Its central practitioner thesis is "behavior beats benchmarks": task success, graceful recovery from tool failures, and consistency under noisy real-world inputs matter more than curated test-set scores. It recommends a hybrid method — automated LLM-as-a-judge + trace analysis + load/failure-injection testing for scale, with human judgment for tone/trust/nuance — and walks through a minimal Claude-Sonnet-4.5 + LangChain judge implementation. Note: despite the "lessons learned" framing, this is a single-author synthesis of common MLOps/responsible-AI patterns, not a set of attributed practitioner interviews.
+## 摘要
 
-## Key points (5-12 substantive bullets)
-- **The signature failure mode (war story):** an order-triage agent correctly identifies a shipping exception but **silently skips a refund when the refund API returns an error**, then reports the case as "resolved." A single-turn accuracy test passes this; the agent has silently broken the task. This is the article's anchor example for why turn-level metrics are inadequate.
-- **"Agents are systems not models"** — the framing argument. Because agents compose planning + tool calls + state + multi-turn adaptation, evaluation must target the *trajectory and system behavior*, not a single input→output pair.
-- **Five evaluation pillars:** (1) Intelligence & Accuracy — reasoning quality, grounding/faithfulness, multi-step coherence; (2) Performance & Efficiency — latency (TTFT), cost per task, scalability; (3) Reliability & Resilience — robustness to input variation, API-failure recovery, memory consistency; (4) Responsibility & Governance — safety, privacy, access control, compliance; (5) User Experience — clarity, tone, trust, satisfaction.
-- **Hybrid evaluation is non-negotiable:** automated scoring (LLM-as-judge, trace analysis, load testing) for repeatability/scale, plus human judgment for nuance/tone/contextual appropriateness, plus stress testing + failure injection for resilience, plus red teaming + safety classifiers for governance.
-- **"Reliability > brilliance":** consistency under variation and clean fault recovery beat peak performance. Controlled lab performance ≠ real-world readiness; agents that shine in sandboxes falter under dynamic, noisy conditions.
-- **Concrete LLM-as-a-judge recipe:** a minimal judge built on **Claude Sonnet 4.5 + LangChain**, supporting reference-free (helpfulness) and reference-aware (correctness vs. gold) scoring, emitting binary/Likert scores *with rationales/reasoning traces* (worked example judges a definition of TTFT).
-- **Efficiency as a first-class constraint:** speed, token consumption, and latency are viability gates, not afterthoughts — measured via OpenTelemetry distributed tracing.
-- **Privacy in the eval loop:** real operational inputs carry PII/sensitive data, so traces must be redacted/anonymized *before* logging — an often-skipped observability detail.
-- **Tooling map for practitioners:** MLflow 3.0 (GenAI tracing + built-in LLM judges), TruLens (feedback + OpenTelemetry), LangChain Evals, OpenAI Evals, Ragas (RAG), Guardrails AI (policy enforcement), OpenTelemetry (latency tracing).
-- **Production grounding:** uses real shipped agents as context — Shopify Sidekick, Amazon "Enhance My Listing," Walmart "My Assistant" — and enterprise e-commerce workflows (pricing/promo validation, payment & refund investigation).
+这篇 2026 年 3 月 16 日发布的 InfoQ 实践文章认为，AI 智能体是系统而非模型；BLEU、ROUGE 和单轮准确率等传统指标无法捕捉智能体的真实失败，因为智能体会规划、调用工具、维持状态并跨多轮适应。文章把智能体评估分成五大支柱：智能与准确性、性能与效率、可靠性与韧性、责任与治理、用户体验，并用电商生产场景加以说明，包括订单分流、退款调查、目录增强和 L2/L3 事件响应。核心主张是“行为胜过基准”：任务成功、工具故障后的优雅恢复，以及噪声现实输入下的一致性，比精心策划测试集上的分数更重要。文章建议采用混合方法：以 LLM 裁判、轨迹分析、负载和故障注入测试获得规模与可重复性，同时用人工判断语气、信任和细微差别，并展示了最小化的 Claude Sonnet 4.5 + LangChain 裁判实现。需要注意，尽管题为“经验”，它仍是单一作者对常见 MLOps 和负责任 AI 模式的综合，而不是具名从业者访谈。
 
-## Verified quotes (verbatim, from the URL)
-> "Agents are systems not models – evaluate them accordingly."
+## 要点
 
-> "Behavior beats benchmarks."
+- **代表性故障。** 订单分流智能体正确识别了配送异常，但退款 API 返回错误时，它静默跳过退款，却把案件报告为“已解决”。单轮准确率测试会通过，而任务已经悄然失败。这说明按轮指标为何不足。
+- **“智能体是系统而非模型”。** 智能体组合规划、工具调用、状态和多轮适应，因此评测必须针对轨迹和系统行为，而不是单一输入输出对。
+- **五大支柱。** 智能与准确性包括推理质量、事实依据和多步一致性；性能与效率包括首 token 延迟、单任务成本和扩展性；可靠性与韧性包括输入变化稳健性、API 故障恢复和记忆一致性；责任与治理包括安全、隐私、访问控制和合规；用户体验包括清晰度、语气、信任和满意度。
+- **必须混合评估。** 自动评分、轨迹分析和负载测试提供可重复性与规模；人工判断细微差别、语气和语境适当性；压力测试和故障注入评估韧性；红队和安全分类器覆盖治理。
+- **“可靠性大于惊艳表现”。** 变化下的一致性和干净的故障恢复比峰值表现更重要。受控实验室性能不等于现实就绪，沙箱中出色的智能体可能在动态噪声环境中失灵。
+- **具体 LLM 裁判方案。** 使用 Claude Sonnet 4.5 + LangChain 构建最小裁判，支持无参考的帮助性评分和对照金标准的正确性评分，输出二元或李克特分数及理由；示例评估首 token 时间的定义。
+- **效率是一等约束。** 速度、token 消耗和延迟决定系统是否可用，而非事后考虑；可用 OpenTelemetry 分布式追踪测量。
+- **评测环中的隐私。** 真实运营输入带有个人身份信息和敏感数据，因此必须在写入日志前对轨迹脱敏或匿名化，这是常被忽略的可观测性细节。
+- **工具图谱。** MLflow 3.0、TruLens、LangChain Evals、OpenAI Evals、Ragas、Guardrails AI 和 OpenTelemetry 分别覆盖生成式 AI 追踪、反馈、裁判、RAG、策略执行和延迟追踪。
+- **生产依据。** 文中引用 Shopify Sidekick、Amazon“Enhance My Listing”、Walmart“My Assistant”等已上线智能体，以及定价、促销验证、支付与退款调查等企业电商工作流。
 
-> "Reliability is more valuable than brilliance."
+## 已核验引述（中文翻译）
 
-> "An agent that works perfectly in a sandbox but silently misreports a failed refund in production hasn't passed any evaluation that counts."
+以下引述来自文章的关键要点部分：https://www.infoq.com/articles/evaluating-ai-agents-lessons-learned/
 
-(Source: https://www.infoq.com/articles/evaluating-ai-agents-lessons-learned/ — Key Takeaways section.)
+> “智能体是系统，不是模型——应据此评估。”
 
-## What it adds / why it's good (non-BS practitioner value)
-- The **silent-refund war story** is the load-bearing contribution: a crisp, memorable, production-credible example of *cascading/partial-completion failure* where the agent's self-report ("resolved") diverges from ground truth. This is exactly the gap that turn-level accuracy and "did the final answer look right" judges miss, and it makes the abstract "agents fail differently" claim concrete.
-- The **five-pillar taxonomy** is more operationally complete than the typical "use an LLM judge" advice — it explicitly elevates resilience (API-failure recovery, memory consistency) and governance to the same tier as accuracy, which maps to how production teams actually triage agent failures.
-- Practical, copy-able specifics: a named judge stack (Claude Sonnet 4.5 + LangChain) with reference-free *and* reference-aware modes, rationale-emitting scores, and a concrete tooling shortlist — useful for someone standing up an eval harness this week.
-- **Honest caveat vs. the framing:** despite "lessons learned from practitioners," there are **no named interviewees or attributed quotes** — it's a single-author synthesis of MLOps/responsible-AI patterns. So it's strong as a structured checklist and as a vivid failure-mode example, but weaker as primary-source practitioner testimony than the flag implies. Treat it as a well-organized synthesis, not field interviews.
+> “行为胜过基准。”
 
-## Themes
-1 why-evals · 4 observability · 5 eval infra · 6 benchmark-vs-eval · 8 judge/verifiers · 9 agent-specific · 10 safety
+> “可靠性比惊艳表现更有价值。”
+
+> “一个在沙箱中完美工作、却在生产中静默误报退款失败的智能体，没有通过任何真正重要的评估。”
+
+## 价值与贡献
+
+静默退款故障是本文最重要的贡献：它以简洁、可信的生产案例展示级联或部分完成故障，说明智能体自报“已解决”如何偏离事实，而逐轮准确率和只看最终答案的裁判都会漏掉。五支柱分类比简单的“使用 LLM 裁判”更完整，把 API 故障恢复、记忆一致性等韧性指标和治理提升到与准确率相同的层级。Claude Sonnet 4.5 + LangChain 的具名方案、两种裁判模式、带理由评分和工具清单，也能帮助团队快速搭建评测工具链。不过，文章并没有具名受访者或引述，应视为组织良好的综合清单，而非一手从业者证词。
+
+## 主题
+
+1 为什么需要评测 · 4 可观测性 · 5 评测基础设施 · 6 基准与评测 · 8 裁判 / 验证器 · 9 智能体专项 · 10 安全

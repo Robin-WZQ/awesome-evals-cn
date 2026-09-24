@@ -1,37 +1,35 @@
-# Notes — "Beyond vibe checks: A PM's complete guide to evals"
+# 深度笔记——《超越感觉检查：产品经理的完整评测指南》
 
-**Author:** Aman Khan (Director of Product, Arize AI) · **URL:** https://www.lennysnewsletter.com/p/beyond-vibe-checks-a-pms-complete · **Type:** newsletter · **Found:** true
+**作者：** Aman Khan（Arize AI 产品总监） · **URL：** https://www.lennysnewsletter.com/p/beyond-vibe-checks-a-pms-complete · **类型：** 通讯 · **已找到原文：** 是
 
-## Summary (3-6 sentences)
-A high-reach, PM-facing guide (co-written with Lenny Rachitsky) that argues "vibe checks" — eyeballing a few outputs to decide if an AI feature is good — don't scale, and that writing evals is the defining skill for AI PMs going forward. Khan frames evals as the AI equivalent of regression tests/benchmarks: they define what "good" looks like beyond latency or pass/fail. He lays out three eval approaches (human, code-based, LLM-as-judge) with their tradeoffs, then gives a concrete four-part formula for constructing an LLM-as-judge prompt (role → context → goal → terminology/label). Examples are grounded in an agentic trip-planning assistant, including a real failure mode (booking San Diego instead of San Francisco), making it accessible to non-engineers. The piece is explicitly a 0→1 starter for PMs shipping AI products, not an academic treatment.
+## 摘要
 
-## Key points (5-12 substantive bullets)
-- **Core thesis / why-evals:** evals are "how you measure the quality and effectiveness of your AI system. They act like regression tests or benchmarks," defining what "good" actually looks like "beyond the kind of simple latency or pass/fail checks you'd usually use for software." Vibe checks (manually spot-checking a handful of outputs) feel fine early but collapse as volume and surface area grow.
-- **Three eval types and their tradeoffs:**
-  - *Human evals* — thumbs-up/down user feedback loops or expert labelers. Pro: directly tied to real end-users. Cons: signal is sparse and labelers are costly/slow.
-  - *Code-based evals* — deterministic checks (did the API call succeed? does generated code run? regex/format checks). Pro: cheap and fast to write. Con: weak for subjective qualities like tone or helpfulness.
-  - *LLM-based evals (LLM-as-judge)* — an external "judge" LLM grades the system's output via a natural-language prompt, producing classification labels automatically. Pro: scalable and explainable, approximates human labeling without labeling everything. Con: needs upfront setup and enough volume to be reliable.
-- **The four-part LLM-judge formula** (the load-bearing technique of the piece):
-  1. *Set the role* — prime the judge-LLM with a defined role (e.g., "you are examining written text").
-  2. *Provide the context* — the actual data you'll send to be graded (message chains, agent-generated outputs).
-  3. *Provide the goal* — clearly articulate exactly what to measure; this is framed as the difference between mediocre and delightful AI.
-  4. *Define terminology and label* — ground ambiguous terms (e.g., "toxicity" means different things in different contexts) and specify the output labels the judge should emit.
-- **Concrete agent example (trip-planning):** user asks for "a relaxing weekend getaway near San Francisco for under $1,000"; the agent calls flight APIs, hotel databases, and mapping services. A real failure mode cited: the agent booked flights to **San Diego instead of San Francisco** — a vivid illustration of why correctness/grounding evals matter for multi-tool agents.
-- **Common eval criteria to start from:** hallucination detection, toxicity/tone, overall correctness, code generation, summarization quality, and retrieval relevance — a menu PMs can map onto their own product surfaces.
-- **Agent-specific angle:** evals aren't just for a single LLM call — they apply to agent trajectories that span tool calls (APIs, DBs, maps), where the failure surface is much larger than a chatbot reply.
-- **Skill/career framing:** Khan positions eval-writing as "rapidly becoming the defining skill for AI PMs in 2025 and beyond," not an engineer-only concern; PMs own the definition of "good."
-- **Author credibility:** Director of Product at Arize AI (an LLM observability/eval company), co-developed an evals course with Andrew Ng (DeepLearning.AI), prior roles at Spotify, Cruise, Zipline, and Apple — i.e., someone who ships evals as product, not theory.
+这是一篇面向广泛产品经理读者的指南，由 Khan 与 Lenny Rachitsky 合作撰写。文章认为，凭肉眼查看少量输出判断 AI 功能好坏的“感觉检查”无法扩展；编写评测将成为 AI 产品经理未来的核心技能。Khan 把评测比作 AI 系统的回归测试和基准：它们定义了超越延迟或简单通过/失败的“好”。文章介绍三类评测——人工、基于代码、LLM 裁判——及各自权衡，并给出构造 LLM 裁判提示的四部分公式：角色→上下文→目标→术语与标签。案例围绕旅行规划智能体展开，其中包括把旧金山行程误订成圣迭戈的真实故障，因而非工程读者也容易理解。本文明确是一份帮助 AI 产品从零到一的入门材料，而非学术论述。
 
-## Verified quotes (verbatim, from the article URL)
-- "Prompts may make headlines, but evals quietly decide whether your product thrives or dies." — https://www.lennysnewsletter.com/p/beyond-vibe-checks-a-pms-complete
-- "Evals are how you measure the quality and effectiveness of your AI system. They act like regression tests or benchmarks, clearly defining what 'good' actually looks like for your AI product beyond the kind of simple latency or pass/fail checks you'd usually use for software." — https://www.lennysnewsletter.com/p/beyond-vibe-checks-a-pms-complete
-- "the ability to write great evals isn't just important—it's rapidly becoming the defining skill for AI PMs in 2025 and beyond." — https://www.lennysnewsletter.com/p/beyond-vibe-checks-a-pms-complete
-- On the four-part formula's third step: "Clearly articulating what you want your judge-LLM to measure isn't just a step in the process; it's the difference between a mediocre AI and one that consistently delights users." — https://www.lennysnewsletter.com/p/beyond-vibe-checks-a-pms-complete
+## 要点
 
-*(Note: a later "workflow for writing effective evals" section sits behind Lenny's paywall; the four-part formula, definitions, and quotes above were verified from the publicly fetchable portion.)*
+- **核心主张。** 评测衡量 AI 系统的质量和有效性，像回归测试或基准一样定义产品究竟何为“好”。早期人工抽查少量输出似乎够用，但随着流量和功能面扩大就会失效。
+- **三类评测及其权衡。** 人工评测可用用户赞踩或专家标注，优点是直接连接真实用户，缺点是信号稀疏且昂贵缓慢；代码评测用 API 是否成功、代码能否运行、正则或格式等确定性检查，便宜快速但不擅长语气和帮助性等主观质量；LLM 裁判用外部模型按自然语言提示自动给系统输出分类，易扩展、可解释、近似人工标注，但需要前期配置和足够样本量。
+- **LLM 裁判四步公式。** 一是设定角色，例如让裁判“检查书面文本”；二是提供上下文，即实际待评分数据，如消息链或智能体输出；三是明确目标，精确说明测量内容，作者认为这是平庸 AI 与令人满意 AI 的分水岭；四是定义术语和标签，澄清“毒性”等依场景而异的概念，并规定输出标签。
+- **旅行规划智能体案例。** 用户要求“从旧金山出发、预算低于 1,000 美元的轻松周末短途旅行”，智能体调用航班 API、酒店数据库和地图服务。一个真实故障是它订了去**圣迭戈而非旧金山**的航班，鲜明说明多工具智能体为何需要正确性与事实依据评测。
+- **可从这些标准起步：** 幻觉检测、毒性与语气、总体正确性、代码生成、摘要质量和检索相关性。
+- **智能体专项视角。** 评测不仅适用于单次 LLM 调用，也适用于跨越 API、数据库和地图工具调用的智能体轨迹；后者的失败面远大于聊天回复。
+- **职业技能定位。** Khan 把评测编写视为“正在迅速成为 2025 年及以后 AI 产品经理的决定性技能”，而非工程师专属工作。产品经理负责定义“好”。
+- **作者背景。** Khan 是 Arize AI 产品总监，曾与 Andrew Ng 合作开发 DeepLearning.AI 评测课程，此前任职 Spotify、Cruise、Zipline 与 Apple，属于把评测作为产品交付的实践者。
 
-## What it adds / why it's good (practitioner value vs. obvious sources)
-Most eval writing is either academic (benchmark papers) or engineer-facing (eval harness docs). This piece's value is translation: it gives a **non-technical PM a concrete, reusable prompt template** (role/context/goal/terminology-label) they can hand to an engineer or paste into a judge prompt today, plus a clean mental model for choosing among human/code/LLM evals based on cost vs. subjectivity. The trip-planning agent with the San Diego-vs-San Francisco failure is a memorable, transferable war story that makes the abstract "why evals" argument land for the people who actually decide what "good" means in a product. Its reach (Lenny's audience) and the author's dual standing — Arize PM + Andrew Ng course co-author — make it a canonical on-ramp document rather than a deep technical reference.
+## 已核验引述（中文翻译）
 
-## Themes
-1 why-evals · 8 judge/verifiers · 9 agent-specific · 4 observability (secondary, via Arize lineage)
+- “提示词或许能登上头条，但真正悄然决定产品兴衰的是评测。”——https://www.lennysnewsletter.com/p/beyond-vibe-checks-a-pms-complete
+- “评测衡量 AI 系统的质量和有效性。它们如同回归测试或基准，清楚定义 AI 产品何为‘好’，超越普通软件常用的简单延迟或通过/失败检查。”——同上
+- “编写优秀评测的能力不只是重要，它正迅速成为 2025 年及以后 AI 产品经理的决定性技能。”——同上
+- 关于四步公式第三步：“清楚阐明你希望裁判 LLM 测量什么，不只是流程中的一步；它是平庸 AI 与持续令用户满意的 AI 之间的差别。”——同上
+
+注：后续“编写有效评测的工作流”章节位于 Lenny 的付费墙后；上述四步公式、定义和引述均已从公开可访问部分核验。
+
+## 价值与贡献
+
+大多数评测文章要么偏学术，要么只面向工程师。本文的价值在于转译：它给非技术产品经理一份可直接复用的提示模板——角色、上下文、目标、术语与标签——可以交给工程师或直接放进裁判提示；同时用成本与主观性帮助读者在人工、代码和 LLM 评测之间选择。圣迭戈与旧金山的故障案例具体易记，让真正负责定义产品质量的人理解为何必须评测。凭借 Lenny 的读者覆盖和作者在 Arize 及 Andrew Ng 课程中的双重背景，它更适合作为权威入门材料，而非深度技术参考。
+
+## 主题
+
+1 为什么需要评测 · 8 裁判 / 验证器 · 9 智能体专项 · 4 可观测性（次要，源自 Arize 背景）

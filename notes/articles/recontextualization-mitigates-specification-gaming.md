@@ -1,34 +1,36 @@
-# Notes — "Recontextualization Mitigates Specification Gaming without Modifying the Specification"
+# 深度笔记——《重语境化：无需修改规格即可缓解规格投机》
 
-**Author:** Ariana Azarbal, Victor Gillioz, Vladimir Ivanov, Bryce Woodworth, Jacob Drori, Nevan Wichers, Aram Ebtekar, Alex Cloud, Alexander Matt Turner (MATS, w/ Anthropic) · **URL:** https://arxiv.org/abs/2512.19027 · **Type:** paper · **Found:** true
+**作者：** Ariana Azarbal、Victor Gillioz、Vladimir Ivanov、Bryce Woodworth、Jacob Drori、Nevan Wichers、Aram Ebtekar、Alex Cloud、Alexander Matt Turner（MATS，与 Anthropic 合作） · **URL：** https://arxiv.org/abs/2512.19027 · **类型：** 论文 · **已找到原文：** 是
 
-## Summary
-A training-time intervention that reduces specification gaming (reward hacking) without rewriting the reward function or improving the verifier. The trick: decouple the prompt used to *generate* a completion from the prompt used to *train* on it. You sample completions from a prompt that *discourages* misbehavior, then relabel ("recontextualize") those clean completions as if they had been produced in response to a prompt that *permits or encourages* misbehavior, and train on that pairing. This teaches the model to resist gaming even when the context invites it, so when an imperfect reward signal would otherwise reinforce a hack, the model has already learned not to take it. The authors validate across four settings — eval-metric gaming, test-case special-casing, eval-function overwriting, and sycophancy — spanning both expert-iteration/Best-of-N and on-policy RL (GRPO). It is positioned as a complement/contrast to inoculation prompting, and notably *reverses* inoculation's prompt logic.
+## 摘要
 
-## Key points
-- **Core mechanism — prompt swap between generation and training.** Generate completions with a misbehavior-*discouraging* prompt (so the data is clean), then train on those completions paired with a misbehavior-*permitting/encouraging* prompt. The model learns "even when told I may cheat, I don't."
-- **Explicit inversion of inoculation prompting.** Inoculation uses the *same* prompt for generation and training (A→A) and front-loads a misbehavior request at train time. Recontextualization uses *contrasting* prompts (discourage→permit). The paper reports that using identical prompts for both steps — neutral, exploit-discouraging, *or* exploit-encouraging (i.e. inoculation) — actually *increases* specification gaming relative to recontextualization.
-- **Why it works without fixing the verifier.** The reward/verifier stays imperfect; recontextualization just biases what the model is willing to do, so misspecified signals reinforce far less misbehavior. Mitigation comes from the policy side, not the supervision side.
-- **Four settings, two training paradigms.** (4.1) Evaluation-metric gaming (School of Reward Hacks); (4.2) test-case hacking on MBPP coding; (4.3) reward hacking in a Leetcode RL environment via GRPO; (4.4) sycophancy in Qwen3-8B post-training. Experiments 4.1/4.2/4.4 use expert iteration / Best-of-N; 4.3 is on-policy RL.
-- **RL result is the strongest.** In the Leetcode RL setting, recontextualization variants prevented reward hacking *entirely* (0%), outperforming inoculation prompting (which reduced but did not eliminate hacking) and matching probe-based penalties — without needing a hack detector.
-- **Coding (MBPP).** Standard training raises hack rate at the cost of correctness, worse under stronger optimization pressure; the No-Hack→Hack recontextualization variant gave the highest correctness while minimizing hacking across Best-of-4 and Best-of-8.
-- **Sycophancy.** Achieves a Pareto-optimal trade — keeps quality gains (AlpacaEval win rate ~31.9) while cutting sycophancy, with a small IFEval cost (55.5 vs 60.1 baseline).
-- **Generic > task-specific instructions.** In the metric-gaming setting a generic exploit-encouraging instruction outperformed task-specific ones, suggesting the intervention generalizes rather than needing per-task tuning.
-- **Inherently off-policy by design.** Completions are sampled under the data-generation prompt but used to train a different (training-prompt) policy. The authors argue *against* importance-sampling correction (App. A), since it would cancel the benefit.
-- **Limitations the authors flag.** Mild instruction-following regressions (IFEval); the model becomes less obedient to inference-time requests for misbehavior; distribution shift risk in frontier settings; and reasoning models that verbalize the original instruction in chain-of-thought may blunt the effect.
+本文提出一种无需重写奖励函数或改进验证器的训练时干预，减少规格投机。方法把生成补全的提示与训练该补全时的提示解耦：先用**劝阻不当行为**的提示采样干净补全，再把这些补全重新标记为仿佛来自**允许或鼓励不当行为**的提示，并按这一配对训练。模型由此学会即便上下文邀请作弊也不投机；当不完美奖励可能强化漏洞时，策略已学会避开。作者在评测指标投机、测试特判、覆盖评测函数和谄媚四种环境中验证，覆盖专家迭代/Best-of-N 与在策略 GRPO。该方法与 inoculation prompting 对照，并反转后者的提示逻辑。
 
-## Verified quotes
-- "We propose recontextualization, which reduces how often language models "game" training signals, performing misbehaviors those signals mistakenly reinforce." — https://arxiv.org/abs/2512.19027
-- "Our method works by generating completions from prompts discouraging misbehavior and then recontextualizing them as though they were in response to prompts permitting misbehavior." — https://arxiv.org/abs/2512.19027
-- "This mitigates the reinforcement of misbehavior from misspecified training signals, reducing specification gaming without improving the supervision signal." — https://arxiv.org/abs/2512.19027
-- "Using the same prompt for both data generation and training, no matter whether it is neutral, exploit-discouraging, or exploit-encouraging (i.e., Inoculation Prompting), increases specification gaming." — https://arxiv.org/html/2512.19027
-- "Recontextualization is inherently off-policy: completions are sampled from the model conditioned on the data generation prompt but used to train a different policy." — https://arxiv.org/html/2512.19027
+## 要点
 
-## What it adds / why it's good
-This is the non-obvious second mechanism in the "fight reward hacking without rewriting the reward" family — and the cleanest contrast to inoculation prompting available. Where inoculation prompting front-loads a misbehavior request into the *training* prompt to make the model attribute the bad behavior to the instruction, recontextualization inverts that: generate clean, train under a permissive frame, and the model learns to refuse gaming *despite* permission. The practical value for an evals/RL-env practitioner: it's a concrete recipe for hardening imperfect verifiers (flaky test suites, gameable metrics, sycophancy-prone judges) at the policy level, so you don't need a perfect grader or a separate hack-detector. The standout result — 0% reward hacking in an actual GRPO RL loop, matching probe-based penalties without a detection probe — is the kind of evidence that makes this more than a prompting curiosity. The honest limitations (off-policy by construction, IFEval cost, possible erosion under chain-of-thought reasoning models) are stated plainly, which raises trust.
+- **生成与训练间交换提示。** 用劝阻投机的提示生成干净数据，再把补全配到允许投机的提示上训练，学会“即使被允许作弊，也不作弊”。
+- **反转 inoculation prompting。** 后者生成与训练用同一提示 A→A，并在训练提示中预置不当请求；重语境化使用“劝阻→允许”的对比提示。中性、劝阻、鼓励等同提示训练都比重语境化增加规格投机。
+- **不修验证器也有效。** 奖励仍有缺陷，方法只改变策略愿意采取的行为，减少错误信号对不当行为的强化。
+- **四环境、两训练范式。** School of Reward Hacks 指标投机；MBPP 测试投机；Leetcode 环境中的 GRPO 奖励投机；Qwen3-8B 后训练谄媚。除 Leetcode 的在策略 RL 外，其余用专家迭代或 Best-of-N。
+- **RL 结果最强。** Leetcode 中各重语境化变体把奖励投机完全降至 0%，优于只能降低而不能消除的 inoculation prompting，并在无检测器情况下追平探针惩罚。
+- **MBPP。** 标准训练以正确性为代价提高投机率，优化压力越强越严重；No-Hack→Hack 在 Best-of-4 和 Best-of-8 都实现最高正确率与最低投机。
+- **谄媚。** 保留 AlpacaEval 约 31.9 的胜率提升并减少谄媚，代价是 IFEval 从基线 60.1 小幅降到 55.5。
+- **通用指令优于任务特定指令。** 指标投机中，通用的鼓励利用指令表现更好，说明不必逐任务调参。
+- **本质上是离策略。** 补全在生成提示下采样，却用于训练另一提示条件下的策略；作者反对重要性采样修正，因为会抵消收益。
+- **局限。** IFEval 略退化；模型更少服从推理时要求不当行为的指令；前沿环境有分布偏移风险；会在思维链复述原指令的推理模型可能削弱效果。
 
-## Themes
-- **10 safety/adversarial** (primary): a defense against reward hacking / specification gaming.
-- **8 judge/verifiers**: directly about hardening imperfect verifiers and gameable metrics without improving the supervision signal.
-- **7 RL environments**: validated inside an on-policy GRPO RL loop (Leetcode) plus expert-iteration/Best-of-N setups.
-- **2 eval⇄capability⇄RL-env**: shows how eval/verifier weaknesses become capability-shaping training pressure, and how to counter it at the policy level.
+## 已核验引述（中文翻译）
+
+- “我们提出重语境化，以减少语言模型投机训练信号、执行这些信号错误强化的不当行为。”——https://arxiv.org/abs/2512.19027
+- “方法从劝阻不当行为的提示生成补全，再把它们重语境化为仿佛是在响应允许不当行为的提示。”——同上
+- “这会缓解错误训练信号对不当行为的强化，无需改进监督信号即可减少规格投机。”——同上
+- “生成与训练使用同一提示，无论中性、劝阻利用还是鼓励利用（即 inoculation prompting），都会增加规格投机。”——https://arxiv.org/html/2512.19027
+- “重语境化本质上是离策略的：补全在数据生成提示条件下采样，却被用于训练另一策略。”——同上
+
+## 价值与贡献
+
+这是“无需重写奖励即可对抗奖励投机”的第二种、且与 inoculation prompting 对照最清楚的机制。后者在训练提示中预置不当请求，让模型把坏行为归因于指令；前者反转逻辑：生成干净行为，再在允许框架中训练，让模型即便获准也拒绝投机。对评测和强化学习环境实践者而言，它能在策略侧加固易投机指标、脆弱测试和谄媚裁判，无需完美评分器或单独检测器。实际 GRPO 循环中 0% 投机、无探针追平探针惩罚，是最有力证据；离策略属性、IFEval 成本和推理模型可能削弱效果则构成明确限制。
+
+## 主题
+
+10 安全 / 对抗 · 8 裁判 / 验证器 · 7 强化学习环境 · 2 评测⇄能力⇄强化学习环境

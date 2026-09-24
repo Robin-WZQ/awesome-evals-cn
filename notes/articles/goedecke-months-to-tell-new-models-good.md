@@ -1,34 +1,39 @@
-# Notes — "Why it takes months to tell if new AI models are good"
-**Author:** Sean Goedecke (GitHub, works on GitHub Models) · **URL:** https://www.seangoedecke.com/are-new-models-good/ · **Type:** blog · **Found:** true
+# 深度笔记——《为什么判断新 AI 模型是否优秀要花几个月》
 
-## Summary
-A working engineer's argument that we have no reliable way to judge a frontier model at launch — neither benchmarks nor vibe-checks survive contact with reality. Benchmarks are a target the labs are financially incentivized to optimize against, so "strong evals" on launch day carry almost no signal. Subjective vibe-checks (SVG pelicans, word puzzles, Minecraft builds) lose discriminative power once models clear the easy bar, so they tell you little at the frontier. The only signal Goedecke trusts comes from personally doing hard real work alongside the model over weeks, because you can't judge a solution to a problem you haven't engaged with yourself. His worked example: GPT-5 was widely panned at launch, yet three months later GPT-5 / GPT-5-Codex turned out to be very strong for agentic work — illustrating the long lag between release and real verdict. The consequence is epistemic: it's genuinely hard to tell whether AI progress is stagnating, because the measurement layer is broken at exactly the moment everyone wants an answer.
+**作者：** Sean Goedecke（GitHub Models） · **URL：** https://www.seangoedecke.com/are-new-models-good/ · **类型：** 博客 · **已找到原文：** 是
 
-## Key points
-- **Launch-day uncertainty is total.** "Nobody knows how good a model is when it's launched. Even the AI lab who built it are only guessing." The people with the most information are still guessing.
-- **Benchmarks are a gamed target.** Eval performance moves stock prices, so labs are incentivized to optimize for it ("teaching to the test"); since *every* new model ships with strong evals, the scores have no discriminative power between models.
-- **Evals are mostly marketing.** It's hard to assess how good an eval even is, or whether a given model was tuned to it — so a high score is closer to a press release than a measurement.
-- **Vibe-checks break at the frontier.** Cute probes (word puzzles, SVG drawings) work as a low-end filter, but "current models are too strong for obvious word puzzles," and "at some point it becomes difficult to draw conclusions from the images." Once models pass you, you can't rank what's above you.
-- **The plateau illusion.** If models really were getting steadily smarter, the *felt* experience would be rapid subjective improvement followed by "an immediate plateau as the models surpass you and you become unable to tell how smart they are" — i.e., apparent stagnation can be an artifact of your own ceiling, not the model's.
-- **Real signal requires doing the work.** "If you're not engaging with the problem yourself, you will have no idea if the model's solution is any good." Judging output on a hard task requires having done (or attempted) that task.
-- **His concrete method:** ask a strong agentic coding model to do a real task *in parallel* with his own effort, then compare — a personal, expensive, slow A/B against ground truth he actually understands.
-- **Evaluation is costly and risky.** "Testing out a new model can be risky. If it's no good, you've wasted a fair amount of time and effort" — which is why most people fall back on cheap, unreliable signals (benchmarks/vibes) instead.
-- **Worked example of the lag:** GPT-5 launched to a negative consensus; "three months later it turns out that GPT-5 (and its derivative GPT-5-Codex) is a very strong model for agentic work." The real verdict trailed the launch by months.
-- **Net consequence:** "it's very hard to tell if AI progress is stagnating or not" — the broken measurement layer, not the models, is the bottleneck on knowing.
+## 摘要
 
-## Verified quotes
-- "Nobody knows how good a model is when it's launched. Even the AI lab who built it are only guessing and hoping it'll turn out to be effective for real-world use cases." — https://www.seangoedecke.com/are-new-models-good/
-- "evals are a target for AI companies. How well Anthropic or OpenAI's new models perform on evals has a direct effect on the stock price" — https://www.seangoedecke.com/are-new-models-good/
-- "if you're not engaging with the problem yourself, you will have no idea if the model's solution is any good" — https://www.seangoedecke.com/are-new-models-good/
-- "and then an immediate plateau as the models surpass you and you become unable to tell how smart they are." — https://www.seangoedecke.com/are-new-models-good/
-- "But three months later it turns out that GPT-5 (and its derivative GPT-5-Codex) is a very strong model for agentic work" — https://www.seangoedecke.com/are-new-models-good/
-- "testing out a new model can be risky. If it's no good, you've wasted a fair amount of time and effort" — https://www.seangoedecke.com/are-new-models-good/
+一位一线工程师指出，我们无法在前沿模型发布时可靠判断其优劣：无论基准还是“感觉检查”，接触现实后都会失效。实验室有强烈经济激励优化基准，因此发布日的高分几乎没有辨别力；SVG 鹈鹕、字谜或 Minecraft 建造等主观探针，也会在模型越过低门槛后失去区分能力。Goedecke 唯一信任的信号，是连续数周亲自与模型并行完成困难的真实工作，因为没有亲身处理过问题，就无法判断解法好坏。GPT-5 是案例：发布时普遍遭到否定，三个月后 GPT-5 与 GPT-5-Codex 却被证明很擅长智能体工作。由此带来的认识论后果是：人们最想知道 AI 是否停滞时，恰恰是测量层最失灵的时候。
 
-## What it adds / why it's good
-Most benchmark-skepticism comes from researchers critiquing leaderboard methodology (contamination, Goodhart, Arena bias). This is the *practitioner's* version of the same critique, and it adds two things the academic sources don't. First, it names the failure of the obvious *alternative* to benchmarks — the vibe-check — and explains precisely why it fails (it's a low-pass filter that goes blind above your own skill ceiling). Second, it reframes "stagnation" debates as an *observability* problem rather than a capability fact: the felt plateau may be your measurement ceiling, not the model's. The GPT-5 launch-vs-three-months-later example is a clean, dated case study of the launch-day-signal gap, grounded in someone who evaluates models for a living at GitHub Models. The non-BS takeaway for eval design: trustworthy signal is expensive, requires a human who has independently done the task, and arrives on a timescale of weeks — not on launch day. It's short and informal (not rigorous data), but the core argument is sound and useful.
+## 要点
 
-## Themes
-- **1 why-evals** — central: argues no current method reliably tells you if a model is good.
-- **6 benchmark-vs-eval/integrity** — central: benchmarks as gamed, stock-price-linked marketing targets vs. real-task evaluation.
-- **9 agent-specific** — his real-work signal is agentic coding (GPT-5-Codex, parallel task execution).
-- **4 observability/surfaces** — reframes "is progress stagnating?" as a measurement/observability ceiling problem (the plateau illusion).
+- **发布日几乎完全不确定。** 即使掌握最多信息的实验室，也只是在猜测模型能否应对现实用例。
+- **基准是被投机的目标。** 评测表现影响股价，实验室因此会“应试”；每个新模型都带着漂亮分数发布，分数便无法区分模型。
+- **评测很大程度上成了营销。** 外界难以判断评测本身是否优秀，也不知道模型是否针对它调优；高分更像新闻稿而非测量。
+- **感觉检查在前沿失灵。** 字谜、SVG 图等可筛掉弱模型，但当前模型已强到简单探针无效；一旦模型超过评测者自身能力，评测者就无法排序更高水平。
+- **平台期错觉。** 若模型持续变聪明，人的体验可能先快速改善，随后在模型超过自己时立刻“平台”，因为已无法分辨其聪明程度。表面停滞可能只是人的测量上限。
+- **可靠信号要求亲自做事。** 作者的方法是让强智能体编程模型与自己并行执行真实任务，再比较结果；这是一种昂贵、缓慢、但有可理解事实依据的个人 A/B 测试。
+- **评估既昂贵又有风险。** 若新模型不行，试用者会浪费大量时间，所以多数人退回便宜但不可靠的基准和感觉。
+- **判断存在数月滞后。** GPT-5 发布时舆论消极，三个月后才显出 GPT-5 与 GPT-5-Codex 在智能体工作上的实力。
+- **最终后果。** 难以判断 AI 进步是否停滞，瓶颈可能是破损的测量层，而非模型本身。
+
+## 已核验引述（中文翻译）
+
+- “模型发布时，没有人知道它究竟有多好。即使构建它的 AI 实验室，也只是在猜测并希望它能用于现实场景。”——https://www.seangoedecke.com/are-new-models-good/
+- “评测是 AI 公司的目标。Anthropic 或 OpenAI 新模型的评测表现会直接影响股价。”——同上
+- “如果你自己没有参与解决问题，就根本无法判断模型的解法是否优秀。”——同上
+- “随后模型一超过你，就立刻进入平台，因为你已无法判断它有多聪明。”——同上
+- “但三个月后，事实表明 GPT-5（及其衍生模型 GPT-5-Codex）非常擅长智能体工作。”——同上
+- “测试新模型有风险。如果它不够好，你就浪费了相当多时间和精力。”——同上
+
+## 价值与贡献
+
+本文给出了基准怀疑论的实践者版本，并补充两点：首先，它解释了基准最显然的替代品——感觉检查——也会失败，因为这种低通筛选器在超过评测者技能上限后便失明；其次，它把“停滞”争论重新表述为可观测性问题，感受到的平台可能是测量者的上限。GPT-5 从发布到三个月后的反差，是发布日信号缺口的清晰案例。对评测设计的务实结论是：可信信号很昂贵，需要独立做过任务的人参与，并以周而非发布日为时间尺度。文章虽短且非严谨实验，但核心论证实用。
+
+## 主题
+
+- **1 为什么需要评测**——现有方法为何不能可靠判断模型质量。
+- **6 基准与评测 / 完整性**——被经济激励投机的基准与真实任务评估之别。
+- **9 智能体专项**——可靠信号来自 GPT-5-Codex 的并行真实编程任务。
+- **4 可观测性**——把进展停滞重构为测量上限问题。

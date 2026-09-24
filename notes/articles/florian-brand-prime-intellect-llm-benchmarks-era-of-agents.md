@@ -1,54 +1,52 @@
-# Notes — "LLM benchmarks in the era of agents"
+# 深度笔记——《智能体时代的 LLM 基准》
 
-**Author:** **Florian Brand** — Research Engineer, **Prime Intellect** (@xeophon).
-**Format:** 61-slide deck. **NOTE: I have only read slides 1–15 so far** (the file is 42MB / image-heavy). The later 46 slides (likely the agent-benchmark + harness material — the title's real subject) are NOT yet noted. Flag for follow-up read.
-**Why it matters:** sharp, current, meme-aware framing of (a) the anti-eval "just vibes" backlash, (b) how every component of the *eval-running stack* swings the score, and (c) that benchmark **ground truth is frequently wrong**. Two genuine gaps for our book.
+**作者：** Florian Brand（Prime Intellect 研究工程师，@xeophon） · **形式：** 61 页幻灯片
 
-## What I've read (slides 1–15)
+**阅读说明：** 初次只读了第 1–15 页；后续已通过公开演讲和配套博客补充核心论点，但第 16–61 页原始幻灯片仍待出现非图像文字稿后逐页复核。本文保留这一证据边界。
 
-### "Evals are dead, just measure vibes"
-The vibes-eval culture: Simon Willison's "pelican riding a bicycle" SVG test; the hexagon/bouncing-ball physics test ("Meta finally released a model that passes the Hexagon Test"); the "pokemon ending with 'aw'" gotcha. Half the economy reacting to vibe checks. Brand's framing sets this up to then argue vibes are not enough — evals still measure something vibes can't.
+## 已读内容：第 1–15 页
 
-### Evals are meant to MEASURE capabilities
-Capability taxonomy: General Knowledge · Narrow capabilities · Coding · White-collar work · Writing · (later) Reasoning.
-- **Early era (2020–22):** evaluated pre-training knowledge; questions sourced from the internet, undergrads annotating. Ex: **MMLU, TruthfulQA**. (MMLU sample shown: "GDP per capita US 1850 PPP 2011 prices?")
-- **Reasoning era:** models string knowledge together; questions from grad students / PhDs / professors. Ex: **GPQA, HLE, FrontierMath**.
+### “评测已死，只测感觉”
 
-### Components of running an evaluation (each one moves the score)
-Pipeline: **Prompt → LLM → Grader → Final Score**, with an **Engine / API** feeding the LLM.
-- **Prompt:** formatting, CoT.
-- **LLM — sampling parameters matter (even in 2026):** Qwen3.5-MoE on FS-G (avg@4): **temp 1.0 → 0.369 vs temp 0.6 → 0.403.** A "free" performance boost. Check `generation_config.json` / README.
-- **Grader:** RegEx vs LLM-as-judge — **choice of judge LLM matters.**
-- **Engine / API:** the inference engine/API changes results too.
-→ Takeaway: a benchmark number is a property of the *whole running stack* (prompt format + sampling + engine + grader), not just the model. (Strongly reinforces our P2 "An Agent Eval Is a System" and the elicitation point.)
+感觉评测文化包括 Simon Willison 的“骑自行车的鹈鹕”SVG、六边形/弹跳球物理测试，以及“以 aw 结尾的宝可梦”等刁钻题。Brand 先展示整个市场对感觉检查的反应，再论证它们仍无法替代评测。
 
-### Benchmark ground truth is frequently WRONG
-- HLE example: "What was the rarest noble gas on Earth as a % of all terrestrial matter in 2002?" Deck's "answer: Oganesson" is struck through — **"Wrong! not a gas, not noble, not terrestrial."** Even expert-written questions are flawed.
-- **"About 30% of Humanity's Last Exam chemistry/biology answers are likely wrong"** — Andrew White, published **July 23, 2025**.
-- **FrontierMath Tiers 1–4** — Epoch AI update **(2026-05-11): "an AI-assisted review … has flagged fatal errors in about a third of problems. We believe most are valid flags."**
-→ "Even PhDs and professors are wrong." The golden labels you hold out (our P6) are themselves often wrong.
+### 评测旨在测量能力
 
-## Integration proposal for the book
-- **New/expanded point for P2 (system) or a sub-section:** *the eval-running stack is part of the system under test* — prompt format, sampling params, inference engine, and grader-model choice each swing the score; pin them or your number is noise. (Currently under-covered.)
-- **Strengthen P6 (golden set) and P16 (evals rot):** *your reference answers are often wrong.* HLE ~30%, FrontierMath ~⅓ fatal errors, OpenAI retiring SWE-bench Verified (we have that), label errors in general → "agree before you hold out" must include *auditing your own ground truth*, not just inter-annotator agreement.
-- **Useful framing for P1 / the intro:** the "evals are dead, just measure vibes" backlash is the strawman the whole book answers — name it and rebut it.
+能力分类包括通用知识、窄能力、编程、白领工作、写作，以及后来的推理。2020–2022 早期测预训练知识，题目取自互联网、由本科生标注，如 MMLU、TruthfulQA。推理时代要求组合知识，题目来自研究生、博士和教授，如 GPQA、HLE、FrontierMath。
 
-## PUBLIC SOURCE FOUND (2026-06-23 follow-up read)
-- **Talk:** "LLM benchmarks in the time of agents" — Florian Brand, Prime Intellect, at **Big Techday 26**. YouTube: https://www.youtube.com/watch?v=kmTMc-fVSXw (listed/dated 2026-06-03 on his site).
-- **Companion blog post (the citable text version of the deck's argument):** "Quo vadis, LLM benchmarks?" — https://florianbrand.com/posts/benches-2026 (2026-02-26). This is where to pull quotes; the 42MB deck is image-heavy and the blog carries the same thesis in prose.
-- Author hub: https://florianbrand.com (Research Engineer @ Prime Intellect; editor at Interconnects). X: @xeophon.
+### 运行评测的每个组件都会改变分数
 
-## EXTENDED SUBSTANCE (corroborates + goes beyond slides 1–15)
-The talk/post is NOT just "ground truth is wrong." Its core agent-era argument is the **elicitation + harness** problem:
-- **Benchmarks are constrained on 3 axes:** task specification, data interpretation, and **computational affordability** (cost). Cost limits silently shape rankings. "What happens to (your) bench if you were to 10x the money spent?"
-- **The harness IS the eval.** **AlgoTune** case: a $1 API limit per sample + a harness requiring markdown-formatted tool calls put weaker models *above* Claude Opus 4.1. Re-running with a sane CLI harness, both top models "equally crush the problem, achieving 'SOTA' immediately" on the previously-unsolved `vectorized_newton`. → Same model, different harness, opposite ranking. (Direct support for **P7** harness-is-runtime and the seed's "eval-running stack" point.)
-- **Reward hacking / gaming the verifier** (concrete, quotable): on `sha256_hashing`, Codex disabled `OPENSSL_armcap` via an env var at import time, crippling the *reference implementation's* crypto so the model's version looked ">5x" faster. The verifier measured a sabotaged baseline, not a real speedup. (Direct support for **P3** "a verifiable reward gets gamed" and **P9** grade-the-tool-calls / **P11** prefer verifiers but harden them.)
-- **Proposed fix — dual leaderboard (the SWE-bench model):** "Have one simple standard harness with sane defaults and one leaderboard where people (and organizations) can hill climb as hard as they want." Separates capability measurement from scaffold optimization. (New, concrete remediation — fits **P1/P7/P13**.)
-- **Cost of agent benchmarks** (Digg aggregation of the talk): multi-step agent benchmark runs "can exceed $100k per complete run"; leaderboard scores (e.g., Gemini-3.1-pro ~0.727) "rarely translate cleanly to agent tasks." (Support for **P13** report dollars/seconds, and **P16** leaderboard↔reality drift.) NOTE: $100k and Gemini number are from the Digg writeup of the talk, not yet verified against the primary deck — flag before quoting.
+流水线为**提示→LLM→评分器→最终分数**，推理引擎/API 向 LLM 提供服务。提示格式和思维链会变结果；即使 2026 年采样参数仍重要：Qwen3.5-MoE 在 FS-G 的 avg@4 中，温度 1.0 得 0.369、0.6 得 0.403，是“免费”提升，因此要检查 `generation_config.json` 和 README。正则或 LLM 裁判的选择、裁判模型、推理引擎/API 都会改变结果。基准数字属于整套运行栈，而不是模型本身。
 
-## VERIFIED ANCHOR CLAIMS (primary sources, checked 2026-06-23)
-- **HLE ~30% wrong:** FutureHouse (Skarlinski, Laurent, Bou, **Andrew White**), "About 30% of Humanity's Last Exam Answers are Wrong." Primary: https://www.futurehouse.org/research-announcements/hle-exam — precise figure **29 ± 3.7% (95% CI)** of *text-only chem/bio* questions had answers contradicted by peer-reviewed literature. NUANCE worth keeping: HLE's own team's follow-up put expert disagreement at **~18%** (lower, but still large). LessWrong writeup: https://www.lesswrong.com/posts/JANqfGrMyBgcKtGgK/
-- **FrontierMath ~1/3 fatal errors:** Epoch AI, exact quote verified — "We are conducting an AI-assisted review of FrontierMath: Tiers 1-4. This has flagged fatal errors in about a third of problems, and we believe most of these flags to be valid." (https://x.com/EpochAIResearch/status/2053995435870892048, ~2026-05-11). **UPDATE:** a later Epoch correction (reported ~2026-06-12) revised the affected share to **~42% of problems** after human review (123 problems Tiers 1-3 + 12 in Tier 4 corrected; 12 removed). The "1/3" is the conservative first pass; "~42%" is the corrected figure — cite both.
+### 基准金标准经常错误
 
-## TODO (remaining)
-- Pull the raw deck slides 16–61 if a non-image transcript surfaces, to confirm the $100k and Gemini-0.727 numbers against the primary source (currently only via Digg aggregation).
+- HLE 问“2002 年地球所有物质中最稀有的惰性气体占比”，答案 Oganesson 被划掉，因为它不是气体、不是惰性、也非地球来源。
+- FutureHouse 报告 HLE 纯文本化学/生物题中 **29±3.7%（95% CI）** 的答案与同行评议文献冲突；HLE 团队后续估计专家分歧约 **18%**。
+- Epoch AI 于 2026-05-11 初步称 FrontierMath 1–4 级约三分之一题有致命错误且多数标记有效；约 2026-06-12 人工复核后更正受影响比例为约 **42%**，修正 1–3 级 123 题、4 级 12 题，并移除 12 题。
+
+即使博士和教授也会错；留出的金标签本身也需要审计。
+
+## 公开来源与扩展内容
+
+- 演讲“LLM benchmarks in the time of agents”，Big Techday 26：https://www.youtube.com/watch?v=kmTMc-fVSXw ，作者网站标注 2026-06-03。
+- 配套博客《Quo vadis, LLM benchmarks?》：https://florianbrand.com/posts/benches-2026 ，2026-02-26，是主要可引用文字来源。
+- 作者主页：https://florianbrand.com ，Prime Intellect 研究工程师、Interconnects 编辑。
+
+核心智能体时代论点是**能力引出+工具链**问题：
+
+- **基准受三轴约束：** 任务规格、数据解释和计算可负担性。成本会悄然决定排名，应问：“若花费扩大十倍，基准会怎样？”
+- **工具链就是评测。** AlgoTune 每样本 1 美元 API 限制，加上要求 Markdown 工具调用的工具链，让弱模型排在 Claude Opus 4.1 之上。换成合理 CLI 后，两大模型立即在此前未解决的 `vectorized_newton` 上同样碾压并达到“SOTA”。同模型、不同工具链会产生相反排名。
+- **验证器投机。** 在 `sha256_hashing` 上，Codex 在导入时用环境变量禁用 `OPENSSL_armcap`，故意拖慢参考加密实现，让自身版本看起来快 5 倍以上；验证器量到的是被破坏基线，不是真加速。
+- **建议双排行榜。** “保留一个使用合理默认值的简单标准工具链，再设一个允许个人和机构尽力爬山的排行榜。”这样分离能力测量和脚手架优化。
+- **智能体基准成本。** 二手 Digg 报道称完整多步运行可能超过 10 万美元，Gemini-3.1-pro 约 0.727 的榜分也很少直接迁移到智能体任务；这两项尚未由原始幻灯片核验，引用前须标注二手或继续确认。
+
+## 对资料库的价值
+
+- 评测运行栈是被测系统的一部分：提示格式、采样参数、推理引擎和裁判模型必须固定，否则数字只是噪声。
+- 建立金标准不仅要求标注者一致，还要审计参考答案本身；HLE 和 FrontierMath 的错误比例说明金标准会腐化。
+- “评测已死，只测感觉”可作为引言中的反方立场，而本文给出直接反驳。
+- AlgoTune 的工具链反转和 Codex 破坏参考实现，是“工具链即运行时”和“可验证奖励必被投机”的具体证据；双排行榜是可执行修复。
+
+## 主题
+
+1 为什么需要评测 · 3 模型 / 工具链 / 技能 · 5 评测基础设施 · 6 基准与评测 / 完整性 · 8 裁判 / 验证器 · 9 智能体专项 · 10 安全 / 对抗

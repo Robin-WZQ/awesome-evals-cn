@@ -1,37 +1,38 @@
-# Notes — "How I AI: Ankur Goyal's Playbook for Agent-Driven Benchmarking and AI Evals"
+# 深度笔记——《How I AI：Ankur Goyal 的智能体驱动基准与 AI 评测方法》
 
-**Author:** Claire Vo (host, ChatPRD) with guest Ankur Goyal (CEO/founder, Braintrust) · **URL:** https://www.chatprd.ai/how-i-ai/ankur-goyals-playbook-for-agent-driven-benchmarking-and-ai-evals · **Type:** blog (transcript/recap of a "How I AI" video episode) · **Found:** true
+**作者：** 主持人 Claire Vo（ChatPRD），嘉宾 Ankur Goyal（Braintrust 创始人兼 CEO） · **URL：** https://www.chatprd.ai/how-i-ai/ankur-goyals-playbook-for-agent-driven-benchmarking-and-ai-evals · **类型：** 视频节目的文字稿与回顾 · **已找到原文：** 是
 
-## Summary (3-6 sentences)
-This is a hands-on episode of Claire Vo's "How I AI" series featuring Braintrust founder/CEO Ankur Goyal demonstrating two concrete agent workflows. The first is **agent-driven benchmarking**: pointing a coding agent (Codex-style, orchestrated via tmux on beefy remote EC2 boxes) at a hard infrastructure problem — e.g., "why is this query so slow?" — and letting it run exhaustive, multi-day experiments across a solution space no human would patiently explore. The second is **"evals as the new PRD"**: framing an eval as a product spec made of real test cases plus quantifiable success criteria, where you write a basic prompt, pick a model, and then ask an LLM to *generate the scoring function itself*. A recurring theme is that because models are now so good at writing code, the highest-leverage human move is authoring genuinely hard evals. Goyal also describes a "scale the expert" loop where quantitative evals carry a system to ~90% and a human's qualitative taste ("the tone is off here") gets converted into new eval criteria rather than replacing the human.
+## 摘要
 
-## Key points (5-12 substantive bullets)
-- **Benchmarking is itself an agent task, not just "AI evals."** Goyal stresses the agent benchmarking he's excited about is for systems problems — "why is this query so slow?" — not only LLM-output scoring. The agent becomes a tireless infra-optimization engine.
-- **War story — bloom filters via brute force.** A real problem: users searching billions of traces over a 90-day window were hitting slowness. The agent was set loose to test essentially *every* open-source column-store format and execution engine plus multiple index types, running continuously for about a week before landing on bloom filters as the optimal index. The point: a human engineer would have superficially tested two or three options; the agent exhausted the space.
-- **Production-like environment is the unlock.** The setup gives the agent real/production-like data from object storage, plus tools — tmux for multi-session orchestration, remote high-powered EC2 instances for compute — so results are representative rather than toy benchmarks.
-- **Evals = PRD reframe.** Claire's framing: "An eval is a PRD with quantifiable examples and success criteria." Goyal's version: evals "are just a way to define *what* you want, not *how* to get it." This reframes eval-writing as the modern product spec.
-- **The replicable eval recipe.** (1) Build a dataset of real user questions/test cases; (2) write a basic prompt and pick a model; (3) have an LLM *auto-generate the scoring function*; (4) run across the whole dataset for aggregate performance.
-- **AI-generated scoring functions.** Instead of hand-coding rubrics, you describe the qualities you want and let the model write the scorer — e.g., asking for concise code snippets in a single language and avoiding em-dashes. The judge/verifier itself is bootstrapped by an agent.
-- **"Scale the expert," don't replace.** Quantitative evals push the system to ~90% quality; then a domain expert (referred to in the recap as "David") does a qualitative vibe check ("You think it's good, but it's not. The tone is off here"); that feedback becomes a *new eval criterion*. Net: the expert's taste is applied across a far larger product surface area.
-- **Models as building material.** The thesis underneath both workflows: now that models reliably write code, the scarce/high-value human work shifts to (a) posing hard problems with clear success criteria and (b) authoring rigorous evals — the coding/benchmarking grunt work is delegated.
-- **Concrete stack named:** Braintrust (eval platform), Codex (coding agent), tmux, AWS EC2, a RAG server over docs for the Q&A example; models include GPT-4.5-mini for initial prompts and Claude as the evaluator/scorer-generator.
-- **Scale figures:** datasets of dozens-to-hundreds of test cases for aggregate eval analysis; the infra benchmark ran "for days"/about a week of continuous experimentation.
+Braintrust 创始人 Ankur Goyal 展示两种智能体工作流。第一种是**智能体驱动基准**：把 Codex 式编程智能体经 tmux 编排到高性能 EC2 上，让它针对“这条查询为什么慢”等困难基础设施问题，连续数日穷举人类不会耐心探索的方案。第二种是**“评测即新 PRD”**：以真实案例和量化成功标准构成产品规格，先写基础提示并选择模型，再让 LLM 自动生成评分函数。贯穿主题是：模型已很会写代码，因此人类杠杆最高的工作是编写真正困难的评测。Goyal 还提出“放大专家”闭环：量化评测先把系统推至约 90%，再把专家对“语气不对”等质感判断编码成新准则，而不是替代专家。
 
-## Verified quotes (verbatim, from the URL above)
-- Ankur Goyal: "Now that models are so good at actually writing code, one of the best things that we can do is create really hard evals."
-- Ankur Goyal: "And I'm not talking about like AI evals. I mean things like why is this query so slow?"
-- Claire Vo: "An eval is a PRD with quantifiable examples and success criteria."
-- Ankur Goyal (on the expert's qualitative check): "You think it's good, but it's not. The tone is off here."
-- Claire Vo (on scaling the expert): "It allows his high-quality taste to be applied across a much larger surface area of the product."
+## 要点
 
-## What it adds / why it's good (non-BS practitioner value vs the obvious sources)
-Most eval writing treats "evals as PRD" as a slogan; this episode actually shows the mechanics end-to-end and, crucially, two things the canonical sources (Yan, Hamel/Shankar) under-emphasize. First, **benchmarking-as-agent-task for infrastructure**, not just model output — letting an agent brute-force a real query-optimization problem over days is a genuinely different use of agents than the usual "LLM-as-judge" framing, and the bloom-filter war story makes the exhaustiveness argument concrete. Second, **bootstrapping the scorer with an LLM**: rather than hand-authoring rubrics, you describe desired qualities and let a model write the scoring function, lowering the activation energy of starting an eval suite. The "scale the expert" loop (90% quantitative + human taste re-encoded as new criteria) is a clean, repeatable answer to the "but evals can't capture taste" objection. It's a builder's transcript you can replicate the same afternoon, with a named stack.
+- **基准本身也是智能体任务。** 这里不只评 LLM 输出，还让智能体解决真实系统性能问题。
+- **布隆过滤器案例。** 用户查询数十亿条、跨度 90 天的轨迹时速度很慢。智能体连续约一周测试几乎所有开源列存格式、执行引擎和多种索引，最终选出布隆过滤器；人类通常只会浅尝两三个方案。
+- **生产式环境是关键。** 智能体访问对象存储中的真实或近生产数据，用 tmux 管理多会话，并调用高性能远端 EC2，避免玩具结果。
+- **评测即 PRD。** Claire 称“评测是包含可量化样例和成功标准的 PRD”；Goyal 说评测定义的是想要“什么”，而不是“如何”实现。
+- **可复用流程。** 收集真实用户问题和案例；写基础提示并选模型；让 LLM 自动生成评分函数；在全数据集上运行并汇总性能。
+- **AI 生成评分函数。** 只描述目标质量，例如代码片段简洁、只用一种语言、不用破折号，再让模型写 scorer，验证器本身也由智能体启动。
+- **放大而非替代专家。** 量化评测达到约 90% 后，领域专家指出残余质感问题；这些反馈被转成新评测准则，使专家品味覆盖更大产品面。
+- **模型成为材料。** 稀缺工作转向提出带清晰标准的难题和严谨评测，代码与基准体力活交给模型。
+- **具体栈。** Braintrust、Codex、tmux、AWS EC2、文档 RAG 服务；初始提示可用 GPT-4.5-mini，Claude 充当评估器或评分器生成器。
+- **规模。** 聚合评测用几十到几百个案例；基础设施基准连续运行数日到约一周。
 
-## Themes
-- **1 why-evals** — central: evals reframed as the PRD/spec that defines what you want.
-- **6 benchmark-vs-eval** — explicitly distinguishes infra benchmarking from "AI evals."
-- **2 eval⇄capability⇄RL-env** — hard evals as the high-leverage artifact now that models can code; exhaustive solution-space search.
-- **8 judge/verifiers** — LLM-generated scoring functions; auto-bootstrapped scorers.
-- **9 agent-specific** — coding agents orchestrated (tmux/EC2) for multi-day autonomous benchmarking.
-- **5 eval infra** — Braintrust platform, datasets, aggregate scoring runs.
-- (Lighter touch: 3 model/harness/skill — model selection GPT-4.5-mini vs Claude-as-judge.)
+## 已核验引述（中文翻译）
+
+- Goyal：“既然模型已经非常擅长写代码，我们能做的最佳事情之一，就是创建真正困难的评测。”
+- Goyal：“我说的不只是 AI 评测，而是‘这条查询为什么这么慢’之类的问题。”
+- Claire Vo：“评测是带有可量化样例和成功标准的 PRD。”
+- Goyal 转述专家判断：“你以为它很好，但并不好。这里语气不对。”
+- Claire Vo：“这让他的高质量品味能够应用到产品更广阔的表面。”
+
+以上均来自文首 URL。
+
+## 价值与贡献
+
+本文把“评测即 PRD”从口号落实为流程，并补充两个常被忽略的点：其一，智能体可以执行基础设施基准而非只给模型输出打分，布隆过滤器案例证明数日穷举的价值；其二，可让 LLM 根据目标质量生成评分函数，降低建立套件的启动成本。“90% 量化+把专家品味重新编码为准则”的闭环，也直接回应了“评测无法捕捉品味”的质疑。整套工作流有具名技术栈，可即时复现。
+
+## 主题
+
+1 为什么需要评测 · 6 基准与评测 · 2 评测⇄能力⇄强化学习环境 · 8 裁判 / 验证器 · 9 智能体专项 · 5 评测基础设施 · 3 模型 / 工具链 / 技能（次要）

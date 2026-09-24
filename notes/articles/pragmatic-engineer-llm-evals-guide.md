@@ -1,32 +1,37 @@
-# Notes — "A pragmatic guide to LLM evals for devs"
+# 深度笔记——《面向开发者的实用 LLM 评测指南》
 
-**Author:** Gergely Orosz (The Pragmatic Engineer), guest-authored by Hamel Husain · **URL:** https://newsletter.pragmaticengineer.com/p/evals · **Type:** newsletter · **Found:** true
+**作者：** Gergely Orosz（The Pragmatic Engineer），客座作者 Hamel Husain · **URL：** https://newsletter.pragmaticengineer.com/p/evals · **类型：** 通讯 · **已找到原文：** 是
 
-## Summary (3-6 sentences)
-A practitioner walkthrough of how working engineers should build evals for non-deterministic LLM features, written by Hamel Husain (ML engineer, ~20 years' experience; co-creator of the "AI Evals for Engineers & PMs" course and a forthcoming O'Reilly book) and published in Gergely Orosz's Pragmatic Engineer newsletter. The throughline is escaping "vibe-check development" — change a prompt, eyeball a few outputs, ship — in favor of a disciplined, data-driven loop borrowed from ML and qualitative social science. The core technique is **error analysis**: build a custom data viewer, read at least 100 real traces, do open coding (free-text notes on failures) then axial coding (cluster into a taxonomy), and prioritize fixes by failure frequency via a pivot table. From that taxonomy you derive two eval types — cheap deterministic **code-based evals** for objective failures and **LLM-as-judge** for subjective calls, using binary PASS/FAIL rather than 1–5 ratings. It is grounded in a single recurring case study (NurtureBoss, an AI apartment-leasing assistant), which gives the abstractions concrete war-story texture. The later "build an LLM-as-judge" mechanics sit behind the paywall.
+## 摘要
 
-## Key points (5-12 substantive bullets)
-- **The three "gulfs" framing** organizes why LLM apps fail: Gulf of Comprehension (you can't read all your data/behavior at scale), Gulf of Specification (your prompt doesn't actually say what you meant), and Gulf of Generalization (even a good prompt won't apply reliably across all inputs). Evals are the instruments that close these gulfs.
-- **Error analysis is the high-ROI starting point**, explicitly preferred over reaching for generic off-the-shelf metrics like "hallucination score" or "helpfulness." The method is bottom-up, adapted from grounded theory in qualitative research plus standard ML error analysis.
-- **Build a custom data viewer first.** NurtureBoss spent a few hours building a simple bespoke web tool showing the full conversation context (user query, agent response, tool calls, property data) on one screen — and found it faster for review than generic observability platforms (LangSmith, Arize, Braintrust are named).
-- **Read ≥100 diverse traces and do open coding** — free-text notes describing each problem, focusing on **the first upstream failure** in the pipeline. Real example annotations: "It asked to send a text confirmation twice in a row" and "Once the user asked to be transferred to a human, the agent kept trying to solve the problem instead of just making the handoff."
-- **Axial coding turns notes into a taxonomy** of 5–10 themed failure categories; an LLM can suggest the initial clusters but a human finalizes them. Then a **pivot table counts frequency** to prioritize. For NurtureBoss three modes dominated: date handling, human-handoff failures, and conversation-flow issues.
-- **Two eval types map to two failure types.** Code-based (deterministic) evals for objective, verifiable outputs — e.g., parsing dates from "can I see the apartment on July 4th, 2026?" — built against a **golden dataset** covering absolute dates, relative dates ("next Tuesday," "tomorrow"), and edge cases ("the 31st" in months without 31 days). These are cheap to create/maintain and run every commit to catch regressions.
-- **LLM-as-judge for subjective failures** (e.g., when to hand off to a human). The judge dataset pairs conversation traces with domain-expert PASS/FAIL labels *and* written critiques explaining each decision — the critiques are what later align the judge.
-- **Binary PASS/FAIL beats Likert scales.** The argument: distinctions between 1–5 points are inconsistent and subjective, while a binary forces clarity on acceptable vs unacceptable. "A 'fail' is a clear signal to fix a bug, whereas a '3' is an ambiguous signal."
-- **Synthetic data bootstraps the loop before you have users** — use a strong LLM to generate diverse, realistic edge-case scenarios so error analysis can begin pre-launch.
-- **The improvement flywheel:** Analyze → Measure → Improve → (Automate) → Repeat — evals are not a one-off test suite but a continuous, data-driven development cycle.
+Hamel Husain 面向一线工程师讲解如何为非确定性 LLM 功能构建评测，主线是摆脱“改提示、看几条输出、发布”的感觉开发，采用来自机器学习和定性社会科学的严谨数据闭环。核心技术是**误差分析**：构建定制数据查看器，阅读至少 100 条真实轨迹，先做开放编码记录失败，再做主轴编码聚类成分类，并用透视表按频率排序。从分类中派生两类评测：客观失败用廉价的确定性代码评测，主观判断用 LLM 裁判，且使用二元通过/失败而非 1–5 分。贯穿案例是 AI 公寓租赁助理 NurtureBoss。后续裁判实现细节位于付费墙后。
 
-## Verified quotes (verbatim, from https://newsletter.pragmaticengineer.com/p/evals)
-- "Using a PASS/FAIL judgment works better than a points rating."
-- "a 'fail' is a clear signal to fix a bug, whereas a '3' is an ambiguous signal"
-- "LLM pipelines are causal systems; a single error in an early step like misinterpreting user intent often creates a cascade of downstream issues."
-- Gulf of Specification: "The gap between what we _want_ the LLM to do, and what our prompts _actually instruct_ it to do."
+## 要点
 
-## What it adds / why it's good (the non-BS practitioner value vs the obvious sources)
-This is the rare evals piece written *for shipping engineers*, not researchers or tool buyers, and it earns trust by (a) being concrete about a single real product (NurtureBoss) with verbatim failure annotations, and (b) being willing to tell you to *not* buy the obvious thing — generic metrics are "often worse than useless," and a hand-built data viewer can beat the marquee observability SaaS tools. The error-analysis-first sequencing (look at your data → taxonomy → only then write evals) is the antidote to the common failure of teams who start by wiring up "hallucination scores" they never act on. The "first upstream failure" heuristic and the cheap-code-evals-vs-LLM-judge split are immediately actionable. Its main limitation as a reference: the actual LLM-judge construction, judge-validation, and production-monitoring mechanics are paywalled, so it points at the method more than it fully hands it over. It pairs naturally with Hamel Husain's own deeper writing and Eugene Yan's eval notes, but is the better single link to give a skeptical engineer asking "why do I even need evals?"
+- **三道鸿沟。** 理解鸿沟：无法规模阅读全部行为；规格鸿沟：提示没有真正表达意图；泛化鸿沟：再好的提示也不能稳定覆盖所有输入。评测用来缩小它们。
+- **误差分析是高回报起点。** 先从真实数据自底向上分析，不应先接通用“幻觉”“帮助性”指标。
+- **先做定制查看器。** NurtureBoss 花数小时做网页，把查询、回复、工具调用、房产数据放在同一屏，审查效率高于 LangSmith、Arize、Braintrust 等通用平台。
+- **读至少 100 条多样轨迹并开放编码，** 聚焦流水线中第一个上游错误。例如连续两次要求短信确认，或用户要求转人工后仍继续解决问题。
+- **主轴编码形成 5–10 类故障。** LLM 可建议初始聚类，最终由人确认，再以透视表计数排序。NurtureBoss 最主要三类是日期处理、人工转接和对话流程。
+- **客观失败用代码评测。** 例如解析“2026 年 7 月 4 日看房”，金标准集覆盖绝对日期、下周二或明天等相对日期，以及无 31 日月份中的“31 号”等边界。每次提交运行，低成本防回归。
+- **主观失败用 LLM 裁判。** 例如何时转人工。数据集由轨迹、专家通过/失败标签和书面批注组成，批注用于对齐裁判。
+- **二元优于李克特。** 1–5 分边界不稳定；失败明确指向缺陷，3 分则含混。
+- **上线前可用合成数据启动，** 让强模型生成多样、逼真的边界场景。
+- **改进飞轮。** 分析→测量→改进→自动化→重复，评测是持续开发流程而非一次性套件。
 
-## Themes
-1 why-evals · 3 model/harness/skill · 4 observability · 5 eval infra · 8 judge/verifiers · 9 agent-specific
+## 已核验引述（中文翻译）
 
-Sources: [A pragmatic guide to LLM evals for devs](https://newsletter.pragmaticengineer.com/p/evals) · [Hamel Husain note on the collaboration](https://substack.com/@hamelhusain/note/c-183437835)
+- “使用通过/失败判断，比打点数更有效。”——https://newsletter.pragmaticengineer.com/p/evals
+- “‘失败’明确表示要修复缺陷，而‘3’是含混信号。”——同上
+- “LLM 流水线是因果系统；早期一步的错误，例如误解用户意图，常会造成下游级联问题。”——同上
+- 规格鸿沟：“我们希望 LLM 做什么，与提示实际指示它做什么之间的差距。”——同上
+
+## 价值与贡献
+
+文章真正面向交付工程师，围绕 NurtureBoss 给出原样故障标注，也直言通用指标常“弊大于利”，手工查看器可能胜过知名 SaaS。顺序是先看数据、建立分类，再写评测，能纠正团队先接幻觉分数却从不采取行动的常见错误。“只标第一个上游失败”和代码评测与 LLM 裁判分工均可立即采用。局限是裁判构建、验证和生产监控细节在付费墙后；概念可与作者更深入文章及 Eugene Yan 的笔记互补。
+
+## 主题
+
+1 为什么需要评测 · 3 模型 / 工具链 / 技能 · 4 可观测性 · 5 评测基础设施 · 8 裁判 / 验证器 · 9 智能体专项
+
+来源：[面向开发者的实用 LLM 评测指南](https://newsletter.pragmaticengineer.com/p/evals) · [Hamel Husain 的合作说明](https://substack.com/@hamelhusain/note/c-183437835)

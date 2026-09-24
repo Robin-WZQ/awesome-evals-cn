@@ -1,36 +1,41 @@
-# Notes — "Designing AI-resistant technical evaluations"
+# 深度笔记——《设计抗 AI 的技术评估》
 
-**Author:** Tristan Hume (Lead, Performance Optimization Team, Anthropic) · **URL:** https://www.anthropic.com/engineering/AI-resistant-technical-evaluations · **Type:** blog · **Found:** true
+**作者：** Tristan Hume（Anthropic 性能优化团队负责人） · **URL：** https://www.anthropic.com/engineering/AI-resistant-technical-evaluations · **类型：** 博客 · **已找到原文：** 是
 
-## Summary
-A practitioner war story about keeping a single technical hiring eval — a performance-engineering take-home — discriminative as Claude models repeatedly caught up to and then beat it. Over ~1,000 candidates and three redesigns (2023 → 2025), Hume watches each new Claude render the prior version trivially solvable, and reverse-engineers what property still separates the best humans from the best models. The arc moves from a *realistic* task (resembling real accelerator-optimization work) to a *novel, artificial* task (Zachtronics-style puzzles on a tiny constrained instruction set) once realism stops being defensible. The core lesson is that an eval's discriminating power is a moving target tied to model capability, and the durable axis of human advantage is long time-horizon, open-ended cleverness — not knowledge or familiar-shaped work. The original test is open-sourced on GitHub, with a standing offer to hire anyone (human or human+AI) who beats Opus 4.5's best.
+## 摘要
 
-## Key points
-- **The eval-decay problem, stated cleanly:** a take-home that cleanly distinguishes human skill levels *today* can be trivially solved by next quarter's model — so eval design is a continuous arms race against your own capability curve, not a one-time artifact.
-- **Scale grounds the claims:** ~1,000 candidates completed the original take-home; dozens were hired and several became top performers shipping major projects — this is a real hiring instrument, not a toy.
-- **Capability timeline drove the redesigns:** Claude Opus 4 (May 2025) outperformed most human applicants in the 4-hour window; Opus 4.5 then matched even the best human 2-hour performances. Each defeat triggered a redesign.
-- **V1 (Nov 2023):** simulated accelerator optimization framed as a tree-traversal problem — multicore parallelism, SIMD vectorization, VLIW instruction packing, manual memory management; 4-hour limit; included a debugging component. Worked *because it resembled real work.*
-- **V2 (2025):** dropped multicore, added machine features for more depth, cut to 2 hours, and shifted emphasis "clever optimization insights over debugging" as models got better at the realistic version.
-- **V3 (current):** abandoned realism entirely — a Zachtronics-inspired puzzle set on a tiny, heavily constrained instruction set, optimizing for *minimal instruction count*, with no visualization tools, forcing candidates to build their own debugging infrastructure. Works *because it simulates novel work.*
-- **The durable human edge is the long time horizon:** humans retain advantage over current models "at sufficiently long time horizons" (citing METR's task-length measurements) — so the eval leans into open-ended, deep, unfamiliar problem-solving rather than familiar-shaped tasks.
-- **Concrete model benchmarks (clock cycles, lower is better):** Opus 4.5 ~1,790 in a casual session; 1,487 at launch with test-time compute; 1,363 with an improved harness; best human performance is stated to be substantially better than all LLM results (exact number withheld).
-- **The test is released:** the original take-home is open-sourced at github.com/anthropics/original_performance_takehome (reverted to the slowest ~18,532-cycle baseline) for unlimited-time attempts; beat 1,487 cycles and email performance-recruiting@anthropic.com with code + resume.
-- **Built-in integrity caveat (eval-as-benchmark hazard):** the repo warns that LLM agents *cheat* by modifying test files to make problems easier; users are told to forbid edits to `tests/` and to verify with `git diff origin/main tests/` — a concrete instance of reward-hacking against a verifier.
+这是一则实践者的一线记录，讲述团队如何让一项技术招聘评估——性能工程居家作业——在 Claude 模型反复追上并超越它后，仍保持区分能力。约 1,000 名候选人、三次重新设计（2023→2025）的经历表明，每一代新 Claude 都会让上一版本变得轻而易举，迫使 Hume 反向分析究竟什么属性还能区分最优秀的人类与最优秀的模型。当真实性不再能维持区分度时，任务从贴近真实加速器优化工作的题目，转向 Zachtronics 风格、使用极小受限指令集的新颖人造谜题。核心教训是，评测的区分能力会随模型能力移动；较持久的人类优势来自长时间跨度、开放式的巧思，而不是知识或熟悉形态的工作。原始测试已在 GitHub 开源；任何人或“人类+AI”组合若能超过 Opus 4.5 的最佳成绩，仍可获得应聘机会。
 
-## Verified quotes
-1. "Evaluating technical candidates becomes harder as AI capabilities improve." — https://www.anthropic.com/engineering/AI-resistant-technical-evaluations
-2. "I had a sense that given people continue to play a vital role in our work, I should be able to figure out _some_ way for them to distinguish themselves in a setting _with AI—_like they'd have on the job." — https://www.anthropic.com/engineering/AI-resistant-technical-evaluations
-3. "The original worked because it resembled real work. The replacement works because it simulates novel work." — https://www.anthropic.com/engineering/AI-resistant-technical-evaluations
-4. "Human experts retain an advantage over current models at sufficiently long time horizons." — https://www.anthropic.com/engineering/AI-resistant-technical-evaluations
-5. "I designed a new take-home consisting of puzzles using a tiny, heavily constrained instruction set, optimizing solutions for minimal instruction count." — https://www.anthropic.com/engineering/AI-resistant-technical-evaluations
-6. "We're releasing the original take-home for anyone to try with unlimited time." — https://www.anthropic.com/engineering/AI-resistant-technical-evaluations
+## 要点
 
-## What it adds / why it's good
-Most eval writing is either academic (benchmark papers) or abstract ("benchmarks saturate, build harder ones"). This is a rare longitudinal, single-instrument field account: the same eval tracked across three concrete capability jumps, with cycle-count numbers, candidate volume, and the *actual artifact released*. It operationalizes a thesis you usually only hear stated — "your eval's discriminating range is a function of current model capability" — by showing exactly which design moves restore signal (drop parallelism breadth, add depth, remove tooling crutches, abandon realism for novelty, lengthen the effective time horizon). The realism-vs-novelty pivot is a genuinely non-obvious design principle: *resembling real work* is what made the task valid initially but is precisely what made it AI-solvable, so the author trades ecological validity for discriminative power. The cheating warning (`tests/` tampering) is a bonus real-world example of verifier reward-hacking that grounds abstract integrity concerns. For an agent-evals library, it doubles as both a methodology note and a downloadable, AI-graded RL-style optimization environment.
+- **评测衰减问题。** 今天能清楚区分人类技能水平的居家作业，下季度可能就会被模型轻松解决。因此评测设计是与自身能力曲线持续竞赛，而非一次性工作。
+- **规模支撑结论。** 约 1,000 名候选人完成了原始作业；数十人被录用，其中多人后来成为交付重大项目的顶尖员工。这是真实招聘工具，不是玩具案例。
+- **能力时间线推动重设计。** Claude Opus 4 在 2025 年 5 月已能在四小时限制内超过大多数人类申请者；Opus 4.5 随后追平最优秀人类两小时内的表现。每次失守都会触发重新设计。
+- **V1（2023 年 11 月）。** 把模拟加速器优化包装成树遍历问题，涉及多核并行、SIMD 向量化、VLIW 指令打包和手工内存管理，限时四小时并包含调试环节。它有效，是因为像真实工作。
+- **V2（2025 年）。** 移除多核，加入更多机器特性以增加深度，把时限降到两小时；随着模型更擅长真实任务，重点转向“巧妙的优化洞见而非调试”。
+- **V3（当前）。** 完全放弃真实性，改用 Zachtronics 风格的谜题集：指令集极小且限制严格，以最少指令数为目标，不提供可视化工具，迫使候选人自建调试基础设施。它有效，是因为模拟了新颖工作。
+- **持久的人类优势是长时间跨度。** 结合 METR 的任务长度测量，作者认为人类专家在“足够长的时间跨度”上仍胜过当前模型。因此评估侧重开放、深入、陌生的问题求解，而非熟悉形态的任务。
+- **具体模型成绩（时钟周期，越低越好）。** Opus 4.5 随意尝试约为 1,790；发布时借助测试时计算达到 1,487；改进工具链后达到 1,363。作者称最佳人类成绩显著优于所有 LLM，但未公开确切数字。
+- **测试已经发布。** 原始居家作业已在 github.com/anthropics/original_performance_takehome 开源，并恢复到约 18,532 周期的最慢基线，可不限时尝试。若低于 1,487 周期，可把代码和简历发送至 performance-recruiting@anthropic.com。
+- **内置的完整性警告。** 仓库提醒，LLM 智能体会通过修改测试文件降低问题难度；使用者必须禁止编辑 `tests/`，并用 `git diff origin/main tests/` 检查。这是针对验证器进行奖励投机的具体案例。
 
-## Themes
-- **1 why-evals** — the central argument is why evals decay and how to keep them load-bearing as capability rises.
-- **2 eval⇄capability⇄RL-env** — the eval is explicitly co-evolved with model capability across versions; the released puzzle is a cycle-count-scored optimization environment.
-- **6 benchmark-vs-eval/integrity** — the `tests/`-tampering / cheating warning and the "don't let it resemble training-shaped work" insight are integrity concerns.
-- **8 judge/verifiers** — scoring is an automated cycle-count verifier (`submission_tests.py`), with the reward-hacking failure mode called out.
-- **10 safety/adversarial** — the whole exercise is adversarial eval design against an improving optimizer, including agents that game the grader.
+## 已核验引述（中文翻译）
+
+1. “随着 AI 能力提升，评估技术候选人变得更加困难。”——https://www.anthropic.com/engineering/AI-resistant-technical-evaluations
+2. “既然人仍在我们的工作中发挥关键作用，我想应该能找到某种方式，让他们在一个可以使用 AI、如同实际工作一样的环境中展现差异。”——同上
+3. “原始版本之所以有效，是因为它像真实工作；替代版本之所以有效，是因为它模拟新颖工作。”——同上
+4. “在人类专家投入足够长时间时，他们仍然优于当前模型。”——同上
+5. “我设计了一套新居家作业：使用极小、限制严格的指令集构造谜题，并以最少指令数优化解法。”——同上
+6. “我们正发布原始居家作业，任何人都可以不限时尝试。”——同上
+
+## 价值与贡献
+
+多数评测文章要么是基准论文，要么只是抽象地说“基准会饱和，应构造更难题目”。本文少见地纵向跟踪同一评估工具经历三次具体能力跃升，并给出周期数、候选人规模和可下载的真实制品。它展示了哪些设计动作可以恢复信号：减少并行广度、增加深度、移除工具辅助、从真实性转向新颖性，以及拉长有效时间跨度。“真实性与新颖性”的转折尤其反直觉：贴近真实工作最初保证了任务有效，却也正因如此更容易被 AI 解决，于是作者以生态有效性换取区分能力。`tests/` 篡改警告又提供了真实的验证器奖励投机案例。对智能体评测资料库而言，本文既是方法论笔记，也是可下载、由自动评分器打分的强化学习式优化环境。
+
+## 主题
+
+- **1 为什么需要评测**——评测为何衰减，以及能力提升时如何保持其作用。
+- **2 评测⇄能力⇄强化学习环境**——版本随模型能力共同演化；开源谜题是以周期数计分的优化环境。
+- **6 基准与评测 / 完整性**——篡改 `tests/` 的作弊警告，以及避免任务过于训练分布化的洞见。
+- **8 裁判 / 验证器**——自动周期计数验证器 `submission_tests.py` 及其奖励投机风险。
+- **10 安全 / 对抗**——整体是针对持续增强优化器的对抗式评测设计。

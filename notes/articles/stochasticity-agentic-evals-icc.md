@@ -1,36 +1,37 @@
-# Notes — "Stochasticity in Agentic Evaluations: Quantifying Inconsistency with Intraclass Correlation"
+# 深度笔记——《智能体评测的随机性：用组内相关系数量化不一致》
 
-**Author:** Zairah Mustahsan, Abel Lim, Megna Anand, Saahil Jain, Bryan McCann (You.com) · **URL:** https://arxiv.org/abs/2512.06710 · **Type:** paper · **Found:** true
+**作者：** Zairah Mustahsan、Abel Lim、Megna Anand、Saahil Jain、Bryan McCann（You.com） · **URL：** https://arxiv.org/abs/2512.06710 · **类型：** 论文 · **已找到原文：** 是
 
-## Summary
-The paper argues that the standard agentic-eval practice — a single accuracy number from a single run — hides the run-to-run variance that makes it impossible to tell a real capability gain from lucky sampling. It imports the Intraclass Correlation Coefficient (ICC) from measurement science as a primitive that decomposes observed variance into *between-query* variance (genuine task-difficulty signal) and *within-query* variance (agent inconsistency / measurement noise). Evaluating eight-plus models on GAIA (Levels 1–3) and FRAMES, the authors show ICC swings dramatically with task structure (FRAMES 0.4955–0.7118; GAIA 0.304–0.774), and use convergence analysis to give practitioners evidence-based resampling budgets (n≈8–16 for structured tasks, n≥32 for the hardest reasoning). Its sharpest operational claim: for sub-agent replacement, an accuracy bump is only trustworthy if ICC improves too. They propose reporting accuracy alongside ICC and within-query variance as standard practice, captured in updated "Evaluation Cards."
+## 摘要
 
-## Key points
-- **Core primitive:** ICC, borrowed from behavioral/measurement science, separates true between-query signal from within-query (run-to-run) noise. ICC = σ_b² / (σ_b² + σ_w²) — between-query variance over total variance.
-- **Variant used:** ICC(1,1) — one-way random effects, single-trial reliability (citing Shrout & Fleiss 1979). Tasks are treated as random effects sampled from a population of eval items; trials are random effects capturing stochasticity in agent behavior; within-task variance is pooled across all tasks. (Note: a PDF-summarizer pass mis-reported this as ICC(3,1) — the rendered text clearly states ICC(1,1).)
-- **Interpretation bands** (standard ICC convention): poor <0.5, moderate 0.5–0.75, good 0.75–0.9, excellent ≥0.9 — meaning much of agentic evaluation sits in "poor-to-moderate" reliability territory.
-- **Benchmarks:** GAIA (Levels 1–3, agentic capability across reasoning complexity) and FRAMES (retrieval + factuality over multiple documents), each query run many times to estimate within-query variance.
-- **Headline numbers:** FRAMES ICC = 0.4955–0.7118 across models; GAIA ICC = 0.304–0.774 across models. ICC "varies dramatically with task structure" — harder/more open-ended agentic tasks are noisier.
-- **Resampling budgets:** ICC estimates converge by n≈8–16 trials for GAIA Levels 1–2 (structured) and n≈32 for Level 3 (complex reasoning) — giving a principled stopping rule for how many reruns an eval actually needs.
-- **Decision rule (the load-bearing contribution):** "accuracy improvements are only trustworthy if ICC also improves." A swap that raises mean accuracy but lowers consistency may be introducing brittleness into a downstream multi-agent system.
-- **Models spanned:** GPT-4o (and search/deep-research variants), GPT-5, o4-mini, Claude 4.5 Sonnet, Claude 4.5 Haiku, Gemini 2.5 Pro, Qwen3-235B-A22B, DeepSeek-v3p1 — a broad, current-frontier panel.
-- **Evaluation Cards:** proposed reporting artifact bundling accuracy + ICC + within-query variance (with CIs) so stability travels with the headline number rather than being discarded.
-- **Framing:** explicitly positions itself as moving agentic benchmarking "from opaque leaderboard competition toward principled, reproducible experimental science."
+论文指出，智能体评测常用单次运行的单一准确率，这会掩盖轮次间方差，使真实能力提升和幸运采样无法区分。作者从测量科学引入组内相关系数 ICC，把观测方差分解为查询间方差（真实任务难度信号）和查询内方差（智能体不一致或测量噪声）。对八个以上模型在 GAIA 1–3 级和 FRAMES 上的实验显示，ICC 会随任务结构剧烈变化：FRAMES 为 0.4955–0.7118，GAIA 为 0.304–0.774。收敛分析给出重采样预算：结构化任务约 8–16 次，最难推理至少 32 次。最重要的操作结论是，更换子智能体时，只有准确率和 ICC 同时提高，能力增益才可信。作者建议用新版“Evaluation Cards”同时报告准确率、ICC 与查询内方差。
 
-## Verified quotes
-- "Yet current evaluation practice, reporting a single accuracy number from a single run, obscures the variance underlying these results, making it impossible to distinguish genuine capability improvements from lucky sampling." — https://arxiv.org/abs/2512.06710
-- "We employ the one-way random effects model, ICC(1,1) (shrout1979intraclass) ... We report single-trial reliability: ICC(1,1) measures the reliability of an individual trial, with within-task variance estimated by pooling variances across all tasks." — https://arxiv.org/html/2512.06710v1
-- "For sub-agent replacement decisions in agentic systems, accuracy improvements are only trustworthy if ICC also improves." — https://arxiv.org/html/2512.06710v1
-- "Convergence occurs by n≈8−16 for Levels 1–2 and by n≈32 for Level 3." — https://arxiv.org/html/2512.06710v1
-- "By making evaluation stability visible, we aim to transform agentic benchmarking from opaque leaderboard competition to trustworthy experimental science." — https://arxiv.org/abs/2512.06710
-- "By moving agentic evaluation from opaque leaderboard competition toward principled, reproducible experimental science, we aim to establish evaluation rigor as a foundation for trustworthy agentic systems development." — https://arxiv.org/html/2512.06710v1
+## 要点
 
-## What it adds / why it's good
-Most "evals are noisy" discourse stops at "run it a few times and report a std-dev or a confidence interval." This paper supplies the missing *statistical object*: ICC gives a single, interpretable number for what fraction of a benchmark's spread is real signal versus run-to-run noise, with established interpretation bands and a 50-year measurement-science pedigree behind it. That converts vibes ("this delta feels real") into a decidable test. Two pieces are genuinely actionable: (1) the convergence analysis turns "how many reruns?" into an evidence-based budget per task type instead of a guess, and (2) the "accuracy gain must be matched by an ICC gain" rule is a concrete, non-obvious gate for sub-agent swap decisions in compound systems — it catches the failure mode where a more capable-on-average component actually makes the overall system flakier. The Evaluation Card proposal is the right plumbing to make this stick. Limitations to flag honestly: ICC(1,1) assumes a particular variance-components model (tasks and trials as random effects, pooled within-task variance) that may not hold for all eval designs; the bands are conventions imported wholesale; and the framework measures consistency, not correctness — a confidently-wrong-every-time agent scores high ICC.
+- **核心量。** `ICC = σ_b² / (σ_b² + σ_w²)`，即查询间方差占总方差的比例，把真实任务差异与运行噪声分开。
+- **采用 ICC(1,1)。** 单向随机效应、单次试验可靠性，引用 Shrout 与 Fleiss 1979；任务视为从评测总体抽样的随机效应，试验捕捉智能体随机性，并合并各任务的任务内方差。某 PDF 摘要器误报为 ICC(3,1)，渲染正文明确写 ICC(1,1)。
+- **解释区间。** 小于 0.5 差，0.5–0.75 中等，0.75–0.9 良好，至少 0.9 优秀；大量智能体评测仅处于差到中等。
+- **基准。** GAIA 1–3 级覆盖不同推理复杂度的智能体能力；FRAMES 衡量多文档检索与事实性，每个查询反复运行。
+- **关键数字。** FRAMES 跨模型 ICC 为 0.4955–0.7118，GAIA 为 0.304–0.774；越困难、越开放的智能体任务通常噪声越大。
+- **采样预算。** GAIA 1–2 级在约 8–16 次收敛，3 级约 32 次，为重复次数提供停止规则。
+- **决策规则。** “只有 ICC 也提高，准确率提升才可信。”均值更高却一致性更差的子智能体，可能令复合系统更脆弱。
+- **模型范围。** 包括 GPT-4o 及搜索/深度研究变体、GPT-5、o4-mini、Claude 4.5 Sonnet/Haiku、Gemini 2.5 Pro、Qwen3-235B-A22B、DeepSeek-v3p1。
+- **Evaluation Cards。** 把准确率、ICC、带置信区间的查询内方差捆绑，使稳定性与头条分数一同传播。
+- **目标。** 把智能体基准从不透明排行榜竞争转向有原则、可复现的实验科学。
 
-## Themes
-- **1 why-evals** — central: argues single-run accuracy is epistemically broken and reframes benchmarking as experimental science.
-- **5 eval infra** — proposes Evaluation Cards and resampling budgets as standard reporting/tooling.
-- **6 benchmark-vs-eval/integrity** — directly attacks leaderboard deltas that don't survive a noise test.
-- **8 judge/verifiers** — bears on judge/evaluator reliability (within-query variance of stochastic evaluators).
-- **9 agent-specific** — sub-agent replacement decisions in compound agentic systems are the motivating application.
+## 已核验引述（中文翻译）
+
+- “当前做法只报告单次运行的单一准确率，掩盖结果背后的方差，使真实能力提升无法与幸运采样区分。”——https://arxiv.org/abs/2512.06710
+- “我们采用单向随机效应模型 ICC(1,1)……报告单次试验可靠性；任务内方差通过合并所有任务的方差估计。”——https://arxiv.org/html/2512.06710v1
+- “更换智能体系统中的子智能体时，只有 ICC 也提高，准确率提升才可信。”——同上
+- “1–2 级在 n≈8–16 时收敛，3 级在 n≈32 时收敛。”——同上
+- “让评测稳定性可见，旨在把智能体基准从不透明排行榜竞争转成可信实验科学。”——摘要页
+- “我们旨在让评估严谨性成为可信智能体系统开发的基础。”——HTML 正文
+
+## 价值与贡献
+
+多数“评测有噪声”讨论只建议多跑几次并报告标准差。ICC 提供一个可解释量：基准差异中有多大比例是真实信号而非运行噪声，并借用有 50 年历史的测量科学解释标准。收敛分析把重复次数从猜测变成按任务类型确定的预算；准确率增益必须配合 ICC 增益，则是复合系统更换子智能体时非显然但可执行的门禁。局限是 ICC(1,1) 对随机效应和合并方差有假设，解释区间只是沿用惯例，而且 ICC 衡量一致性而非正确性；始终自信地答错也会获得高 ICC。
+
+## 主题
+
+1 为什么需要评测 · 5 评测基础设施 · 6 基准与评测 / 完整性 · 8 裁判 / 验证器 · 9 智能体专项

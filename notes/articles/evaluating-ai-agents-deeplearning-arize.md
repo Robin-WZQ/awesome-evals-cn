@@ -1,33 +1,38 @@
-# Notes — "Evaluating AI Agents (DeepLearning.AI / Arize)"
+# 深度笔记——《评估 AI 智能体（DeepLearning.AI / Arize）》
 
-**Author:** John Gilhuly (Head of DevRel, Arize AI) & Aman Khan (Director of Product, Arize AI) · **URL:** https://www.deeplearning.ai/courses/evaluating-ai-agents · **Type:** course · **Found:** true
+**作者：** John Gilhuly（Arize AI 开发者关系负责人）与 Aman Khan（Arize AI 产品总监） · **URL：** https://www.deeplearning.ai/courses/evaluating-ai-agents · **类型：** 课程 · **已找到原文：** 是
 
-## Summary (3-6 sentences)
-A free ~2h16m beginner short course (15 video lessons, 6 code examples, 1 graded PRO assignment) built with Arize AI that teaches a systematic, observability-first loop for evaluating agents instead of "trial and error." The throughline: first **decompose** the agent into router + skills + memory, then **trace** every step, then attach the *right evaluator to the right component* — code-based for deterministic checks, LLM-as-a-judge for open-ended outputs, human annotation for the rest. It introduces a **convergence score** to measure whether the agent reaches answers in an efficient number of steps, and **structured experiments** to iterate on prompt/model/logic with response-accuracy and step-efficiency metrics. The labs are runnable Jupyter notebooks (L3, L5, L7, L9, L11) built on Arize Phoenix tracing. It is explicitly aimed at the production debugging workflow, not benchmark leaderboards.
+## 摘要
 
-## Key points (5-12 substantive bullets)
-- **Decompose before you evaluate.** The agent is broken into a *router* (decides which skill/tool to call), *skills* (the individual tools/sub-functions), and *memory*. Evals are then attached per-component rather than only end-to-end — a key practitioner move that lets you localize failures.
-- **Two distinct eval surfaces per agent:** *router/skill evals* (did it pick the right tool / did each skill produce a correct result — mix of code-based and LLM-judge) and *trajectory evals* (was the whole path/sequence reasonable). This component-vs-path split maps directly to the lessons "Adding router and skill evaluations" and "Adding trajectory evaluations."
-- **Convergence score** is the signature technique: a 0–1 measure of step efficiency. Formula (per Arize docs): `convergence = minimum steps observed for this query type / steps in the run`, averaged across runs. 1.0 = the agent always takes the optimal path; lower means it diverges/wanders.
-- **Honest limitation, stated explicitly:** because the "optimal path" is just the *shortest run your agent actually produced*, convergence "will miss cases where every run of your agent takes a suboptimal path." It's a relative-efficiency metric, not a ground-truth-optimal one — a useful caveat most blog posts skip.
-- **Evaluator selection is the core decision.** The course frames choosing *code-based vs LLM-as-a-judge vs human annotation* as a per-component judgment call, not a one-size choice. Code-based "test a certain step" explicitly; LLM-judge for "more open-ended outputs"; humans for the ambiguous remainder.
-- **Tracing/observability is prerequisite, not optional.** Built on Arize Phoenix (OpenTelemetry-style spans). You can't evaluate trajectory or convergence without first capturing the full step trace — lessons 5–6 ("Tracing agents") gate everything after.
-- **Structured experiments** = the iteration engine: hold the eval suite fixed and sweep one variable at a time (prompt, LLM model, or agent logic), comparing on response accuracy and step efficiency. This is the "experiment" abstraction (datasets + task + evaluators) rather than ad-hoc prompt tweaking.
-- **"Improving your LLM-as-a-judge"** is its own lesson — acknowledging the judge itself needs calibration/eval (aligning judge labels to human labels), not blind trust.
-- **Eval ≠ traditional software testing** is the framing from lesson 2 ("Evaluation in the time of LLMs"): non-determinism and open-ended outputs break assert-style testing, motivating probabilistic/judge-based evals.
-- **Production loop closes with monitoring** (lesson 14) — the same evals that ran offline get run as online monitors, not retired after dev.
-- Public hands-on repos exist (community mirrors e.g. `ksm26/Evaluating-AI-Agents`) with the L3/L5/L7/L9/L11 notebooks runnable end-to-end.
+这是一门由 DeepLearning.AI 与 Arize AI 合作推出的免费入门短课，时长约 2 小时 16 分，包含 15 节视频、6 个代码示例和 1 个计分作业。课程教授一种系统化、可观测性优先的智能体评测闭环，以取代“反复试错”：先把智能体分解为路由器、技能和记忆，再追踪每一步，最后把合适的评估器连接到合适组件——确定性检查用代码，开放输出用 LLM 裁判，其余由人标注。课程提出**收敛分数**，衡量智能体是否以高效步数得出答案，并通过结构化实验在回答准确率和步骤效率上迭代提示、模型与逻辑。实验基于 Arize Phoenix 追踪，提供可运行的 Jupyter 笔记本。它明确面向生产调试工作流，而非排行榜。
 
-## Verified quotes (1-4 verbatim, with URL)
-- "Add observability to your agent to gain insights into its steps and know how to debug it" — https://www.deeplearning.ai/courses/evaluating-ai-agents
-- "Set up evaluations for the skills and router decisions of the agent example using code-based and LLM-as-a-judge evaluators" — https://www.deeplearning.ai/courses/evaluating-ai-agents
-- "Compute a convergence score to evaluate if the example agent can respond to a query in an efficient number of steps." — https://www.deeplearning.ai/courses/evaluating-ai-agents
-- "Run structured experiments to improve the performance of the agent by exploring changes to the prompt, LLM model, or the agent's logic." — https://www.deeplearning.ai/courses/evaluating-ai-agents
+## 要点
 
-(Convergence formula and its "will miss cases where every run … takes a suboptimal path" limitation are sourced from the Arize Phoenix agent-path-convergence docs: https://arize.com/docs/phoenix/evaluation/how-to-evals/running-pre-tested-evals/agent-path-convergence — paraphrased there, exact verbatim of that doc could not be fully re-fetched due to a redirect/404, but the formula and caveat are corroborated across Arize's pages.)
+- **先分解，再评估。** 智能体被拆为负责选择技能或工具的路由器、具体工具与子函数构成的技能，以及记忆。评测按组件绑定，而非只做端到端评分，从而能定位故障。
+- **两类评测表面。** 路由器与技能评测检查是否选对工具及技能结果是否正确，可混合代码与 LLM 裁判；轨迹评测判断整个路径或顺序是否合理。
+- **收敛分数。** 这是衡量步骤效率的 0–1 指标：`convergence = 此类查询观测到的最少步数 / 本次运行步数`，再跨运行求平均。1.0 表示总是采取已观测到的最优路径，越低则越游移。
+- **明确的局限。** “最优路径”只是该智能体自身产生过的最短运行，因此若它的每次运行都走次优路径，收敛分数不会发现。它衡量相对效率，不代表真实全局最优。
+- **评估器选择是核心判断。** 代码用于显式检查特定步骤，LLM 裁判用于开放输出，人工处理仍然含混的部分；应按组件选择，而非一刀切。
+- **追踪与可观测性是前提。** 课程建立在 Arize Phoenix 的 OpenTelemetry 风格 span 上。没有完整步骤轨迹，就无法评估路径或收敛。
+- **结构化实验是迭代引擎。** 固定评测套件，每次只改变提示、LLM 模型或智能体逻辑中的一个变量，再比较回答准确率和步骤效率。这是“数据集+任务+评估器”的实验抽象，而不是随意调提示。
+- **改进 LLM 裁判单设一课，** 说明裁判自身也要校准和评估，例如让裁判标签对齐人工标签，不能盲目信任。
+- **评测不同于传统软件测试。** 非确定性和开放输出会破坏断言式测试，从而需要概率和裁判式评测。
+- **生产闭环以监控结束。** 离线使用的同一批评测还会作为线上监控器运行，而不是开发完成后废弃。
+- 公开社区镜像仓库（如 `ksm26/Evaluating-AI-Agents`）提供 L3、L5、L7、L9、L11 笔记本，可端到端运行。
 
-## What it adds / why it's good
-Most "eval" content stops at "use an LLM judge." This course's non-BS contribution is **the component decomposition + per-component evaluator matching** (router-eval vs skill-eval vs trajectory-eval), which is exactly the structure you need to debug *where* a multi-step agent fails rather than just scoring final answers. The **convergence score** is a concrete, codeable agent-specific metric for the "is my agent wandering / burning steps" problem that pure accuracy metrics ignore — and it's refreshingly honest about its own blind spot (relative, not absolute, optimality). Because it's grounded in Arize Phoenix + runnable notebooks, it's a working blueprint (tracing → datasets → experiments → online monitoring), not just slides. Good complement to written sources like Eugene Yan/Hamel Husain: it operationalizes the "look at your traces" advice into an actual tooling loop with hands-on code.
+## 已核验引述（中文翻译）
 
-## Themes
-1 why-evals · 3 model/harness/skill · 4 observability · 5 eval infra · 8 judge/verifiers · 9 agent-specific
+- “为智能体加入可观测性，以洞察其步骤并知道如何调试。”——https://www.deeplearning.ai/courses/evaluating-ai-agents
+- “使用基于代码和 LLM 裁判的评估器，为示例智能体的技能与路由决策配置评测。”——同上
+- “计算收敛分数，评估示例智能体能否以高效步数回答查询。”——同上
+- “运行结构化实验，通过探索提示、LLM 模型或智能体逻辑的变化来改进性能。”——同上
+
+收敛公式及“若每次运行都走次优路径便会遗漏”的局限，来自 Arize Phoenix 文档：https://arize.com/docs/phoenix/evaluation/how-to-evals/running-pre-tested-evals/agent-path-convergence 。原文因重定向或 404 无法完整重新抓取，但公式和限制得到 Arize 多个页面交叉印证。
+
+## 价值与贡献
+
+许多评测内容止步于“使用 LLM 裁判”。本课程真正务实的贡献是组件分解和逐组件匹配评估器，即路由评测、技能评测和轨迹评测；这种结构能定位多步智能体究竟在哪个环节失败，而不是只给最终答案打分。收敛分数则为智能体是否游移、浪费步骤这一问题提供了可编码指标，补充纯准确率无法覆盖的维度，并坦率承认它只衡量相对而非绝对最优。课程结合 Arize Phoenix 和可运行笔记本，提供的是“追踪→数据集→实验→线上监控”的可执行蓝图，而不只是幻灯片。
+
+## 主题
+
+1 为什么需要评测 · 3 模型 / 工具链 / 技能 · 4 可观测性 · 5 评测基础设施 · 8 裁判 / 验证器 · 9 智能体专项

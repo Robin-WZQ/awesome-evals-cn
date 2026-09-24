@@ -1,32 +1,39 @@
-# Notes — "Artificial Analysis: Independent LLM Evals as a Service"
+# 深度笔记——《Artificial Analysis：独立 LLM 评测服务》
 
-**Author:** George Cameron & Micah Hill-Smith (interviewed by swyx & Alessio), Latent Space · **URL:** https://www.latent.space/p/artificialanalysis · **Type:** newsletter (podcast + transcript) · **Found:** true
+**作者：** George Cameron 与 Micah Hill-Smith（swyx、Alessio 采访），Latent Space · **URL：** https://www.latent.space/p/artificialanalysis · **类型：** 通讯（播客与文字稿） · **已找到原文：** 是
 
-## Summary (3-6 sentences)
-George Cameron and Micah Hill-Smith run Artificial Analysis, the independent benchmarking outfit whose Intelligence Index, speed/cost charts, and provider comparisons are cited by labs and enterprises. The interview is an operational tour of running evals as a *business*: how they stay independent ("no one pays to be on the website"), how they run everything themselves rather than trusting lab-reported numbers, and how they detect and defeat gaming. They explain concrete defenses — a "mystery shopper" policy using off-domain accounts so providers can't serve them a special model, repeated runs to pin down 95% confidence intervals on noisy small benchmarks, and an Intelligence Index that synthesizes ~10 datasets and rotates as benchmarks saturate. They also dig into newer evals (an Omissions/hallucination index that rewards "I don't know," the Critical Point physics set where top models score ~9%, GDP Val AA run through their open-source Stirrup agent harness, an Openness Index) and the economics of inference — the "smiling curve" of cost, sparsity trends, and token-vs-turn efficiency. The throughline: once a benchmark becomes the thing everyone watches, scores improve without generalized intelligence improving, so the eval provider's real job is continuous methodology hygiene and anti-Goodhart discipline.
+## 摘要
 
-## Key points (5-12 substantive bullets)
-- **Independence is the product.** No one pays to appear on the public site; revenue comes from (1) an enterprise benchmarking-insights subscription (serverless vs. managed vs. leasing-chips deployment decisions) and (2) private custom benchmarking for AI companies. "You can't pay us for better results."
-- **Run everything yourself.** Labs "all prompt the models differently" and cherry-pick chain-of-thought examples (e.g., Gemini 1.0 Ultra's 32-shot MMLU prompts), so AA re-runs all benchmarks with standardized prompting rather than trusting reported scores.
-- **Mystery shopper policy.** To stop providers serving an optimized model to a known endpoint, AA registers accounts *not* on their own domain and runs both intelligence and performance benchmarks anonymously so providers can't identify and special-case them.
-- **Goodhart awareness is explicit.** "The things that get measured become things that get targeted by labs" — once an eval is the one everyone watches, scores rise without reflecting generalized intelligence. This drives benchmark rotation.
-- **Intelligence Index = composite that rotates.** Current version synthesizes ~10 datasets (MMLU, GPQA, agentic tasks, a proprietary long-context reasoning set). V1-style coding (HumanEval/Python functions) is saturated and being dropped; V4 will add GDP Val AA, Critical Point, and hallucination rate.
-- **Variance management is real engineering.** Small benchmarks have "enormous" variance; they do pilot runs to decide how many repeats are needed for tight ±1 / 95% confidence intervals. Published cost estimates ("one repeat") understate true cost because they actually run multiple iterations.
-- **Omissions / hallucination index.** Scored -100 to +100; penalizes wrong answers, rewards "I don't know." Finding: hallucination doesn't track general intelligence — Claude models lead on lowest hallucination despite not topping raw capability.
-- **Critical Point.** Research-level physics from Princeton academics; top models only ~9%. Designed to test exploring novel ideas, not fact recall.
-- **GDP Val AA.** AA's take on OpenAI's GDPval — 44 white-collar tasks with real files (spreadsheets, PDFs, PPTs), run through their open-source **Stirrup** agent harness (up to 100 turns, code execution, web search, filesystem), judged by Gemini 3 Pro after bias testing.
-- **Openness Index.** 0-18 score on transparency of pre-training data, post-training method, training code, and licensing; AI2's OLMo 2 leads, then Nous Hermes and NVIDIA Nemotron.
-- **Sparsity insight.** Accuracy correlates with *total* parameters, not active parameters — so AA predicts "massive sparse models are the future" (GPT-4.5 ~5% active, Kimi K2 ~3%).
-- **Economics: the "smiling curve" + token-vs-turn.** GPT-4-level intelligence is now 100-1000x cheaper, yet frontier agentic workflows cost more than ever (longer context, more turns). GPT-5 costs more per token but solves tasks in fewer turns; the emerging ideal is "use more tokens only when needed."
+George Cameron 与 Micah Hill-Smith 运营独立基准机构 Artificial Analysis，其 Intelligence Index、速度与成本图表和供应商比较被实验室及企业引用。访谈从商业运营角度讲述评测：如何保持独立——“没人付费上网站”——如何自行运行测试而不信任实验室报告，以及如何检测和阻止投机。具体防御包括使用非自有域名账户的“神秘顾客”政策，防止供应商提供特制模型；重复运行小基准并给出 95% 置信区间；把约十个数据集合成 Intelligence Index，并在基准饱和后轮换。访谈还讨论奖励“不知道”的 Omissions 幻觉指数、顶尖模型仅约 9% 的 Critical Point 物理题、经开源 Stirrup 智能体工具链运行的 GDP Val AA、Openness Index，以及推理经济中的“微笑曲线”、稀疏性和 token 与轮次效率。主线是：一旦基准成为共同关注目标，分数会在通用智能没有同步提高时上升；评测服务商的真正职责是持续维护方法卫生和反 Goodhart 纪律。
 
-## Verified quotes (verbatim, from https://www.latent.space/p/artificialanalysis)
-- Micah: "there's no use doing what we do unless it's independent AI benchmarking."
-- George: "You can't pay us for better results."
-- Micah: "the things that get measured become things that get targeted by labs that they're trying to build...once an eval becomes the thing that everyone's looking at, scores can get better on it without there being a reflection of overall generalized intelligence."
-- Micah (mystery shopper): "We have what we call a mystery shopper policy...we will register accounts not on our own domain and run both intelligence evals and performance benchmarks...without them being able to identify it."
+## 要点
 
-## What it adds / why it's good
-This is the rare practitioner account of evals as *infrastructure trusted by adversaries* — the labs being measured have both motive and capability to game you. Most eval writing is academic (here's a benchmark) or internal (here's our product eval). AA instead exposes the operational anti-gaming playbook: anonymous off-domain "mystery shopper" accounts to defeat endpoint-specific model serving, re-running every benchmark in-house because lab-reported numbers use inconsistent prompting/few-shot/CoT cherry-picking, statistical pilot runs to size repeat counts for trustworthy confidence intervals, and deliberate benchmark rotation as a Goodhart countermeasure. It also grounds eval design in incentives (omissions index that rewards abstention; openness index) and ties eval results to inference economics (sparsity, smiling curve, token-vs-turn) in a way pure benchmark papers don't. For anyone building eval infra, the takeaways are concrete: assume the thing under test is adversarial, budget for variance and repeats, and plan to retire saturated benchmarks.
+- **独立性就是产品。** 公共网站不接受付费上榜；收入来自企业基准洞察订阅和 AI 公司私有定制基准。“不能付钱买更好结果。”
+- **一切自行运行。** 实验室提示方式不同，还会挑选思维链示例，例如 Gemini 1.0 Ultra 的 32-shot MMLU；AA 用标准化提示重跑，不信任自报分数。
+- **神秘顾客政策。** 用非自有域名注册账户，匿名运行智能和性能测试，防止端点识别 AA 并特供优化模型。
+- **明确意识到 Goodhart 定律。** 被测量的东西会成为实验室优化目标；因此需要轮换基准。
+- **会轮换的综合指数。** 当前约整合十个数据集，包括 MMLU、GPQA、智能体任务和自有长上下文推理集。HumanEval 式 Python 函数编码已饱和，将被移除；V4 加入 GDP Val AA、Critical Point 和幻觉率。
+- **方差管理是工程问题。** 小基准方差极大，团队先试跑来确定重复次数，以获得约 ±1、95% 置信区间。公开成本只写“一次重复”，实际会多次运行。
+- **Omissions / 幻觉指数。** 范围 -100 到 +100，答错受罚，承认“不知道”获奖。幻觉与总体智能不完全相关：Claude 幻觉最低，却不一定能力最高。
+- **Critical Point。** Princeton 学者编写的研究级物理题，顶尖模型约 9%，强调探索新想法而非事实记忆。
+- **GDP Val AA。** 44 个包含电子表格、PDF、PPT 的白领任务，经开源 Stirrup 工具链运行，最多 100 轮，支持代码执行、网络搜索和文件系统；在偏差测试后由 Gemini 3 Pro 裁判。
+- **Openness Index。** 按预训练数据、后训练方法、训练代码和许可透明度给 0–18 分；AI2 OLMo 2 居首，其后是 Nous Hermes 和 NVIDIA Nemotron。
+- **稀疏性洞见。** 准确率与总参数而非激活参数相关，因此 AA 预测超大稀疏模型将成未来；GPT-4.5 约 5% 激活，Kimi K2 约 3%。
+- **经济性。** GPT-4 级智能已便宜 100–1,000 倍，但前沿智能体因上下文更长、轮次更多反而更贵。GPT-5 单 token 更贵却用更少轮解决任务，理想方向是只在必要时增加 token。
 
-## Themes
-1 why-evals · 4 observability · 5 eval infra · 6 benchmark-vs-eval · 8 judge/verifiers · 9 agent-specific
+## 已核验引述（中文翻译）
+
+以下均核验自 https://www.latent.space/p/artificialanalysis ：
+
+- Micah：“如果不是独立 AI 基准，我们做这件事就没有意义。”
+- George：“不能付钱让我们给出更好的结果。”
+- Micah：“被测量的东西会成为实验室针对的目标……一旦某项评测成为所有人关注的东西，它的分数可能提高，却不代表总体通用智能提高。”
+- Micah：“我们有一项‘神秘顾客’政策……用非自有域名账户，同时运行智能评测和性能基准，让对方无法识别。”
+
+## 价值与贡献
+
+这是少见的“受对手信任的评测基础设施”实践记录：被测实验室既有动机也有能力投机。AA 公开了匿名异域账户、统一重跑实验室自报基准、用试跑确定重复次数，以及通过轮换抵抗 Goodhart 效应的操作手册。它还用奖励弃答的幻觉指数与透明度指数把激励嵌入评测，并把结果连接到稀疏性、微笑曲线和 token/轮次经济学。核心建议很具体：假设被测对象具有对抗性，为方差与重复运行预留预算，并计划淘汰饱和基准。
+
+## 主题
+
+1 为什么需要评测 · 4 可观测性 · 5 评测基础设施 · 6 基准与评测 · 8 裁判 / 验证器 · 9 智能体专项
