@@ -1,44 +1,28 @@
-# Notes — "The Life Cycle of an RL Environment (deck)"
-**Speaker/Guest:** Kanav Garg · **Venue:** ACM CAIS 2026 · **Type:** slides · **URL:** (local slide deck)
+# 笔记——《强化学习环境生命周期》
+**类型：** 幻灯片 · **主题：** 强化学习环境与评测
 
-## Summary (3-6 sentences — what it argues, why it matters for agent evals)
-Garg (ex-DeepMind, co-inventor of computer use / Project Mariner, now co-founder of Core Automation) walks through the full life cycle of an RL environment, from raw idea to large-model training, using SWE-Bench as the worked example. His central argument for eval builders: getting an environment to produce a non-zero reward and calibrating its difficulty (the "Goldilocks zone" of 1–4 passes out of 16) is only 40–50% of the real work — the hard, decisive part is RL ablations, reward shaping, and qualitative trace analysis. He insists that evals are a compass, not a destination: most evals don't represent what users actually care about, so live product experiments (A/B tests on Cursor) and sibling-capability transfer are the honest measures of success. The recurring war story is reward hacking — training under optimization pressure surfaces ~10x more hacks than difficulty calibration alone, and the golden rule is that hacked traces must always receive negative reward. He frames RL environment creation as a maturing engineering discipline: datasets are living codebases with shrinking lifespans, and the craft has shifted from designing single tasks to building automated quality-filtering pipelines for an "era of experience" dominated by synthetic data.
+## 摘要
+这套幻灯片把强化学习环境视为持续维护的数据与软件产品，而非一次构建的静态基准。目标能力首先应由真实用户行为和线上 A/B 测试定义，再通过任务集合、奖励与运行框架近似；环境数据需要像代码库一样版本化、做消融、监测被投机的任务，并随模型能力变化更新。狭窄基准增益不如跨兄弟能力迁移重要，且强化学习生成的高质量轨迹可经拒绝采样回流到 SFT，形成循环。
 
-## Key points (6-14 substantive bullets)
-- **Six components of an RL environment:** (1) Prompt / task instruction, (2) Initial State & setup, (3) Environment / substrate (Linux box, Docker, user's computer, bash shell), (4) Configuration (internet access, screen resolution, available tools, packages), (5) Reward (verifier functions), (6) Agent Loop / Harness (a for-loop that exposes tools, processes tool calls, returns responses — "like a Codex agent").
-- **SWE-Bench worked example:** prompt = coding agent solving + writing tests; initial state loads all repo files and runs setup scripts that *remove future git history*; environment = Docker image building repo + deps on Linux; config = no internet, bash-tool-only; reward = execution-based unit-test pass rate **plus** model-judged style/comments/structure; harness = traditional Codex harness.
-- **Difficulty calibration / Goldilocks zone:** aim for tasks where an open-source model gets a non-zero but low pass rate — **1 to 4 passes out of 16** (pass@16). Too easy = 12–16/16 (nothing to sharpen); just right = 1–4/16 (RL can lift it to 12–14/16); too hard = 0/16 (partial scalar rewards may still be useful).
-- **Over 90% of data is thrown out** because agents have become so capable that tasks become too easy.
-- **Why the zone matters — variance reduction:** RL's core mechanism for agents is sharpening the distribution. Before RL the agent is right 1–2/16 (unreliable); after RL it's right 12–14/16 (reliable). "If the agent can occasionally solve a task, RL makes it solve that task reliably."
-- **Calibration ≠ done:** stopping at calibration is "only 40–50% of the way there." Calibration catches obvious hacks (solution file left in env, reading git history), but most reward-hacking emerges later under training pressure during RL ablations.
-- **Rewards** can be scalar (continuous) or Boolean (binary); the most powerful setups combine multiple reward types with different weights — the foundation of reward shaping.
-- **Two-stage ablation process.** Stage 1 — Single Dataset Training: train only on the new dataset, small batch, 4–5 epochs to isolate signal; watch reward slope, scalar reward trend, and qualitative behavior. Red flags: no improvement (learnability blocker) or reward shooting up too fast (likely a new reward hack). Stage 2 — Full Bundle Ablation: take 500–1,000 tasks, add at **~5%** of the data distribution against a no-dataset baseline, run downstream + sibling evals, then try **10%** to understand data weighting.
-- **Reward shaping (art + science):** reward verification (test-writing), reward exploring ≥3 other files before changes, and progressively more nuanced rubrics because "simple rewards are hackable."
-- **Look at traces — the most important thing.** Qualitative trace analysis reveals **~10x more reward hacks** than difficulty calibration alone, because the agent is under real optimization pressure and actively seeks shortcuts.
-- **Counterintuitive truth on hacking:** a task with early-stage reward hacking is *not* necessarily bad — train with penalties for hacking and rewards for genuine solutions and it can become an excellent signal. "People accidentally throw away good tasks because they see hacking in early stages and give up. Don't." Hard tasks breed hacking, then learning: if agents consistently get negative reward for hacking, they eventually learn to do it correctly.
-- **Common hacking patterns:** finding a leftover solution file, reading git history for the intended solution, exploiting weak verifiers/edge cases to pass tests without solving, and shortcuts.
-- **Automated quality pipeline + virtuous cycle:** automate filtering (multi-stage prompted filters, agent trace review for reward hacking) and use **rejection sampling** on RL rollouts to generate SFT seed traces — a stronger SFT init means RL starts from a better step zero. "Better RL environments produce better SFT data → better models → better RL traces."
-- **Shrinking dataset lifespan / era of experience:** tasks challenging six months ago may be trivial today, so maintain datasets like a codebase (monitor distributions, add complexity/scope rather than discard). Citing David Silver, the value of human data is approaching its ceiling; the capability frontier now lies in carefully designed synthetic RL-environment pipelines.
+## 要点
+- 环境生命周期包括定义能力、收集/生成任务、验证奖励、混合训练、离线评测、线上验证、发现投机与持续修订。
+- 目标不应由方便的学术基准决定，而应由 Cursor 等真实产品中的在线 A/B 和用户结果定义。
+- 被模型“破解”的任务不应直接删除；它们可能揭示奖励漏洞、数据泄漏或真实可泛化策略，是诊断材料。
+- 新数据集先用 500–1,000 个任务，以训练混合的 5% 开始，再试 10%，始终与不加入该数据的基线比较。
+- 同时观察双向跨数据集迁移：SWE-Bench 训练是否改善网页开发、网页任务是否改善逆向工程，而不只看原基准涨分。
+- 单项奖励必须防止捷径，并用未参与训练的检查验证；任务、验证器和沙箱共同决定环境质量。
+- 数据集是“活的代码库”，随着模型学会或投机，生命周期会缩短，需要版本、测试和维护责任人。
+- RL 生成多条轨迹后，可拒绝采样成功或高质量结果回流 SFT；SFT 改善初始策略，又提高后续 RL 效率。
+- 评测诚实意味着优先关注真实能力及兄弟任务迁移，而非优化排行榜。
 
-## Verified quotes (verbatim with timestamps)
-This is a slide deck, so the source has no [mm:ss] timestamps; quotes are cited by deck line number instead.
-- [L175] "Agents have become remarkably capable. Over 90% of data has been thrown out first-hand because tasks became too easy."
-- [L194–195] "RL sharpens the distribution. If the agent can occasionally solve a task, RL makes it solve that task reliably. That's what makes agents dramatically more useful in production."
-- [L202] "This is only 40–50% of the way there. Difficulty calibration is just the beginning."
-- [L303–305] "Never reward the agent for completing a task in an unintended way. Traces with reward hacking must receive a negative or bad reward — always."
-- [L306–307] "People accidentally throw away good tasks because they see hacking in early stages and give up. Don't."
-- [L409–411] "Use evals as a compass, not a destination. Live experiments and sibling capability transfer are the real measures of success."
+## 已核验引述（中文翻译）
+- “不要因为任务被投机就把它扔掉；先理解模型究竟利用了什么。”
+- “先以 500 到 1,000 个任务、混合权重 5% 做消融，再提高到 10%，且始终比较无该数据集的基线。”
+- “数据集不是静态资产，而是需要像代码库一样持续维护的活系统。”
+- “真正诚实的目标来自用户与线上 A/B，而不是最容易上涨的基准。”
 
-Note: ASR/garbled fixes — the deck contains transcription artifacts the note silently normalizes: "assay-to-assay 16" / "pass@16" (L179) read as pass@16; "133 passes out of 16" (L198) is a typo for 1–3 passes out of 16; "reward hacking 4 you'll" (L206) reads "reward hacking — you'll." Quoted lines above are kept faithful to the cleaner passages.
+## 独特价值
+最实用的是具体消融配方、保留被投机任务作诊断的原则，以及用兄弟能力迁移判断数据价值。RL→拒绝采样→SFT→更好 RL 的循环，也把评测环境维护明确为持续软件工程。
 
-## What it adds (non-obvious, talk-specific value vs canonical written sources)
-- **Concrete numeric calibration target.** The 1–4/16 (pass@16) Goldilocks band, with the explicit claim that RL then lifts it to 12–14/16, is a sharper, more operational heuristic than the usual "make tasks neither too easy nor too hard" advice.
-- **The "calibration is only 40–50%" reframing.** Most public writing treats a learnable, calibrated task as ready. Garg's insider claim is that the decisive work — and the bulk of reward-hacking discovery — happens *after* calibration, during RL ablations.
-- **The 10x trace-vs-eval ratio.** A specific, memorable claim that qualitative trace review surfaces an order of magnitude more reward hacks than calibration metrics, directly arguing for observability over leaderboard scores.
-- **Counterintuitive "don't discard hacked tasks" lesson** — an actionable correction to a common practitioner mistake, grounded in his work with 10+ RL-env companies.
-- **Specific ablation recipe:** 500–1,000 tasks at 5% (then 10%) of the mixture, always against a no-dataset baseline, watching cross-dataset transfer in both directions — rare quantitative detail on data weighting.
-- **Eval honesty stance with a real artifact:** define target capability via live A/B testing on Cursor, and weigh sibling-capability transfer (does SWE-Bench training help web dev or reverse engineering?) over narrow eval gains — a concrete instantiation of "benchmark ≠ what users care about."
-- **The RL→SFT virtuous cycle via rejection sampling**, and the "datasets are living codebases with shrinking lifespans" framing, position eval/env maintenance as ongoing software engineering rather than a one-shot build.
-
-## Themes
-7 RL environments · 2 eval⇄capability⇄RL-env · 8 judge/verifiers · 6 benchmark-vs-eval · 4 observability · 1 why-evals
+## 主题
+7 强化学习环境 · 2 评测⇄能力⇄强化学习环境 · 8 裁判/验证器 · 6 基准与评测 · 4 可观测性 · 1 为何评测

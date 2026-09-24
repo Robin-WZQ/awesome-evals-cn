@@ -1,35 +1,33 @@
-# Notes — "Building Metrics that actually work (workshop)"
-**Speaker/Guest:** David Karam (Pi Labs) · **Venue:** AI Engineer 2025 · **Type:** talk · **URL:** https://www.youtube.com/watch?v=jxrGodnopHo
+# 笔记——《构建真正有效的指标（工作坊）》
+**演讲者/嘉宾：** David Karam（Pi Labs）及共同演讲者 · **场合：** AI Engineer 2025 · **类型：** 演讲 · **URL：** https://www.youtube.com/watch?v=jxrGodnopHo
 
-## Summary
-This workshop, run by David Karam and a co-presenter (both ex-Google, over a decade building Search), argues that the hard part of LLM/agent evals is not "do I have evals or not" but building *calibrated* metrics that actually correlate with goodness. Their central transplant from Google Search: decompose one coarse, subjective judgment ("is this good?") into many simple, objective signals — Search uses ~300 — and combine them into a single score via a learned weighting function. They contend that high-variance, slow, self-justifying LLM-as-judge setups are the wrong tool, and pitch instead purpose-built scoring foundation models (bidirectional attention + regression head, sub-50ms, low variance) that you calibrate against real thumbs-up/down data. The deeper thesis is that evals are not testing — they are the *primary place domain knowledge lives*, and once you have metrics you trust, the rest of the stack (prompting, fine-tuning, RL, online best-of-N) gets radically simplified. The hands-on portions demonstrate this with a meeting-summarizer app: build a scoring system, validate it blind against a labeled thumbs-up/down set via a confusion matrix, then use it for model comparison, prompt regression testing, and online best-of-N sampling.
+## 摘要
+两位拥有十余年 Google Search 经验的演讲者认为，难点不是有没有评测，而是构建与质量真正相关的**校准指标**。搜索的经验是把“好吗”这种粗糙主观判断拆成大量简单客观信号——Google Search 约 300 项——再由学习得到的权重函数合成分数。他们反对高方差、缓慢且先打分后自我辩解的单体 LLM 裁判，提出双向注意力加回归头的专用评分基础模型，延迟低于 50ms、方差低，并以真实点赞/点踩校准。评测不是测试，而是领域知识主要存放处；一旦指标可信，提示、微调、强化学习和在线 best-of-N 都会简化。
 
-## Key points
-- **Decompose subjective into objective signals.** The core methodology is the "scoring system": instead of asking an LLM "is this helpful?", break it into many simple, individually-inspectable signals (each a natural-language question or a snippet of Python) and combine them. Google Search uses ~300 signals (SEO, popularity, title scores, spam, click-baitiness, content relevance) merged into one score.
-- **Why decomposition works numerically:** variance drops sharply because you're measuring objective things (scores stop bouncing), precision rises because many signals sum into a higher-fidelity score, and you can slice/dice analysis at much finer grain. Asking one LLM "is this good?" just *delegates* the eval to the model and inherits its variance.
-- **Start with 5–10 correlated signals, not a comprehensive set.** Begin with a few signals you know correlate with goodness, then *add more over time as you debug and discover what actually matters*. Evals become a feedback loop, not a one-time setup.
-- **Metrics that work = calibrated metrics, not "good" or "bad" metrics.** The hardest challenge is correlation: does a high score actually mean a good output? At Google this meant data scientists running correlation analyses and confusion matrices. Get comfortable with the numerical/statistical side.
-- **Calibration as a concrete process:** you feed the system thumbs-up/down data and it learns signal weights via "an extension of a generalized additive model (GAM)" — including learning logic like "if spam fails, fail everything; if it succeeds, don't let it contribute."
-- **Weights as critical/major/minor.** Dimensions carry weights (critical/major/minor) to control importance; combination is a mathematical function you can hand-set early, then learn from examples later.
-- **Purpose-built scoring models vs LLM-as-judge.** Decoder LLMs are built to be creative — bad for a judge — and they generate the score *then* post-hoc justify it. Pi's scoring models use bidirectional attention + a regression head (not autoregressive token generation), giving near-deterministic, very-low-variance scores; same input twice gives essentially the same score. Trained on billions of scoring-specific tokens across content types (coding, etc.) so they generalize and stabilize.
-- **Speed enables online eval.** ~20 dimensions score in sub-50ms, so scoring can run *online* at large scale. A stated motivation: LLM-as-judge is too expensive to run online — Google ran the *majority* of its quality checks (spam, decisions) online.
-- **Evals are where domain knowledge lives, not testing.** If your evals are really good, "everything else just works off them" — you can skip hand-writing prompts (use meta-prompts/optimizers like DSPy), filter synthetic data for fine-tuning/RL, and use the same scoring online.
-- **Online best-of-N as cheap "online RL".** A simple, high-leverage technique "almost all big labs use": crank temperature, generate 4–5 responses instead of 1, score them online, pick the best. Gives a "pretty decent lift" with *no* prompt/model changes. The Colab shows score steadily rising as sample count increases.
-- **The validation exercise:** build your scoring system on synthetic examples, then apply it *blind* to a held-out set of ~120 examples with real user thumbs-up/down; a confusion matrix shows alignment on up, alignment on down, and disagreements — iterate dimensions to tighten alignment.
-- **Standard evals aren't enough.** Helpfulness/harmfulness/hallucination evals are just guardrails. The frontier is nuanced, app-specific quality — e.g., a trip plan that's "exciting" rather than "plain-ish" — which generic evals can't capture.
-- **Layer techniques by ROI.** Vibe testing → tracing/trace monitoring → code-based evals → LLM-as-judge → full scoring system. Nothing is "good or bad"; cheap things stop scaling, so you layer in more sophistication. "You just need all of them."
-- **Workshop scaffold:** a meeting-summarizer (transcript → structured JSON with action items, key insights, title), a copilot that auto-derives dimensions from a system prompt / examples / criteria, generates good/bad/broken-JSON synthetic examples, edits Python dimensions, and a Google Sheets + Colab integration (public HuggingFace thumbs-up/down dataset) for model comparison and prompt-regression testing.
+## 要点
+- 把主观质量拆成可检查的自然语言问题或 Python 信号，再合成分数。Google Search 约用 300 项 SEO、流行度、标题、垃圾、诱导点击和相关性信号。
+- 分解降低方差、提高精度，并支持细粒度切片；直接问 LLM“好吗”只是把评测外包给模型并继承其方差。
+- 从 5–10 个已知相关信号开始，随着调试逐步增加；评测是反馈循环。
+- 指标不是好或坏，而是已校准或未校准。用相关性和混淆矩阵确认高分是否真代表好输出。
+- 输入点赞/点踩，用广义加性模型扩展学习权重，包括“垃圾检测失败则全部失败，成功时不贡献”的逻辑；早期也可按关键/主要/次要手调权重。
+- 解码式 LLM 为创造而设计，不适合稳定评分，且常先给分再事后解释。Pi 的评分模型用双向注意力和回归头，在数十亿评分 token 上训练，近乎确定。
+- 约 20 个维度可在 50ms 内评分，足以大规模线上运行；Google 的多数垃圾和质量检查也在线执行。
+- 可信评测承载领域知识，可驱动 DSPy 等提示优化、筛选合成微调/RL 数据，并在线决策。
+- **在线 best-of-N**：提高温度生成 4–5 个响应，在线评分并选最佳，无需改模型或提示便可获得明显提升。
+- 工作坊用合成示例设计评分系统，再盲测约 120 个真实点赞/点踩样本，以混淆矩阵观察一致与分歧并迭代。
+- 通用帮助性、有害性和幻觉指标只是护栏；应用前沿在“旅行计划是否令人兴奋”等领域细节。
+- 技术按回报分层：感觉测试→轨迹监控→代码评测→LLM 裁判→完整评分系统；不是非此即彼，而是都需要。
 
-## Verified quotes
-- "Metrics that work are not necessarily good metrics or bad metrics. They're either calibrated metrics or unccalibrated metrics." [23:38]
-- "don't think of eval as testing in the classic sense. Think of these as the primary place where domain knowledge lives." [13:56]
-- "eval are actually the only place you're going to spend most of your time because that's where domain knowledge is going to live everything else will just work off of those evals" [12:41]
-- "I give the example Google search uses around 300 signals... What this gives you is like really visibility over your application and more and more ways to marry your own judgment into it." [18:05]
-- "you crank up the temperature, you generate a bunch of responses instead of just one response. You can think of this as online reinforcement learning, generate four or five responses and then score those responses online and see which one's the best one and you get a pretty decent lift" [13:24]
-- "they're using this birectional attention instead of like the typical decoder models attention. They have a regression head on top instead of a token generation. So it's not auto reggressively generating tokens" [33:00] *(lightly fixed ASR: "birectional" → bidirectional implied; wording kept faithful)*
+## 已核验引述（中文翻译）
+- “有效指标不分好坏，只分已校准与未校准。”[23:38]
+- “不要把评测当作传统测试，而要把它视为领域知识主要存放的地方。”[13:56]
+- “评测是你投入大部分时间的地方，因为领域知识在那里；其他一切都会依托评测运行。”[12:41]
+- “Google Search 使用约 300 个信号……它让你看清应用，并用更多方式融入自己的判断。”[18:05]
+- “提高温度，生成四五个而不是一个响应，再在线评分并选择最佳；可把它看作在线强化学习，无需其他改变就有不错提升。”[13:24]
+- “它们使用双向注意力而非典型解码器注意力，顶部是回归头而非 token 生成，因此不自回归生成 token。”[33:00]
 
-## What it adds
-Most canonical eval writing (Hamel Husain, "Your AI Product Needs Evals," the LLM-as-judge literature) accepts LLM-judges as the workhorse and focuses on aligning them with human labels. This talk's non-obvious contribution is a *Search-engineering* reframe that rejects the monolithic judge: treat eval as a multi-signal *scoring system* (the literal Google ranking architecture, ~300 signals), where decomposition is justified on statistical grounds (variance reduction, finer-grained analysis) rather than just interpretability. It also surfaces an architecture rarely discussed in eval talks — dedicated **encoder-style scoring models** (bidirectional attention + regression head) as a deliberate alternative to autoregressive judges, with the specific claim that low latency (sub-50ms) is what unlocks running quality checks *online* at scale, the way Google actually operated. The "calibrated vs uncalibrated" framing (metrics aren't good/bad, they're calibrated/not) and the GAM-based learned combination from thumbs-up/down data are sharper than the usual "correlate your judge with humans" advice. Finally, it concretely ties evals to *online best-of-N as cheap RL* — a deployable technique, not just an offline measurement story.
+## 独特价值
+演讲用搜索排序架构取代单体裁判，把分解建立在降低方差和细粒度分析的统计理由上。专用编码器式评分模型是少见替代方案，低于 50ms 的延迟使线上质量控制成为可能。“校准/未校准”比“好/坏指标”更精确；从点赞数据学习 GAM 权重也比泛泛的“与人相关”更具体。它还把评测直接连接到线上 best-of-N 这一廉价强化学习式技术。
 
-## Themes
-8 judge/verifiers · 5 eval infra · 4 observability · 2 eval⇄capability⇄RL-env · 1 why-evals
+## 主题
+8 裁判/验证器 · 5 评测基础设施 · 4 可观测性 · 2 评测⇄能力⇄强化学习环境 · 1 为何评测

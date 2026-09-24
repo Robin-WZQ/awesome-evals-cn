@@ -1,35 +1,33 @@
-# Notes — "How to Build AI Evals in 2026 (Step-by-Step)"
-**Speaker/Guest:** Hamel Husain & Shreya Shankar · **Venue:** Aakash Gupta 2026 · **Type:** podcast · **URL:** https://www.youtube.com/watch?v=J7N9FMouSKg
+# 笔记——《如何在 2026 年构建 AI 评测：逐步实操》
+**演讲者/嘉宾：** Hamel Husain、Shreya Shankar · **场合：** Aakash Gupta 2026 · **类型：** 播客 · **URL：** https://www.youtube.com/watch?v=J7N9FMouSKg
 
-## Summary (3-6 sentences)
-Hamel and Shreya run a live, screen-shared walkthrough of building application-specific evals on real (anonymized) production data from Nurture Boss, an AI leasing assistant for apartment property managers. Their core thesis: the single highest-leverage step in evals is *error analysis* — reading ~100 production traces, journaling what went wrong ("open coding"), categorizing those notes ("axial coding"), then counting category frequencies in a pivot table — and almost nobody does it. They argue this is fundamentally product work that must be owned by a domain expert / PM, not outsourced to engineers or to off-the-shelf "helpfulness" metrics, because only a human with product taste catches the subtle failures (e.g., markdown rendered into SMS, a scheduling tool double-booking instead of rescheduling). They then show how to build a binary LLM-as-judge and, crucially, validate it against human labels using true-positive-rate and true-negative-rate rather than the misleading "agreement" metric. The whole demo is done in a Google Sheet to prove the method is accessible without specialized tooling.
+## 摘要
+Hamel 与 Shreya 通过屏幕共享，使用 AI 租赁助手 Nurture Boss 的匿名生产数据现场构建应用专用评测。最高杠杆步骤是**错误分析**：阅读约 100 条生产轨迹，以“开放编码”记录错误，再以“轴心编码”归类，最后用数据透视表统计频率；几乎没人真正这样做。这是必须由领域专家或产品经理负责的产品工作，不能外包给工程师或通用“帮助性”指标，因为只有具备产品判断的人才能发现短信中渲染 Markdown、改约时重复预约等细微故障。随后他们构建二元 LLM 裁判，并用真正率和真负率而非误导性的总体“一致率”对照人工标签验证。整个过程只用 Google Sheet，以证明无需专业工具即可开始。
 
-## Key points
-- **Error analysis is the whole game.** The workflow: instrument traces → read them → write freeform notes ("open codes") on what went wrong → group notes into categories ("axial codes") → count category frequencies with a pivot table. The terms come from social-science qualitative coding and are understood by LLMs as terms of art.
-- **Do ~100 traces; expect ~40 distinct errors.** Hamel reports finding "40 or so different errors" across 100 traces for Nurture Boss. He stresses speed: scan a trace in ~30 seconds, journal the problem, move on — "perfection is not key," don't do root-cause analysis yet, get into a flow state.
-- **War-stories of real failures the demo surfaces live:** (1) assistant returned bathrooms *connected* when user wanted them *not* connected (compounded by an ASR-style "now/knot" typo in the user's messy SMS); (2) markdown bold/brackets rendered raw into a text channel that has no markdown; (3) "I'll check on that" then silently does nothing instead of acting or handing off; (4) the agent confirmed a *virtual tour* that doesn't exist for that property; (5) a reschedule request triggered the schedule-tour tool *again*, double-booking — now two no-show tours for the complex.
-- **Generic AI metrics miss the nuance.** Dumping a trace into ChatGPT/Claude and asking "was the assistant correct?" gets "yeah, absolutely" — it misses product context (e.g., it can't know there's no virtual-tour capability, or that markdown breaks SMS). Helpfulness/conciseness scores won't catch these. The LLM "hasn't been able to read your mind."
-- **You don't need an observability vendor to start.** Brain Trust, LangSmith, Arise all work, but a CSV/JSON/text file or even Datadog is fine. The key requirement is the ability to *take notes on traces*. They actually recommend vibe-coding your own trace viewer to remove friction (Nurture Boss eventually built their own).
-- **Not everything needs an eval.** If error analysis reveals a dumb fix (e.g., no instruction in the prompt about markdown), just fix it. Write an eval only for "something that you think you might want to iterate against."
-- **Two eval types:** code-based (cheap, deterministic — e.g., detecting markdown elements in SMS output) vs LLM-as-judge (for subjective calls like "should have handed off to a human").
-- **Make judges binary (true/false), not 1–5 / Likert.** Two reasons: alignment is easier (only check that trues match your trues and falses match your falses, vs. checking every point on a scale), and shipping decisions are inherently binary (fix / don't fix). LLMs are also "not very good at those types of numbered scales."
-- **The "agreement" trap.** Naive judge accuracy is misleading: if a failure occurs only 10% of the time, a judge hardcoded to always predict "pass" hits 90% accuracy and never calls an LLM. Instead measure **TPR** (catches real errors) and **TNR** separately and require both individually high.
-- **Validate the judge against your own labels** — the human labels you already produced during axial coding double as ground truth. This is what lets you answer the stakeholder question "how do you trust an LLM judge?"
-- **End-state suite is small:** several code-based evals (especially in CI), one or two LLM-based evals in CI, plus periodic "online" LLM-powered evaluators run weekly on sampled traces to catch distribution shift (new document/contract types). "You don't need a hundred of them; just a few is fine."
-- **Ownership: domain expert / PM drives error analysis — do NOT outsource to developers.** Error analysis is "where you build your moat"; outsourcing it removes your personal taste. Expose the prompt to the PM via an admin view (it's English, made for the domain expert; "it's almost a tragedy to separate the prompt from the product manager"). Prompt playgrounds fall short because they lack your app's tool calls / RAG / code context.
-- **No production data yet?** Dogfood, recruit friends, or generate synthetic inputs by having an LLM simulate users at scale — but you still must look at data.
-- **Explicitly out of scope (deferred to their course):** train/test splitting to avoid overfitting the judge, multi-step agent error analysis with many handoffs, and RAG/retrieval diagnosis ("retrieval is the Achilles heel of a lot of AI systems").
+## 要点
+- 流程是采集轨迹→阅读→自由记录问题（开放编码）→把笔记归类（轴心编码）→用透视表统计。术语来自社会科学质性研究，LLM 也理解。
+- 约 100 条轨迹即可开始；Nurture Boss 在其中发现约 40 种不同错误。每条约 30 秒快速浏览，先记问题，不做根因分析，完整性不是关键。
+- 实际故障包括：把“不相连的卫生间”理解成相连；在不支持 Markdown 的短信中原样显示加粗与括号；说“我会查”却不行动或移交；确认房源并不存在的虚拟看房；改约时再次调用预约工具造成双重预约。
+- 把轨迹交给 ChatGPT/Claude 泛问“回答是否正确”，往往会得到肯定，却无法知道房源没有虚拟看房能力或 Markdown 会破坏短信。通用帮助性、简洁性指标抓不到这些产品语境。
+- 无需先买可观测性平台；Braintrust、LangSmith、Arize 可用，CSV、JSON、文本甚至 Datadog 也可以，关键是能对轨迹记笔记。为降低摩擦，可快速编写自己的查看器。
+- 不是每个错误都要评测。若只是提示未说明禁止 Markdown 等明显修复，直接改；只有需要持续迭代的不确定行为才值得写评测。
+- 两类评测是便宜确定的代码检查（如短信 Markdown 检测）和主观问题的 LLM 裁判（如是否正确移交给人）。
+- LLM 裁判应针对单一错误作二元判断，并给出清晰标准与少量示例；随后与人工标签比较。
+- **总体一致率是陷阱。** 若失败率只有 10%，永远预测“通过”的愚蠢裁判也有 90% 准确率。应分别报告真正率和真负率，确认既识别通过也识别失败。
+- 领域专家/产品经理必须主导错误分析，不应外包给开发者；这里形成产品壁垒和个人品味。应在管理界面向产品经理开放提示，因为提示是英文，也是产品的一部分。普通提示游乐场缺少工具调用、RAG 和代码语境。
+- 没有生产数据时，可自行使用、邀请朋友或让 LLM 大规模模拟用户，但仍须人工查看数据。
+- 训练/测试拆分、多交接的智能体错误分析，以及 RAG/检索诊断被明确留待课程展开；检索被称为许多 AI 系统的“阿喀琉斯之踵”。
 
-## Verified quotes
-- "The main thing that's inhibiting people is not doing the error analysis." [01:18] / [60:03]
-- "If you look at 100 traces, you're going to learn and you're going to understand your system better than anyone else." [26:30]
-- "If this failure is only happening, let's say, 10% of the time, you can have the dumbest judge in the world have 90% accuracy by just always predicting pass." [49:27]
-- "It's almost a tragedy to separate the prompt from the product manager because it's English." [60:01] *(ASR cleanup: spliced two adjacent fragments — "It's almost a tragedy to separate the prompt from the product manager because it's... it's English" — wording faithful.)*
-- "This is what your AI agents are actually doing out there in production a lot of the time. And so your demo is one thing... but then when it goes out in production, there's all this hairiness." [13:48]
-- "The error analysis is where you build your product, right? That's where you build your moat. So if you're giving it to someone else then you kind of have no personal touch in your product." [61:59]
+## 已核验引述（中文翻译）
+- “阻碍人们的主要事情，就是没有做错误分析。”[01:18] / [60:03]
+- “只要看过 100 条轨迹，你就会比任何人都更了解自己的系统。”[26:30]
+- “如果失败只占 10%，世界上最笨的裁判只要永远预测通过，就能有 90% 准确率。”[49:27]
+- “把提示与产品经理分开几乎是一场悲剧，因为提示就是英文。”[60:01]
+- “这就是 AI 智能体在生产环境中经常真正做的事。演示是一回事……投入生产后，则会出现所有这些棘手情况。”[13:48]
+- “错误分析就是你打造产品、建立壁垒的地方。交给别人做，产品就失去了你的个人触感。”[61:59]
 
-## What it adds
-The non-obvious value here is the *fully worked, unglamorous mechanics* — not principles in the abstract but the actual spreadsheet a PM can copy. Specifically: (1) the live, unedited demo of reading messy real SMS traces (misspellings, logging errors, a "now" that should be "not") shows what production agent failure actually looks like, vs. clean blog examples; (2) the concrete open-coding → axial-coding → pivot-table-count pipeline, including the realistic friction (vague LLM-proposed categories like "temporal issues" that a second labeler couldn't act on, needing manual refinement to "date formatting error"); (3) the "agreement is the trap metric" demonstration with the always-predict-pass exploit, which is the single most actionable judge-validation insight and is rarely shown numerically; (4) the organizational claim that error analysis is product/PM work and a competitive moat, with the named CEO (Jacob Carter) anecdote where error analysis alone surfaced enough fixes that he delayed building formal evals. It also concretely separates code-based from LLM-judge evals by example (markdown-in-SMS = code eval; human-handoff = LLM judge).
+## 独特价值
+它给出的不是抽象原则，而是产品经理可直接复制的完整表格流程。未经修饰的真实短信轨迹含拼写错误、日志异常和语音识别式歧义，展示了生产智能体故障的真实形态。开放编码→轴心编码→透视表计数的流程也展示了如何把含糊类别手工细化为可操作标签。“一致率陷阱”及永远预测通过的数值示例，是验证裁判最可执行的洞见。组织层面，它把错误分析定义为产品/PM 工作和竞争壁垒，并用 Markdown-in-SMS 与人工移交分别说明代码评测和 LLM 裁判的边界。
 
-## Themes
-1 why-evals · 4 observability · 5 eval infra · 6 benchmark-vs-eval · 8 judge/verifiers · 9 agent-specific
+## 主题
+1 为何评测 · 4 可观测性 · 5 评测基础设施 · 6 基准与评测 · 8 裁判/验证器 · 9 智能体专项

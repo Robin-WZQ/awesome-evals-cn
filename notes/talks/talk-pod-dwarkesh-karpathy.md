@@ -1,37 +1,37 @@
-# Notes — "Karpathy: RL is terrible, why benchmarks mislead"
-**Speaker/Guest:** Andrej Karpathy (Dwarkesh) · **Venue:** Dwarkesh Podcast · **Type:** podcast · **URL:** https://www.youtube.com/watch?v=-lRBpyPt79c
+# 笔记——《Karpathy：强化学习很糟，基准为何误导》
+**演讲者/嘉宾：** Andrej Karpathy（Dwarkesh） · **场合：** Dwarkesh Podcast · **类型：** 播客 · **URL：** https://www.youtube.com/watch?v=-lRBpyPt79c
 
-> SOURCE-INTEGRITY WARNING: The supplied transcript file (`desearch/transcripts/pod-dwarkesh-karpathy.txt`, 338 lines) is NOT the primary Dwarkesh×Karpathy interview. It is a third-party reaction/commentary video ("attention span" channel) that analyzes the Karpathy interview and splices in only **two** short verbatim Karpathy clips ([01:59–02:14] and [02:01–03:09]). Everything else is the commentator's paraphrase of Karpathy. I have therefore only quoted the two genuinely embedded Karpathy lines verbatim; all other "Karpathy" content below is explicitly marked as paraphrase-as-reported. Treat capability/eval claims here as second-hand until checked against the actual interview audio.
+> **来源完整性警告：** 所给转录文件并非 Dwarkesh 与 Karpathy 的原始访谈，而是第三方 “attention span” 频道的评论视频，只嵌入了两段简短的 Karpathy 原话。[01:59–02:14] 与 [02:01–03:09] 之外的内容均为评论者转述。下文只把两段确实嵌入的内容作为 Karpathy 原话，其余均明确视为二手转述。在核对原始访谈音频前，不应把后者当作第一手能力或评测论断引用。
 
-## Summary
-This is a commentator's synthesis of Karpathy's Dwarkesh appearance, organized around two theses: (1) we're in an "AGI bubble" of over-promised general intelligence, not an AI bubble, and (2) progress is a slow continuous automation curve, not a singularity. For an agent-evals knowledge base the load-bearing material is Karpathy's reported skepticism toward demos and benchmarks as predictors of real capability, his "march of nines" model of why each reliability nine costs as much as all prior progress combined, and his "decade of agents" framing (engineering/data/memory/safety, not a single breakthrough). The recurring eval lesson: demos and headline benchmark scores capture the first 90% and systematically mislead about the last 10% that makes a *product*. It also relays his "RL is terrible" line — clarified as RL being only one layer of a multi-layer training stack, not a dismissal — and his claim that training datasets are "absolutely terrible" / internet-noisy, which bears directly on eval-data quality.
+## 摘要
+这段视频围绕两项主张综合 Karpathy 的访谈：（1）当前存在的是过度承诺通用智能的“AGI 泡沫”，而非 AI 泡沫；（2）进步是缓慢连续的自动化曲线，而非奇点。对智能体评测最重要的是他对演示和基准预测真实能力的怀疑、“多个 9 的进军”可靠性模型，以及“智能体十年”框架。演示与头条基准往往只捕捉最初的 90%，系统性忽略使其成为产品所需的最后 10%。视频也转述“强化学习很糟”这一说法，但其含义是强化学习仅为多层训练栈的一层，并非全盘否定；训练数据“极其糟糕”、充满互联网噪声，也直接影响评测数据质量。
 
-## Key points
-- **Demos are not evals.** Karpathy (as reported) "hates demos" because they are not representative and do not tell you whether the product will actually work — the canonical eval failure mode of optimizing the demo, not the deployment [04:56–05:05].
-- **"March of nines."** Each additional reliability nine (90% → 99% → 99.9%) "cost the same amount of work as all the previous progress combined." This reframes eval targets: a benchmark at 90% is nowhere near a product, and self-driving took decades precisely because of this [05:05–05:28].
-- **First 90% vs last 10%.** People conflate "the first 90% of a demo with the last 10% of a product" — a direct argument for why benchmark saturation ≠ deployability [04:49–04:56].
-- **"Decade of agents, not the year."** Agent autonomy is a 10-year program of "hard engineering iteration, data refinement, memory systems, multimodel cognition and safety alignment" — i.e., the bottleneck is integration/eval/reliability work, not a single capability jump [05:58–06:44].
-- **"RL is terrible" — but as one layer.** The viral line was clarified: RL is one layer of a multi-layered training stack (base model → fine-tune for style → RL for behavior → "layers four, five, six and so on"). Relevant to anyone treating an RL-env score as the whole story [05:35–05:58].
-- **Datasets are "absolutely terrible."** Models train on the whole internet, which is "noisy as hell"; making datasets accurate and precise is major outstanding work — a direct flag on eval-data and training-data quality [06:46–07:00].
-- **"Ghosts / digital spirits."** Current systems imitate humans (talk, sound, appear to reason) but "don't remember, don't reflect, and don't actually know anything" — capability is shallower than surface behavior, so behavioral evals overstate competence [03:51–04:01].
-- **AGI definition stresses *any* task.** Reported back to the original OpenAI definition — any economically valuable task at human level or better — with emphasis on "any" (including physical-world tasks). Most economically valuable tasks are *not* done by AI today; current wins are "automation of fragments" (code suggestions, summarization, image synth) [02:54–03:21, 03:32–03:45].
-- **Benchmarks/the AGI question itself are suspect.** Karpathy is "almost tempted to reject the question entirely," analogizing to charting "progress in computing since the 1970s" — there's no clean x-axis, so single-number progress framings (incl. benchmarks) are inherently misleading [01:59–02:14].
-- **GDP invisibility of capability.** He reportedly couldn't find the iPhone or the computer in GDP, nor AI — capability that diffuses invisibly resists the headline-metric framing evals usually assume [07:32–07:45].
-- **Failure mode of success: "gradual loss of understanding."** The risk isn't sudden takeover but systems running "faster than our comprehension" as we keep layering automation — an observability/oversight concern for agent systems [08:42–09:02].
+## 要点
+- **演示不是评测。** 据转述，Karpathy 不喜欢演示，因为它不具代表性，无法说明产品是否真正可用；这是为部署之外观演示而优化的典型失败。[04:56–05:05]
+- **“多个 9 的进军”。** 每增加一个可靠性 9（90%→99%→99.9%）所需工作，与之前所有进步加起来一样多。因此基准达到 90% 远未成为产品，自动驾驶也因此耗时数十年。[05:05–05:28]
+- 人们混淆“演示最初 90%”与“产品最后 10%”，所以基准饱和不等于可部署。[04:49–04:56]
+- **是“智能体十年”，不是智能体元年。** 自治需要十年艰苦工程迭代、数据精炼、记忆、多模态认知和安全对齐，瓶颈是集成、评测与可靠性，而非单次突破。[05:58–06:44]
+- **“强化学习很糟”但只是多层中的一层。** 训练栈包括基础模型、风格微调、行为强化学习及更多后续层；不能把单个强化学习环境得分等同于完整能力。[05:35–05:58]
+- **数据集“极其糟糕”。** 模型在充满噪声的全互联网数据上训练，使数据更准确、精确仍需大量工作。[06:46–07:00]
+- **“幽灵/数字精灵”。** 当前系统会模仿人类说话、声音和推理表象，却“不记忆、不反思，也并不真正知道任何东西”；纯行为评测可能高估能力。[03:51–04:01]
+- AGI 原定义强调在**任何**有经济价值的任务上达到或超过人类，包括物理任务。当前多数经济任务仍未由 AI 完成，已有成果只是代码建议、摘要和图像合成等片段自动化。[02:54–03:45]
+- Karpathy 几乎想拒绝“AGI 进展如何”这一问题，类比“如何画出 1970 年以来计算进步的横轴”；单一数值或基准天然具有误导性。[01:59–02:14]
+- 据转述，他在 GDP 中既找不到 iPhone、计算机，也找不到 AI；弥散且不可见的能力难以用头条指标表示。[07:32–07:45]
+- 成功的失败模式可能是“逐渐失去理解”：随着自动化层层叠加，系统运行速度超过人的理解，是智能体可观测性与监督问题。[08:42–09:02]
 
-## Verified quotes
-> "I'm almost tempted to like reject the question entirely because again like I see this as an extension of computing… how do you chart progress in computing since 1970s or whatever, what is the x-axis? So I kind of feel like the whole question is kind of like funny from that perspective a little bit." — [01:59–02:14] (verbatim Karpathy clip; light ASR cleanup of filler/run-ons, wording preserved)
+## 已核验引述（中文翻译）
+> “我几乎想完全拒绝这个问题，因为我把它看作计算的延伸……你要怎样描绘 1970 年以来计算的进步，横轴是什么？从这个角度看，整个问题本身就有点奇怪。”[01:59–02:14]（Karpathy 原始片段，轻微整理口头填充词。）
 
-> "AGI was a system you can go to that can do any task that is economically valuable, any economically valuable task, at um human performance or better. And the important word here is *any*." — [03:00–03:13] (verbatim Karpathy clip)
+> “AGI 是一个你可以使用的系统，它能完成任何有经济价值的任务，并达到或超过人类表现。这里最重要的词是‘任何’。”[03:00–03:13]（Karpathy 原始片段。）
 
-> "Karpathy calls it the march of nines and he says that every new nine — like 99%, 99%, 99 and 99% — cost the same amount of work as all the previous progress combined." — [05:05–05:18] (commentator paraphrase of Karpathy, NOT Karpathy's own words; included because the "march of nines" framing is the key eval takeaway)
+> “Karpathy 称之为‘多个 9 的进军’，他说每增加一个 9……所花的工作量都等于此前所有进步的总和。”[05:05–05:18]（评论者转述，不是 Karpathy 原话。）
 
-> "It was funny that Karpathy says that he hates demos and I totally agree with him because they're not representative. They do not actually tell you if the product will work." — [04:56–05:05] (commentator paraphrase reporting Karpathy)
+> “Karpathy 说他讨厌演示，这很有趣，我也完全同意，因为演示不具代表性，根本不能说明产品是否可用。”[04:56–05:05]（评论者转述。）
 
-> "At some point he says that data sets are absolutely terrible still and that will require a lot of work to make data sets much more accurate and precise because now all the models are built on the whole internet and it's just as noisy as hell." — [06:46–07:00] (commentator paraphrase reporting Karpathy)
+> “他曾说数据集至今仍极其糟糕，要使其更准确、更精确还需要大量工作，因为现在所有模型都建立在整个互联网上，而那里充满噪声。”[06:46–07:00]（评论者转述。）
 
-## What it adds
-Versus canonical written sources, the talk-specific value is mostly the two crisp mental models that translate directly into eval discipline: (1) the **"march of nines"** — a quantitative intuition for why benchmark saturation and the gap-to-deployment are not linear, and why a 90%-on-benchmark agent is roughly "nothing done" on the reliability curve; and (2) the **demo-vs-product** distinction, which is the cleanest one-line argument for distrusting demos and headline benchmark numbers as predictors of real-world agent performance. The "RL is terrible / one of many layers" clarification is a useful corrective to over-reading single RL-environment reward as a capability measure. The "ghosts" framing (imitation without memory/reflection/knowledge) is the talk's sharpest reason behavioral evals overstate competence. Caveat: because this is reaction-channel material, none of the secondary claims (datasets, decade-of-agents specifics) should be cited as Karpathy verbatim without the original audio.
+## 独特价值
+两种思维模型直接转化为评测纪律：（1）“多个 9 的进军”说明基准饱和与部署差距不是线性的，90% 的智能体在可靠性曲线上仍可能接近未完成；（2）演示与产品的区分简洁说明，演示和头条分数不能预测真实智能体表现。“强化学习很糟/只是多层之一”的澄清可纠正对单个环境奖励的过度解释；“幽灵”框架则指出行为相似不等于记忆、反思或知识。由于材料来自评论频道，涉及数据集和智能体十年的二手说法在核对原音频前不可作为 Karpathy 原话引用。
 
-## Themes
-6 benchmark-vs-eval (demos/benchmarks mislead; march of nines; reject-the-question) · 2 eval⇄capability⇄RL-env (RL as one layer; capability vs surface behavior) · 1 why-evals (last-10% / product reliability) · 9 agent-specific (decade of agents; autonomy reliability) · 4 observability (gradual loss of understanding)
+## 主题
+6 基准与评测 · 2 评测⇄能力⇄强化学习环境 · 1 为何评测 · 9 智能体专项 · 4 可观测性

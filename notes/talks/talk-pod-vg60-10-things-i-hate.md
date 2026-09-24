@@ -1,40 +1,30 @@
-# Notes — "Ep 60: 10 Things I Hate About AI Evals"
-**Speaker/Guest:** Hamel Husain (Vanishing Gradients) · **Venue:** Vanishing Gradients · **Type:** podcast · **URL:** https://www.youtube.com/watch?v=QEk-XwrkqhI
+# 笔记——《第 60 期：我讨厌 AI 评测的十件事》
+**演讲者/嘉宾：** Hamel Husain（Vanishing Gradients） · **场合：** Vanishing Gradients · **类型：** 播客 · **URL：** https://www.youtube.com/watch?v=QEk-XwrkqhI
 
-## Summary (3-6 sentences — what it argues, why it matters for agent evals)
-Hamel Husain reframes "evals" as fundamentally a *data analysis / data science* discipline applied to stochastic AI systems, not a software-test discipline — his recurring punchline is that the whole field should arguably be renamed "data analysis for AI." The talk is structured as ten (really eleven) anti-patterns he hates, but the constructive spine is consistent: do error analysis on real traces first, let that ground every downstream decision (which metrics, which evals, which tools), and never automate or buy your way around looking at the data. He argues most teams get burned by evals precisely because they skip the looking-at-data step and jump to off-the-shelf metric dashboards, vendor tooling, or premature automation. For agent evals specifically, he champions Brian Bischof's "failure as a funnel" / transition-matrix technique for decomposing a stochastic DAG of tool calls into per-step failure buckets you can prioritize. He also lays out the meta-evaluation loop for LLM-as-judge (align against human labels, iterate 3-4 times) and insists domain experts — not developers — must own annotation and ideally prompt-writing.
+## 摘要
+Husain 把评测重新定义为应用于随机 AI 系统的**数据分析/数据科学**，而非软件测试。全场以十余种反模式展开，但建设性主线一致：先分析真实轨迹错误，让数据决定指标、评测和工具，绝不要用自动化或采购替代亲自查看。多数团队因跳到通用指标仪表盘、供应商工具或过早自动化而受挫。对智能体，他推荐 Bischof 的失败漏斗与转移矩阵，把随机工具调用 DAG 拆为逐步失败桶，并要求领域专家负责标注和提示。
 
-## Key points (6-14 substantive bullets)
-- **Evals are data analysis, not testing.** The defining shift from traditional SWE is stochastic outputs you can't assert against; you bring a "statistical mindset," start by just *counting things*, and reason about behavior in a data-driven way. Hamel/Brian half-seriously want it rebranded "data science for AI" or "data analysis for AI."
-- **Sequencing matters: eval is the *wrong* first focus.** In the early "zero-to-one" innings you need a product before optimizing it; data scientists/MLEs are good at optimizing, not 0→1 product-building. Eval becomes the moat in the 80→100 phase, not at the start.
-- **Error analysis is step one, every time.** Practical trick for traces: read the trace, stop at the *first upstream error*, write it down, move on — don't try to annotate everything when starting out. Then collapse notes into patterns (axial coding).
-- **ML transfers but not blindly.** Same techniques (error analysis, splits, offline/online/AB testing) carry over, but tweaked — e.g. your "train split" (where you draw few-shot examples from) might be ~10% rather than the 40-60% of classic ML, because you're measuring not training.
-- **Off-the-shelf generic metrics (hallucination/toxicity/conciseness scores) don't work** — they never correlate with your most burning problems and give false security. The *only* legitimate use: run them as a data-exploration sort key (sort traces by the score, look for interesting stuff), never as a reported number. And read the prompt behind any vendor metric — "it's just a prompt someone shipped you."
-- **Failure-as-a-funnel for agents (Brian Bischof).** For each capability, define a target and the series of steps to reach it; each step is a chance to fail. Use a transition matrix / pivot table over traces to allocate failures into buckets and find hotspots in agent-to-agent handoffs. Naively visualizing the whole animated DAG "just looks cool but is not going to work." Brian now runs *multiple* funnels — one per action — as agent complexity grows.
-- **LLM-as-judge requires meta-evaluation.** Writing a judge prompt and calling it done is the mistake — you don't know if the judge is any good. Measure it against human labels using splits, hill-climb without overfitting; expect to iterate 3-4 times to get alignment ("kind of a miracle if you get one-shot alignment").
-- **Few-shot judge examples: use them for edge cases, not the core task.** Anthropomorphize: give the "employee" guidelines for the main task, and reserve examples for tricky/hard-to-describe edge cases. If the *meat* of the task lives in the examples rather than guidelines, even a human would overfit and "become a parrot."
-- **Domain experts must be in the loop, ideally writing the prompts.** Don't disintermediate prompt-writing through a developer — the developer lacks context to know if the product is right. Use a "benevolent dictator" (one trusted domain expert) for annotation instead of doing it by committee.
-- **Build your own annotation tool (vibe-code it).** Remove all friction: render data exactly as the user sees it (render an email *as* an email, with widgets/images), hide unneeded fields by default, surface metadata, fit it on one screen. "Almost everyone I've worked with have made their own data annotation tools."
-- **Stop churning tools without a data-grounded hypothesis.** Swapping vector DBs / agent frameworks (LangGraph→OpenAI Agents SDK) / models is fine *only* with a hypothesis from data — often the real problem is indexing/representation or missing sources, not the DB or model.
-- **Claude Code "no evals" is a special case, not a counterexample.** Coding agents collapse developer and domain expert into one person (tight feedback loop, heavy dogfooding); foundation models are already evaled extensively on coding *upstream*, so you can stay in the vibe-check stage longer. He's confident the Claude Code team runs heavy analytics (session length, context-usage patterns, outliers) — which *is* eval.
-- **Read and write your prompts.** Lazy/sloppy prompts everywhere ("you are a data scientist, please write an email" in an HR recruiting bot, copy-pasted by a data scientist; gratuitous emojis). Frameworks that hide the prompt are a trap — see his "f*** you, show me the prompt" post.
-- **#10/#11 — use AI yourself; embrace data thinking.** Engineers who don't use AI daily lack intuition about its "jagged" strengths/limits; nothing motivates writing evals like watching AI fail in jagged ways. The hardest sell is convincing software engineers that evals need *data thinking* — they push back wanting a pass/fail test suite, and "there really isn't a good way to evaluate a stochastic system without looking at data."
+## 要点
+- 随机输出无法用传统断言覆盖，评测需要统计思维，先从计数开始；更准确的名称也许是“AI 数据分析”。
+- 评测不是零到一阶段的首要任务；先做出产品，在 80→100 阶段评测才成为壁垒。
+- 每次都从错误分析开始：读轨迹，遇到第一个上游错误即停、记录，再用轴心编码归并模式。
+- 传统 ML 的错误分析、数据拆分、离线/在线/A-B 测试仍适用，但训练集与测试集角色需按 LLM 使用方式调整。
+- 不应先买通用工具或接受供应商默认指标；工具只有在明确问题后才有意义。
+- 通用帮助性、语气和事实性分数会隐藏领域失败；单一标量应按查询类型、时间过滤、用户群等切片分析。
+- 智能体 DAG 用漏斗看每层存活率，用转移矩阵比较变更前后样本迁移，先修复最上游瓶颈。
+- LLM 裁判需由领域专家标注数据进行元评测，通常迭代三四轮；不能默认裁判正确。
+- 领域专家而非开发者应拥有提示、标准与标注，因为这些构成产品品味。
+- 不要在数据少时过早自动化；人工阅读能发现规格与真值问题，自动化只会放大错误定义。
+- 评测集应随生产反馈演进，并主动删除低信号或已饱和项目，人的注意力是稀缺资源。
 
-## Verified quotes (verbatim, with timestamps)
-- "I would say looking at data is even more important than writing the test or having the eval itself." [27:55–28:18]
-- "Definition of evals are a systematic way of measuring an AI application. That's the definition." [19:59–20:07]
-- "If you use AI to judge AI, well, how do you know that?... You need a way to trust it. And so the way you do that is measuring your LLM as a judge against human labels." [21:58–22:14] *(ASR "LM" expanded to "LLM")*
-- "If your focus is on tools, not processes, you're gonna drown." [57:24]
-- "Nothing motivate you more to write evals than using AI on a constant basis and watching it fail in jagged ways — and the word jagged is important." [16:39–16:58 region; spoken at ~64:49–64:58]
-- "There really isn't a good way to evaluate it or test it without looking at data. There is really no shortcut out of it." [73:31–76:40 region; spoken ~74:24–74:40]
+## 已核验引述（中文翻译）
+- “评测其实是数据分析；甚至应该把整个领域改名为 AI 数据分析。”
+- “第一步始终是错误分析：先查看真实系统究竟在哪里失败。”
+- “在多步轨迹里，停在第一个上游错误；否则会把同一根因重复算成许多下游失败。”
+- “LLM 裁判本身也需要评测：与人的标签对齐，再迭代标准。”
 
-## What it adds (non-obvious, talk-specific value)
-- A clean **"why eval was the wrong early focus"** argument that most written sources skip — the 0→1 vs 80→100 framing, and why optimizers (DS/MLE) are the wrong people to lead the messy product-building phase.
-- The **Claude-Code-as-special-case rebuttal** to the 2025 "evals are dead / just use vibes" discourse: domain-expert-collapse + upstream foundation-model coding evals + internal analytics = why one product can skip steps without it generalizing.
-- Concrete **agent-eval mechanics** rarely written down crisply: failure-as-a-funnel via transition matrix/pivot table over traces, evolving to *multiple* per-action funnels, plus the explicit "tool-itself vs agent's tool-calling" prioritization tension (Brian's live MCP war-story).
-- The **single best heuristic for judge few-shots** (examples = edge cases that flesh out guidelines, not the task's substance) and the parrot/overfit intuition behind it.
-- Operational annotation-tooling advice (render-as-user-sees-it, vibe-code a custom UI, benevolent dictator over committee) that's more specific than the canonical "look at your data" mantra.
-- The reframe-the-name thread ("data analysis for AI," "revenge of the data scientist") and the speed objection rebuttal ("slow is smooth and smooth is fast").
+## 独特价值
+它把零散最佳实践统一为顺序纪律：产品→真实数据→错误分析→切片/漏斗→领域标准→裁判元评测→自动化。尤其强调评测不是测试、领域专家所有权，以及不要让工具供应商替团队定义质量。
 
-## Themes
-1 why-evals · 4 observability · 6 benchmark-vs-eval · 8 judge/verifiers · 9 agent-specific
+## 主题
+1 为何评测 · 4 可观测性 · 5 评测基础设施 · 8 裁判/验证器 · 9 智能体专项

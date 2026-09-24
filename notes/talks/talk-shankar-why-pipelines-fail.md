@@ -1,38 +1,34 @@
-# Notes — "Why LLM Data Processing Pipelines Fail"
-**Speaker/Guest:** Shreya Shankar · **Venue:** LangChain Interrupt 2025 · **Type:** talk · **URL:** https://www.youtube.com/watch?v=H-1QaLPnGsg
+# 笔记——《LLM 数据处理流水线为何失败》
+**演讲者/嘉宾：** Shreya Shankar · **场合：** LangChain Interrupt 2025 · **类型：** 演讲 · **URL：** https://www.youtube.com/watch?v=H-1QaLPnGsg
 
-## Summary (3-6 sentences — what it argues, why it matters for agent evals)
-Shankar (UC Berkeley PhD, EVAPORATE/DocETL line of work) reframes the common "my prompts don't work, so just iterate on the prompts" advice as a misdiagnosis. From HCI studies of people building LLM data-processing pipelines (sequences of map/classify/aggregate operations over unstructured documents), she argues that failure has two upstream causes that the tooling ecosystem ignores: a **data understanding gap** (you don't know what document types and failure modes exist) and an **intent specification gap** (you can't yet write an unambiguous prompt). Almost all tooling targets the downstream "accuracy optimization" layer, but accuracy work is wasted until those two gaps are closed. For agent evals, the central claim is that **evals are never written first and are never done** — practitioners continuously discover a long tail of failure modes (often tens of distinct modes, hundreds of flagged issues per ~1,000 docs) and accrete them into eval subsets over time. The prescription is to unbundle iteration into three sequential stages — understand the data, specify the intent, then optimize accuracy — rather than treating it as one undifferentiated "prompt hacking" loop.
+## 摘要
+Shankar（加州大学伯克利分校博士，参与 EVAPORATE/DocETL 系列工作）认为，“提示不起作用就继续迭代提示”通常是误诊。她基于对 LLM 数据处理流水线使用者的人机交互研究指出，失败有两个被工具生态忽视的上游原因：不了解文档类型与失败模式的**数据理解缺口**，以及尚无法写出无歧义提示的**意图规格缺口**。几乎所有工具都聚焦下游准确率优化，但在补齐这两个缺口前，准确率工作大多浪费。对智能体评测而言，关键观点是：**评测从不首先写成，也永远不会完成**。实践者持续发现长尾失败模式，并逐步将其积累为评测子集。正确顺序是理解数据、明确意图，最后优化准确率，而不是把一切混成“提示黑客”循环。
 
-## Key points (6-14 substantive bullets)
-- **Domain framing:** "data processing pipelines" = LLM operations (map → classify → aggregate → summarize) over collections of unstructured documents (reviews, emails, contracts, accident reports). Running example: a real-estate agent asking "which SF neighborhoods have the most restrictive pet policies?" across rental contracts.
-- **The standard advice is the trap:** the #1 complaint is "my prompts don't work," and the #1 (bad) answer is "just iterate on your prompts." The talk dissects what useful iteration actually entails so practitioners aren't "hacking away at nothing."
-- **Two gaps the tooling world ignores:** between user/developer ↔ data ↔ pipeline there is a *data-understanding gap* and an *intent-specification gap*. There's abundant tooling in the lower "LLM accuracy" half (generalization, optimization) and "virtually no tooling" for these two upper gaps.
-- **You often don't know the right question yet:** users think they want "all pet policy clauses," then realize only after looking at outputs that they meant "dog and cat policy clauses" — the question itself gets refined by looking at data.
-- **Apparent unambiguity is actually ambiguous:** "dog and cat policy clauses" under-specifies; the LLM needs weight limits, breed restrictions, quantity limits spelled out. Specification that a human wouldn't misread is the bar.
-- **The long tail of failure modes is the core empirical finding:** any document collection has many document types, each with unique failure modes (unusual phrasing causing missed extractions, overfitting to keywords, pulling in unrelated keyword-adjacent content). "Not uncommon to see people flag hundreds of issues in a thousand-document collection," and users track "tens / 20s" of distinct failure modes simultaneously. She likens this to ML generally.
-- **Evals are emergent, not upfront:** "evals are very fuzzy and they're never done" — practitioners are *always* collecting new failure modes as pipelines run and creating new document subsets / example traces that become future evals. Eval design happens "on the fly" per failure mode.
-- **Closing the data gap (tooling prototypes):** auto-extract document types and failure-mode examples; cluster outputs automatically; let users annotate clusters so the system can organize/label them and turn each cluster into an eval dataset. Eval strategies per mode include LLM-generated alternative phrasings or hybrid keyword + LLM checks.
-- **Closing the intent gap (DocETL):** take user-provided free-text notes about what's wrong and auto-translate them into prompt improvements, in an interactive interface with editing, feedback, and full revision history so the process stays steerable.
-- **The three-stage prescription (the actionable takeaway):** (1) **Understand your data** as its own stage — don't optimize accuracy yet, just learn the failure modes; (2) **Specify intent** — make prompts unambiguous enough a human wouldn't misinterpret; (3) only *then* apply well-known **accuracy optimization** (query decomposition, prompt optimization, task decomposition, sub-section + unify). Big accuracy gains only materialize after stages 1–2.
-- **Why people get lost:** when facing hundreds of failure modes, deciding *how* to fix (prompt-engineer vs. add operations vs. task-decompose vs. split-and-unify the document) is itself the hard part, and conflating it with data understanding is why iteration feels futile.
+## 要点
+- **领域定义：** 数据处理流水线是在评论、邮件、合同、事故报告等非结构化文档集合上执行映射、分类、聚合、摘要等 LLM 操作。示例问题是从租赁合同中找出旧金山宠物政策最严格的街区。
+- 用户最常抱怨“提示不起作用”，最常得到的糟糕建议是“继续迭代提示”；演讲拆解了真正有效的迭代，避免无目标试错。
+- 用户/开发者、数据与流水线之间存在**数据理解缺口**和**意图规格缺口**。准确率、泛化和优化工具很多，但前两个缺口几乎没有工具覆盖。
+- 用户常常尚不知道正确问题：最初要“所有宠物政策条款”，看过输出后才发现真正需要的是“猫狗政策条款”。
+- “猫狗政策条款”仍有歧义；还需写明体重、品种和数量限制。标准应是人类也不会误解。
+- **长尾失败模式是核心实证发现。** 每类文档都有特有问题，如罕见措辞导致漏提取、过拟合关键词、抓取关键词附近但无关内容。在约 1,000 份文档中标记数百个问题并不少见，用户会同时追踪数十种乃至二十多种失败模式。
+- **评测是涌现的，不是预先写好的。** 流水线运行时，人们持续发现新失败模式，为每种模式建立文档子集或示例轨迹，逐步形成未来评测。
+- **弥合数据缺口：** 自动提取文档类型和失败案例、聚类输出，让用户标注簇，再自动组织和命名并转为评测数据集；可用 LLM 生成改写，或结合关键词与 LLM 检查。
+- **弥合意图缺口：** DocETL 将用户关于问题的自由文本笔记自动转为提示改进，并保留编辑、反馈和完整修订历史，使过程可控。
+- **三阶段方案：** （1）独立理解数据，只学习失败模式，暂不追求准确率；（2）把意图明确到人类也不会误解；（3）再使用查询分解、提示优化、任务分解、分段后统一等成熟策略。显著准确率提升只会在前两步后出现。
+- 面对数百种错误时，选择修改提示、添加操作、分解任务还是拆分文档再统一，本身就是难题；将它与数据理解混在一起，正是迭代徒劳的原因。
 
-## Verified quotes (verbatim, with timestamps)
-- "My prompts don't work. And then the number one thing that they're told as a solution is, 'Oh, just iterate on your prompts.'" [01:13]
-- "There's so much tooling in this bottom half in LLM accuracy ... but there's virtually no tooling in this data understanding and intent specification gaps." [04:00]
-- "It's not uncommon to see people flag hundreds of issues in a thousand document collection." [04:50]
-- "Evals are very, very fuzzy and they're never done ... People are always collecting new failure modes as they run pipelines." [08:01]
-- "First understand your data. Do this as a stage yourself. Don't worry about having good accuracy. Just know what's going on in your failure modes." [08:55]
-- "Only do people get really good gains in applying well-known accuracy optimization strategies." [09:11]
+## 已核验引述（中文翻译）
+- “我的提示不起作用。然后他们得到的第一条解决建议就是：‘哦，继续迭代你的提示。’”[01:13]
+- “LLM 准确率这一半有太多工具……但数据理解和意图规格缺口几乎没有工具。”[04:00]
+- “在一千份文档的集合中看到人们标记数百个问题，并不少见。”[04:50]
+- “评测非常模糊，而且永远不会完成……人们会在运行流水线时持续收集新的失败模式。”[08:01]
+- “首先理解你的数据。把它当作独立阶段。先别担心准确率，只要弄清楚失败模式中发生了什么。”[08:55]
+- “只有到那时，采用成熟的准确率优化策略才会带来真正显著的收益。”[09:11]
 
-(ASR notes: source is auto-captioned. "Shrea"/"shunker" = Shreya Shankar; "C2" ≈ a UI/annotation tool name; "DOCTL" = DocETL; "tens 20s of different failure modes" = tens / twenties of failure modes; "hiden this long tail" = hide in this long tail. Quotes above are reproduced faithfully with only obvious capitalization left as-is.)
+（来源为自动字幕；演讲者名、C2、DocETL 和若干口语识别错误已按语境校正。）
 
-## What it adds (non-obvious, talk-specific value vs canonical written sources)
-- A **causal reordering** of eval work: the canonical "look at your data / error analysis" advice (Shankar's own "Who Validates the Validators," Hamel Husain's eval guides) usually treats data inspection as part of building a judge. This talk argues data understanding and intent specification are *distinct prerequisite stages* that must precede any accuracy/optimization tooling — and that doing them out of order is the actual reason "prompts don't work."
-- **Empirical magnitudes** from real HCI studies rather than anecdotes: tens of concurrent failure modes per pipeline; hundreds of flagged issues per ~1,000 documents — concrete sizing for how long the failure-mode tail really is.
-- A crisp, quotable framing that **evals are never written first and never finished** — they accrete as a byproduct of running pipelines — which reframes eval infra as a *continuous discovery/clustering* problem, not a fixed test suite.
-- Names the **specific iteration decisions** people thrash on (prompt-engineer vs. add operations vs. task decomposition vs. split-document-and-unify) and ties the thrashing to having skipped the data-understanding stage.
-- Surfaces the **tooling vacuum** as a research thesis: clustering + human-annotated failure modes → auto-generated eval datasets, and free-text notes → steerable prompt edits (DocETL), pointing at where eval infra is missing rather than just diagnosing.
+## 独特价值
+这场演讲对评测工作作出因果重排：数据理解与意图规格不是裁判构建的一部分，而是所有准确率优化的独立前置阶段，顺序错误才是“提示不起作用”的根因。真实人机交互研究给出量级：每条流水线同时存在数十种失败模式，每千份文档可能标出数百个问题。“评测不先写、也写不完”的框架将评测基础设施定义为持续发现和聚类问题，而非维护固定测试套件。它还明确列出实践者纠结的修复选择，并提出“聚类+人工标注→评测集”“自由文本笔记→可控提示修改”的工具研究方向。
 
-## Themes
-1 why-evals · 4 observability · 5 eval infra · 9 agent-specific
+## 主题
+1 为何评测 · 4 可观测性 · 5 评测基础设施 · 9 智能体专项

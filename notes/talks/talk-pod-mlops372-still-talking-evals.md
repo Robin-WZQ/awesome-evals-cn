@@ -1,40 +1,34 @@
-# Notes — "#372 It's 2026 and We're Still Talking Evals"
-**Speaker/Guest:** Maggie Konstanty (MLOps Community) · **Venue:** MLOps Community · **Type:** podcast · **URL:** https://www.youtube.com/watch?v=9EjWR3QpJYk
+# 笔记——《第 372 期：都 2026 年了，我们还在谈评测》
+**演讲者/嘉宾：** Maggie Konstanty · **场合：** MLOps Community · **类型：** 播客 · **URL：** https://www.youtube.com/watch?v=9EjWR3QpJYk
 
-## Summary (3-6 sentences — what it argues, why it matters for agent evals)
-Konstanty argues that evals are not a post-ship checklist item but a continuous practice that should start "the moment the idea of the product starts" and never stop. Her central thesis: evals must be custom-built around one question — "what is the definition of good?" — and tied to real business metrics (conversion, satisfaction), not to a bag of 20 generic off-the-shelf evaluators. She is sharply skeptical of accuracy as a metric, of 0-1 evaluator scores, and of vendor tooling that tries to sell away the hard part (alignment, labeling, error analysis). The talk is grounded in concrete production war-stories from food-ordering and car-dealer agents at Automoto, where agents pass tests 1-3 times then fail unpredictably afterward. For agent evals specifically, it's a strong field report on why error analysis, persona simulation, and pre/post-production split matter, and why most teams skip them because they're "boring" and time-consuming.
+## 摘要
+Konstanty 认为评测从产品想法出现时就应开始，并永不停止。评测必须围绕“好是什么”定制，并连接转化率、满意度等业务指标，而不是堆 20 个通用评估器。她反对模糊准确率、0–1 分数和试图替团队外包对齐、标注与错误分析的工具。Automoto 的点餐与汽车经销智能体常连续成功几次后在不同位置随机失败，说明需要错误分析、人物模拟及生产前后不同评测。
 
-## Key points (6-14 substantive bullets)
-- **Evals must start at idea inception, not after ship.** The recurring failure mode she sees: teams ship the product, then come to her saying "can we set up some evals?" By then the eval system you built pre-ship no longer matches real users, so you have to "completely twist your evals" and switch from offline to online failure modes.
-- **Persona-based simulation as a pre-production method:** define user personas (power user, lazy user, busy professional), write a prompt describing the persona, then call your own agent endpoint over ~15-20 predefined scenarios, running each 1, 5, 10, sometimes 100 times to measure the *variance* of outcomes — not just the average.
-- **The non-determinism war-story:** agents understand the task but "lose track" after a while — "they do something four times well, and then the fifth time is tragically wrong." It's "not a bug you can systematically improve," and "it always fails in a different place."
-- **Anti-accuracy stance:** "my agent is accurate 95% of time. What does it mean? I have no idea." Accuracy measures the average and hides real failure modes. She prefers TPR/TNR (human label vs LLM label) as more tangible and statistically meaningful.
-- **Failure-mode example (specification + semantics):** a vegetarian-pizza request where one of five recommendations is pepperoni — that's the real failure accuracy won't surface. Many issues are "specification issues" caused by the team: helpful means something different for customer service vs food ordering, and you must give the LLM that context.
-- **Error analysis is the skipped step.** Teams avoid it because it's boring and time-consuming, and because "they never get through one" — once they do, the reaction is "oh damn, it worked." The second challenge is *consistency*: teams do evals once, then "nobody comes back to the topic."
-- **Tie evaluators to business metrics.** For the food agent they combined evaluation with *conversion*: take all conversations, match each to conversion outcome, and see which evaluator outcomes led to conversion vs frustration. Car-dealer (Automoto) satisfaction is weighted differently than food ordering.
-- **Frustration signals are noisy / not silver bullets.** Caps-lock and curse words sound like frustration markers but generate false positives (she herself types in caps-lock out of laziness). More reliable signal: repeated "give me more / give me more" = "we failed three times in a row." Biggest hidden loss is silent drop-off — "there's not a lot of users that going to tell you I don't like that."
-- **User-satisfaction breakdown they invented (no canonical definition existed):** ~15% satisfied, ~15% not satisfied, and a large middle of "partially satisfied" — the drop-offs who said nothing, or who converted "in a very mysterious way."
-- **Never expect 100%.** "If you're hitting 100%, something's broken." Even 95% is "fishy." The goal isn't a global success number but being strongest on the specific high-conversion flows.
-- **Reject the 20-evaluators trap.** Setting up "20 types of different evaluators that are not connected to your goal" is "an instruction to fail" — they overlap, hide failures inside them, and confuse the 100% target. Instead keep a reliable *core* of evaluators tied to business metrics ("your puppies you always take care of"), then layer AB-testing/regression suites on top.
-- **Prompt-tuning is whack-a-mole / "a dance":** fixing one prompt regresses another. The point of evals is to "track the regressions between the changes" — choreography vs dancing blind. Requires trustworthy evaluators to detect prompt regressions; involves prioritization tradeoffs (is hallucination in minor cases worse than a different recommendation?).
-- **Tooling critique (the "good, bad, ugly"):** she mainly uses observability (Arize enterprise, turn-by-turn conversation views) and otherwise builds custom. Complaints: tools choke past ~1,000 exported traces (batching, hours-long waits), no sampling, weak/absent multi-turn evaluation, outdated evaluators that break basic rules. Hard "no" on 0-1 scores: "give me pass or fail... the real actionable insight." Building an evaluator inside Arize's UI was harder than writing code.
-- **What she built internally + what she refuses to outsource:** a tool covering the *basics* vendors skip — sampling, a trace-review interface, train/validation splits, and reliable evaluator creation pushed to production (no "open coding in Excel"). Refuses to outsource labeling — "that's the greatest opportunity for you to learn what's happening." Mature product teams go custom because the hard part isn't execution; it's *alignment* on what good means, which "I don't think is replaceable."
+## 要点
+- 上线后才搭评测为时已晚；生产用户会迫使离线评测彻底重写为在线失败分析。
+- 上线前定义重度、懒惰、忙碌等用户人物，运行约 15–20 个场景，每项重复 1、5、10 乃至 100 次，衡量方差而非均值。
+- 智能体可能前四次做好、第五次惨败，且每次失败位置不同，不能当普通可稳定复现缺陷。
+- “95% 准确”没有可行动含义；应以人标签对 LLM 标签分别计算真正率和真负率。
+- 素食披萨五个推荐中混入 pepperoni 是准确率掩盖的真实错误，也反映“帮助性”等标准依赖业务语境。
+- 团队因无聊耗时而跳过错误分析，做过一次也常不再持续；但完成后通常立刻看到价值。
+- 把每段对话连接转化与挫败结果，反推哪些评估信号预测业务成功；汽车与点餐的满意度权重应不同。
+- 大写和脏话不是可靠挫败信号；连续三次“再给我一些”更可信，最大损失则是沉默退出。
+- 她自建的满意度约为 15% 满意、15% 不满意，中间大量部分满意。100% 必然有问题，95% 也可疑；应在高转化流程上最强。
+- 20 个与目标无关的评估器是“失败说明书”。保留与业务指标相连的核心评估器，再叠加 A/B 和回归套件。
+- 调提示像打地鼠；评测用于追踪修复一处时另一处的回归，并明确优先级权衡。
+- 工具常在约 1,000 条轨迹后卡住，缺采样、多轮评测弱、评估器过时；她更信任明确通过/失败而非 0–1 分。
+- 团队自建采样、轨迹查看、训练/验证拆分和评估器发布；标注不能外包，因为它是了解产品的最佳机会。
 
-## Verified quotes (verbatim, with [mm:ss])
-- "Evals should be uh constant within the development team. Eval start the moment the idea of the product starts." [02:04]
-- "they understand what the task that they have to do. But what they fails is after some time, they lose track... they do something four times well, and then the fifth time is tragically wrong." [03:34] *(light ASR cleanup: "they they understand" → "they understand")*
-- "my agent is accurate 95% of time. What does it mean? You know? Yeah. I have no idea." [06:25]
-- "If you're hitting 100% something broken. If something tells me that's 100% correct, I'm like, yeah, this bullshit." [29:04] *(light ASR cleanup of garbled "If they tell something tells me")*
-- "if I'm going to see again that evaluator that is on a scale from zero to one, like I'm not going to trust in any other thing in this app platform... Give me pass or fail." [33:17]
-- "Evals themselves are not very hard... the trickiest part is the alignment within team members and alignment on what matters for your product. And the execution part is like, yeah, we finally want to see numbers for it... is the last step." [39:46] *(condensed from a contiguous passage; wording faithful)*
+## 已核验引述（中文翻译）
+- “评测应贯穿开发团队，从产品想法出现的那一刻就开始。”[02:04]
+- “它们理解任务，但过一段时间会失去线索……前四次做好，第五次却惨败。”[03:34]
+- “我的智能体 95% 时间准确，是什么意思？我完全不知道。”[06:25]
+- “如果达到 100%，一定有东西坏了。”[29:04]
+- “再看到 0 到 1 的评估器，我就不会信这个平台的其他东西。给我通过或失败。”[33:17]
+- “评测本身不难；最难的是团队对齐产品真正重要的东西，执行和看数字只是最后一步。”[39:46]
 
-## What it adds (non-obvious, talk-specific value vs canonical written sources)
-- A **practitioner's variance-over-average framing**: run the same persona scenario 5-100 times and judge by spread, because the agent fails non-deterministically "in a different place" each time — concrete operationalization of an intuition canonical guides state abstractly.
-- A **business-metric-as-ground-truth pattern**: joining every conversation to its conversion/frustration outcome and back-solving which evaluator signals predict conversion — a more grounded label source than abstract "quality."
-- **Empirically debunks popular frustration heuristics** (caps-lock, profanity) from real trace-reading, replacing them with the "give me more × N" repeat-request signal.
-- **Strong, specific tooling indictment** with numbers (1,000-trace export ceilings, no sampling, no real multi-turn eval, 0-1 scores) and the build-vs-buy verdict for mature teams — rarely this blunt in written sources.
-- The **"20 evaluators = instruction to fail"** anti-pattern and the "core evaluators / puppies" mental model for keeping the eval suite tied to goals.
-- A candid org/culture diagnosis: evals fail not technically but because they're "boring," done once, and because teams can't see the product getting better — the real blocker is alignment and consistency, not engineering.
+## 独特价值
+人物场景重复 5–100 次把“看方差”操作化；把对话连接转化/挫败结果提供了比抽象质量更扎实的真值。真实日志还推翻大写/脏话等常用挫败启发式。“20 个评估器=失败”与约 1,000 条轨迹的工具瓶颈，是少见而具体的现场判断。
 
-## Themes
-1 why-evals · 4 observability · 5 eval infra · 6 benchmark-vs-eval · 8 judge/verifiers · 9 agent-specific
+## 主题
+1 为何评测 · 4 可观测性 · 5 评测基础设施 · 6 基准与评测 · 8 裁判/验证器 · 9 智能体专项

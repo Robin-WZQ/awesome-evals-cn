@@ -1,10 +1,10 @@
 # 深度笔记中文翻译进度
 
-进度：`[█████████░░░░░░░░░░░] 43%（61/143）`
+进度：`[█████████████░░░░░░░] 64%（92/143）`
 
 - 文章：33/68
 - 论文：28/28
-- 演讲与播客：0/47
+- 演讲与播客：31/47
 
 ## 翻译规则
 
@@ -76,3 +76,34 @@
 59. `notes/articles/stochasticity-agentic-evals-icc.md`
 60. `notes/articles/survey-evaluation-llm-based-agents-yehudai.md`
 61. `notes/articles/vanishing-gradients-agents-evals.md`
+62. `notes/talks/talk-bischof-failure-is-a-funnel.md`
+63. `notes/talks/talk-brown-rl-environments-at-scale.md`
+64. `notes/talks/talk-florian-brand-tng-deck.md`
+65. `notes/talks/talk-goyal-future-of-evals.md`
+66. `notes/talks/talk-hamel-sedgh-domain-eval-systems.md`
+67. `notes/talks/talk-hopkins-self-driving-voice-agents.md`
+68. `notes/talks/talk-huber-liu-look-at-your-data.md`
+69. `notes/talks/talk-huyen-llm-apps-production.md`
+70. `notes/talks/talk-karam-metrics-that-work.md`
+71. `notes/talks/talk-karpathy-deep-dive-llms.md`
+72. `notes/talks/talk-lambert-aligning-open-lms.md`
+73. `notes/talks/talk-lee-model-is-the-product.md`
+74. `notes/talks/talk-pesok-evals-not-unit-tests.md`
+75. `notes/talks/talk-pod-aitw24-classification-evals.md`
+76. `notes/talks/talk-pod-aitw34-multimodal-evals.md`
+77. `notes/talks/talk-pod-andon-reality-final-eval.md`
+78. `notes/talks/talk-pod-dwarkesh-karpathy.md`
+79. `notes/talks/talk-pod-howiai-hamel-error-analysis.md`
+80. `notes/talks/talk-pod-lfml-aman-khan.md`
+81. `notes/talks/talk-pod-ls-goyal-five-lessons.md`
+82. `notes/talks/talk-pod-mlops372-still-talking-evals.md`
+83. `notes/talks/talk-pod-twiml728-generative-benchmarking.md`
+84. `notes/talks/talk-pod-vg50-field-guide.md`
+85. `notes/talks/talk-pod-vg60-10-things-i-hate.md`
+86. `notes/talks/talk-rl-env-lifecycle-deck.md`
+87. `notes/talks/talk-shankar-scaling-vibe-checks.md`
+88. `notes/talks/talk-shankar-why-pipelines-fail.md`
+89. `notes/talks/talk-song-safe-trustworthy-agents.md`
+90. `notes/talks/talk-talk-hamel-shreya-build-evals-2026.md`
+91. `notes/talks/talk-wei-3-key-ideas-2025.md`
+92. `notes/talks/talk-wei-intuitions-about-llms.md`

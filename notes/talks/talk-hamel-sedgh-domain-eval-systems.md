@@ -1,36 +1,33 @@
-# Notes — "How to Construct Domain Specific LLM Evaluation Systems"
-**Speaker/Guest:** Hamel Husain & Emil Sedgh · **Venue:** AI Engineer World's Fair 2024 · **Type:** talk · **URL:** https://www.youtube.com/watch?v=eLXF0VojuSs
+# 笔记——《如何构建领域专用 LLM 评测系统》
+**演讲者/嘉宾：** Hamel Husain、Emil Sedgh · **场合：** AI Engineer World's Fair 2024 · **类型：** 演讲 · **URL：** https://www.youtube.com/watch?v=eLXF0VojuSs
 
-## Summary (3-6 sentences — what it argues, why it matters for agent evals)
-A founder-and-consultant pair (Emil Sedgh, CTO of ReChat; Hamel Husain, LLM consultant) walk through how a real-estate-agent AI assistant ("Lucy") went from a vibe-checked GPT-3.5 prototype that "worked sometimes" to a production agent, by building a domain-specific evaluation system rather than buying tools. The core argument is that vibe-check iteration gets you from zero to one but then stagnates: without a way to measure progress you can't build, and every prompt change silently breaks other use cases. They prescribe a concrete recipe — start with cheap unit tests and assertions derived from observed failure modes, log and *actually look at* traces (building your own annotation UI if needed), synthetically generate test inputs, and only then graduate to LLM-as-judge after aligning it to a human. The talk matters for agent evals because it is grounded in a genuinely agentic product (multi-tool commands, mixed structured/unstructured output, UI elements injected mid-conversation) and shows that the eval framework was the prerequisite that made fine-tuning — and therefore the hard agent behaviors — possible. The throughline is process over tools and domain-specificity over off-the-shelf generic metrics.
+## 摘要
+ReChat CTO Emil Sedgh 与顾问 Hamel Husain 讲述房地产智能体 Lucy 如何从时灵时不灵的 GPT-3.5 原型，通过领域专用评测进入生产。感觉检查只能从零到一，随后便停滞；没有测量就无法知道提示修改是否破坏其他用例。方案是从观察到的失败写廉价断言和单元测试，记录并真正阅读轨迹，必要时自建标注界面，用合成输入启动覆盖，最后才构建并对齐 LLM 裁判。这个多工具、混合结构化/非结构化输出的真实智能体表明，评测框架是微调和复杂行为得以实现的前提。
 
-## Key points (6-14 substantive bullets)
-- **The problem with vibe checks:** ReChat would make a prompt change, invoke it a few times, "get a feeling" it worked, but never knew if the success rate was 50% or 80% — and prompt edits to fix one use case routinely broke others. Hard to ship a production app blind to your failure rate.
-- **Start with unit tests and assertions, not LLM-judge.** People skip this foundational step and jump straight to LLM-as-judge or generic evals. Write down as many assertions about *observed* failure modes as you can. ReChat's examples: emails not actually being sent, invalid placeholders, details repeated when they shouldn't be. These are "almost free to run" and give immediate feedback.
-- **Use what you already have; don't buy tools early.** Run assertions in CI to start (you can outgrow it). Log assertion results to your existing stack — ReChat already used **Metabase**, so they logged there and used it to visualize/track failure-mode progress over time. "Keep it simple and stupid."
-- **Logging traces is the one place to grab a tool off the bat** — many commercial/OSS options exist; ReChat used **LangSmith**. But logging is pointless unless you look at the traces.
-- **Build your own data-viewing/annotation app.** ReChat found off-the-shelf tools had "too much friction." Because traces carry domain-specific metadata, they built a custom viewer (Hamel uses Shiny for Python; gradio/streamlit also fine) that filters data in ReChat-specific ways and surfaces all the metadata needed to judge a trace without hunting — and doubles as a human-review labeling app.
-- **The single most important practice: look at your data, and fight to remove all friction from doing so.** Any friction means people won't do it, "and it will destroy the whole process."
-- **Bootstrap test cases with synthetic data.** When you have no users, use an LLM to role-play a real estate agent and generate inputs into Lucy across all features, scenarios, and tools to get good test coverage.
-- **The eval loop as a debugging tool for itself:** do prompt engineering as the easiest way to make progress, and run the loop many times — this simultaneously improves the AI and stress-tests whether your coverage, logging, and friction-removal are actually working.
-- **Evals give "superpowers for free," chiefly fine-tuning.** Most of fine-tuning work is data curation; the eval framework filters good cases into human review for curation and creates a workflow for failed cases to continuously update fine-tuning data. As the eval framework gets more comprehensive, the cost of human review goes *down* because more is automated.
-- **LLM-as-judge comes later, and must be aligned to a human.** You can't express everything as an assertion. Hamel's method: keep it simple (a spreadsheet), have a **domain expert** label critique data, and iterate until the LLM judge aligns with the human judge before trusting it.
-- **Four common mistakes:** (1) not looking at your data; (2) focusing on tools instead of processes — asking "what tool should I use?" first is "a smell" you'll fail; (3) reaching for generic off-the-shelf evals (conciseness, toxicity scores) instead of domain-specific ones — they become a crutch; (4) using LLM-as-judge too early when assertions would do.
-- **Results — fine-tuning was unavoidable.** Emil pushes back on the "few-shot prompting replaces fine-tuning" / "just a ChatGPT wrapper" narrative: even with newer/smarter models, few-shot never delivered. Three behaviors *required* fine-tuning: (a) mixing natural language with UI elements in output (mixing structured + unstructured output); (b) the agent asking the user for feedback/more input instead of guessing; (c) complex multi-tool commands.
-- **The agentic war-story demo:** one command — "find listings matching criteria, then for the most expensive of three, build a website, render an Instagram post video, draft an email to Hamel with the listings/site/story, invite him to dinner, and create a follow-up task" — decomposed into 5–6 tool calls. A couple hours of human work done in a minute, which they say was impossible without the comprehensive eval framework.
+## 要点
+- 感觉检查无法区分成功率是 50% 还是 80%，修复一个用例还会静默破坏另一个。
+- 先从实际失败写尽可能多的断言和单元测试，不要直接跳到 LLM 裁判。例子包括邮件未发送、占位符无效、信息重复；这些测试几乎免费。
+- 起步时不要买工具。可在 CI 运行断言，复用已有 Metabase 记录并观察错误趋势；保持简单。
+- 轨迹记录可直接选现有工具，ReChat 用 LangSmith，但不阅读轨迹的日志没有价值。
+- 通用查看器摩擦太大，ReChat 自建带领域元数据过滤的查看/标注界面；Shiny for Python、Gradio、Streamlit 都可。必须消除查看数据的一切摩擦。
+- 没有用户时，让 LLM 扮演房地产经纪人，跨功能、场景与工具合成输入。
+- 先用提示工程快速进步并反复运行评测循环，既改进系统，也检验覆盖、日志和操作摩擦。
+- 评测框架会过滤好案例供人工整理，并让失败持续补充微调数据；自动化覆盖越全面，人工审核成本越低。
+- 无法用断言表达的内容才使用 LLM 裁判；先由领域专家在简单表格中标注，再迭代至裁判与人一致。
+- 常见错误是：不看数据；先问工具而非流程；依赖简洁性、毒性等通用指标；断言足够时过早用 LLM 裁判。
+- 新模型和少样本提示仍无法稳定实现三类行为：自然语言中混合 UI 元素、主动向用户追问而非猜测、复杂多工具命令；它们必须微调。
+- 示例命令要求寻找房源、为最贵房源建网站和视频、起草邮件、邀请用餐并创建跟进任务，拆成 5–6 次工具调用；评测框架使原本数小时工作可在一分钟完成。
 
-## Verified quotes (verbatim, with timestamps)
-- "we didn't really know what the success rate or failure rate was is it going to work 50% of times or 80% of times and it's very difficult to launch a production app when you don't really know how well it's going to function" [02:27]
-- "you don't want to jump straight to LM as a judge or generic evals you want to try to write down as many assertions and unit tests as you can about the failure modes that you're experiencing with your large language model and it really comes from looking at data" [04:11]
-- "my recommendation is don't buy stuff use what you have when you're beginning and then get into tools later" [05:23]
-- "if you remember anything from this talk it is you need to look at your data and you need to fight as hard as you can to remove all friction" [08:19]
-- "if you're having a conversation about evals and the first thing you start thinking about is tools that's a smell that you're not going to be successful in your evaluations" [13:30]
-- "it's very very important to align the llm judge to a human because you need to know whether you can trust the LM as a judge" [12:13]
+## 已核验引述（中文翻译）
+- “我们不知道成功率究竟是 50% 还是 80%；不知道应用表现如何，就很难发布生产产品。”[02:27]
+- “不要直接跳到 LLM 裁判或通用评测；应根据查看数据时发现的失败模式，尽量写断言与单元测试。”[04:11]
+- “我的建议是，起步时别买东西，先用已有工具，以后再引入新工具。”[05:23]
+- “如果只记住一点：必须查看数据，并尽全力消除所有摩擦。”[08:19]
+- “谈评测时第一反应是工具，这是评测不会成功的危险信号。”[13:30]
+- “让 LLM 裁判与人对齐非常重要，因为你必须知道它是否可信。”[12:13]
 
-*(ASR note: the auto-captions render "LLM" as "LM" / "lm" and the product/company as "rat" / "reat" / "rehat" (ReChat) and "haml" (Hamel); quotes above are otherwise verbatim, with only those obvious ASR spellings left as captioned.)*
+## 独特价值
+ReChat 案例给出具体技术栈、失败模式和评测促进微调的闭环。最独特的主张是，少样本与提示无法实现 UI 混合输出、主动追问和多工具分解，微调不可避免，而评测使微调可行。评测越全面，人工审核成本反而越低；“先谈工具是流程危险信号”也是简洁的失败预测规则。
 
-## What it adds (non-obvious, talk-specific value vs canonical written sources)
-Hamel's written canon (the "Your AI Product Needs Evals" essay, the eval FAQ) covers the same recipe, but this talk's value is the **ReChat case study as ground truth**: a specific stack (Metabase for assertion dashboards, LangSmith for traces, Shiny for the custom annotation UI), specific failure modes (unsent emails, invalid placeholders, repeated details), and a specific agentic product where the eval framework was the *enabler of fine-tuning*, not just a scoreboard. The most distinctive, less-canonical claim is Emil's: that few-shot/prompting alone could not deliver three concrete agent behaviors — UI-elements-in-output, asking the user for feedback, and multi-tool command decomposition — and that fine-tuning (made tractable by the evals) was mandatory. That directly counters the "you're just a ChatGPT wrapper, prompting is enough" narrative with a worked counterexample. Also crisp here: the framing that a comprehensive eval framework *lowers* human-review cost over time, and the "tools = process smell" heuristic stated as a failure predictor.
-
-## Themes
-1 why-evals · 4 observability · 5 eval-infra · 6 benchmark-vs-eval · 8 judge/verifiers · 9 agent-specific
+## 主题
+1 为何评测 · 4 可观测性 · 5 评测基础设施 · 6 基准与评测 · 8 裁判/验证器 · 9 智能体专项

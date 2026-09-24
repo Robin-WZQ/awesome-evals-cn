@@ -1,35 +1,35 @@
-# Notes — "Evals, error analysis, and better prompts"
-**Speaker/Guest:** Hamel Husain (How I AI / Claire Vo) · **Venue:** How I AI · **Type:** podcast · **URL:** https://www.youtube.com/watch?v=PgzOBNse2EA
+# 笔记——《评测、错误分析与更好的提示》
+**演讲者/嘉宾：** Hamel Husain（How I AI / Claire Vo） · **场合：** How I AI · **类型：** 播客 · **URL：** https://www.youtube.com/watch?v=PgzOBNse2EA
 
-## Summary
-Hamel Husain walks a product-leader audience through the concrete, unglamorous workflow that takes an AI product from "vibe-checked" to systematically improved: look at real traces, do *error analysis* (open coding + categorize + count), and only then write evals targeted at the errors you actually found. His central claim is that there is no magical automated system — you spend ~3 hours reading real chats, write one-sentence notes, bucket them, and count, which by itself produces "immense" quality gains. He argues that evals are infinite, so error analysis is the grounding step that tells you *which* eval to even write. The talk also covers the right way to build LLM-as-judge (binary, problem-specific, validated against human labels), agent-specific analysis via transition matrices, and where prompt engineering vs. fine-tuning fit. It matters for agent evals because it's a battle-tested, demo-driven account of the front of the eval funnel — the part most teams skip — illustrated with a real client (Nurture Boss, a leasing assistant).
+## 摘要
+Hamel Husain 面向产品负责人展示了一套具体而朴素的流程，让 AI 产品从“凭感觉检查”走向系统改进：查看真实轨迹，进行**错误分析**（开放编码、分类、计数），然后才针对实际发现的错误编写评测。他强调不存在神奇的自动化系统；花约三小时阅读真实聊天、逐条写一句笔记、归类并计数，就能带来巨大质量提升。由于潜在评测无穷无尽，错误分析是决定“究竟该写哪个评测”的落地步骤。讨论还涉及正确构建 LLM 裁判的方法、使用转移矩阵分析智能体，以及提示工程与微调的适用位置。真实客户 Nurture Boss（租赁助手）的演示说明，智能体评测漏斗最前端恰恰是多数团队会跳过的部分。
 
-## Key points
-- **Looking at data is the whole game.** The "twist" for AI is the data shape (multi-turn traces, tool calls, retrieval) but the discipline is the same as a PM writing SQL and counting. [04:31]
-- **Real user inputs are vague and broken** in ways developers never test ("hello there what's up to four month rent"). Looking at production traces gets builders "out of their own mind" about how users actually interact. [10:53] [08:52]
-- **Error analysis = two steps.** (1) *Open coding*: read a randomly sampled ~100 traces and journal one note per trace on what went wrong; (2) categorize those notes (even by pasting into ChatGPT) and **count** the buckets. [14:34] [15:52]
-- **Stop at the most upstream error.** Errors are causal along the chain (prompt → tool call → retrieval → response); fixing the earliest one cascades downstream. It's a heuristic to keep the work tractable and get results fast. [15:58] [16:33]
-- **Counting is the payoff.** For Nurture Boss the top buckets were transfer/handoff issues, tour-scheduling issues (e.g., AI keeps scheduling new tours when asked to reschedule a nonexistent one), missing follow-ups, and incorrect info — turning an "intractable" pile into a prioritized fix list. [20:01]
-- **Error analysis tells you which eval to write.** "There's infinite eval" — analysis grounds you so you write a tour-scheduling eval and a handoff eval, and you *already have tagged data* to test them on. [23:54]
-- **Build a custom (vibe-coded) annotation tool.** Brain Trust / Arize Phoenix work, but a bespoke UI dialed to your channels (text/email/chatbot) and showing "already annotated?" filters + top-of-page stats removes friction so you can fly through traces. [17:43] [18:46]
-- **Two eval families:** code-based "unit tests" (deterministic, e.g., assert no UUIDs leak into the user-facing response) vs. LLM-judge for subjective calls (e.g., was the handoff handled). [27:13] [27:35]
-- **LLM-as-judge done right:** (1) binary good/bad per *specific* problem, not generic helpfulness/conciseness 1–5 dashboards ("4.2 → 4.7 — nobody knows what that means"); (2) hand-label data; (3) measure judge–human agreement so you can *trust* the judge. [30:40]
-- **Trust is the real risk.** The worst PM move is shipping an eval dashboard that says "good" while users experience broken — that's when stakeholders permanently lose trust in you. [31:18]
-- **"Who validates the validators."** People are bad at writing specs in the abstract; they only externalize what they want by reacting to concrete LLM outputs — so detailed notes/critique must precede a good judge prompt. [33:14]
-- **Fixes range from trivial to fine-tuning.** Low-hanging fruit was real (the system prompt didn't include today's date, so "schedule for tomorrow" silently failed). No magic prompt tricks — it's experimentation. Most teams should not fine-tune; but if you've built the eval infra, fine-tuning is "basically free" because you've already curated the hard, high-signal failure cases. [35:45] [36:48]
-- **Agent-specific tooling: transition matrices.** Map step→step (e.g., generate-SQL → execute-SQL) to localize where handoff errors cluster, then drill in; doubles as product-discovery signal about what users are trying to do. [38:51]
-- **Personal stack war-story:** Hamel runs his business as a monorepo of prompts/notes/data with CLAUDE rules, pointing Claude Code / open-hands / Cursor at it to avoid provider lock-in; uses Gemini for video→text ingestion; edits LLM output inline (AI Studio) so the edits become few-shot examples. [46:04] [51:48]
+## 要点
+- **查看数据就是核心。** AI 的特殊之处在于多轮轨迹、工具调用和检索等数据形态，但基本纪律仍如产品经理写 SQL 并计数。[04:31]
+- **真实用户输入含糊且残缺**，开发者往往不会测试诸如 “hello there what's up to four month rent” 的输入。查看生产轨迹能让开发者跳出自己对用户交互方式的想象。[10:53] [08:52]
+- **错误分析分两步。** （1）开放编码：随机阅读约 100 条轨迹，每条写一条问题笔记；（2）将笔记归类并**计数**，分类甚至可交给 ChatGPT。[14:34] [15:52]
+- **止于最上游错误。** 错误会沿提示→工具调用→检索→响应因果传播；修复最早的错误会向下游产生连锁效果，也能让工作保持可控并快速见效。[15:58] [16:33]
+- **计数才产生决策价值。** Nurture Boss 的高频问题是转接/移交、预约看房、缺少后续跟进和错误信息。例如用户想改期一个不存在的预约时，AI 却不断创建新预约。计数把难以处理的错误堆转为有优先级的修复清单。[20:01]
+- **错误分析决定该写什么评测。** “评测无限多”；分析使团队聚焦看房预约和转接评测，并已拥有带标签的数据来测试。[23:54]
+- **可快速编写定制标注工具。** Braintrust、Arize Phoenix 均可用，但针对短信、邮件或聊天机器人设计专用界面，加入“是否已标注”过滤器与顶部统计，可显著降低阅读轨迹的摩擦。[17:43] [18:46]
+- **两类评测：** 代码式“单元测试”处理确定性规则，如禁止 UUID 出现在用户响应；LLM 裁判处理“转接是否妥善”等主观判断。[27:13] [27:35]
+- **正确使用 LLM 裁判：** 针对每个具体问题作二元好/坏判断，而非泛化的帮助性、简洁性 1–5 分；先人工标注，再测量裁判与人的一致率，确认裁判可信。[30:40]
+- **真正风险是信任。** 仪表盘显示“良好”，用户却持续遇到故障，会让利益相关者永久失去对产品经理的信任。[31:18]
+- **谁来验证验证器。** 人难以抽象写出规格，通常要看到具体 LLM 输出并作出反应，才能表达需求；因此详细笔记和批评必须先于良好的裁判提示。[33:14]
+- **修复范围从小改动到微调。** 一个低垂果实是系统提示未提供当天日期，导致“安排明天”静默失败。没有神奇提示技巧，只有实验。多数团队不应微调，但建立评测基础设施后，困难且高信号的失败样本已被整理好，微调会“基本免费”。[35:45] [36:48]
+- **智能体专用工具：转移矩阵。** 绘制步骤到步骤的转移，例如生成 SQL→执行 SQL，以定位移交错误集中处；同时也能揭示用户真正想做什么。[38:51]
+- Husain 的个人工作栈是包含提示、笔记和数据的单仓库，并配有 CLAUDE 规则；他用 Claude Code、open-hands、Cursor 访问它，以避免供应商锁定；用 Gemini 将视频转文字，并在 AI Studio 中直接修改输出，使修改成为少样本示例。[46:04] [51:48]
 
-## Verified quotes
-- "before you get into all that stuff you need to have some grounding in like what eval you should even write because there's infinite eval." [23:57]
-- "Just spend three hours of your afternoon, go through, read some of these chats, look at some of them with your human eyes, put one sentence notes on all of them, and then run a quick categorization exercise and get to work." [23:06] (Claire Vo recapping Hamel; lightly de-duplicated ASR stutters)
-- "you stop at the most upstream error you find... Because it's causal in nature." [15:58] [16:33]
-- "Helpfulness, truthfulness, conciseness, score, tone, whatever. What the hell does that mean? Does anyone know what that means? Nobody knows." [30:04]
-- "the system prompt didn't contain today's date. So when the person said hey can you do a schedule for tomorrow? AI had no idea... but didn't tell the user that. We just guessed." [35:49]
-- "if you do all this eval stuff, fine-tuning is basically free because you have all this infrastructure set up to do all these measurements and curate data... those difficult examples where your AI is not getting right. That's exactly the stuff you want to fine-tune on." [36:48]
+## 已核验引述（中文翻译）
+- “在进入那些工作之前，你需要先有某种依据，知道到底该写什么评测，因为评测是无限的。”[23:57]
+- “只需花一下午的三个小时，用自己的眼睛阅读一些聊天，为每条写一句笔记，然后快速分类并开始行动。”[23:06]（Claire Vo 对 Hamel 的总结，轻微去除了自动字幕重复。）
+- “在找到最上游的错误时就停下……因为它本质上具有因果性。”[15:58] [16:33]
+- “帮助性、真实性、简洁性、分数、语气，随便什么。这到底是什么意思？有人知道吗？没人知道。”[30:04]
+- “系统提示里没有当天日期。所以用户说‘能安排到明天吗’时，AI 根本不知道……但它也没告诉用户。我们只是猜。”[35:49]
+- “如果你完成所有这些评测工作，微调基本就是免费的，因为你已经建立了测量和整理数据的基础设施……那些 AI 做不对的困难样本，恰恰是你想用于微调的内容。”[36:48]
 
-## What it adds
-Beyond Hamel's canonical written posts (the "Your AI Product Needs Evals" / LLM-judge guides), this is a *live screen-share* of the front-of-funnel that text under-conveys: watching him read raw, garbled production traces and react in real time makes visceral why synthetic-only test sets miss the real input distribution. The "stop at the most upstream error" heuristic and the count-the-buckets framing are stated as the practical move that makes error analysis tractable for non-ML people. The talk is also unusually candid about the *social* failure mode — losing stakeholder trust when the dashboard disagrees with lived experience — which is rarely in the methodological writeups. The transition-matrix tip for agents, and the reframe of fine-tuning as "free" once eval infra exists, are concrete agent/RL-adjacent nuggets. Finally, the closing monorepo-of-prompts segment is a tangible, reproducible personal-knowledge-base pattern (data + notes + prompts + CLAUDE rules, provider-agnostic).
+## 独特价值
+相比 Husain 的书面指南，这段实时屏幕分享更直观地展示了评测漏斗前端：他逐条阅读含糊、残缺的生产轨迹，说明为何只靠合成测试集会错过真实输入分布。“止于最上游错误”和“对错误桶计数”是让非机器学习人员也能执行错误分析的实用启发式。节目还坦率指出仪表盘与真实体验不一致会造成利益相关者信任崩塌这一社会性失败。智能体转移矩阵、评测基础设施建成后微调近乎免费的重构，以及“数据+笔记+提示+CLAUDE 规则”的供应商无关单仓库，都是具体可复现的实践。
 
-## Themes
-1 why-evals · 4 observability · 5 eval infra · 8 judge/verifiers · 9 agent-specific
+## 主题
+1 为何评测 · 4 可观测性 · 5 评测基础设施 · 8 裁判/验证器 · 9 智能体专项

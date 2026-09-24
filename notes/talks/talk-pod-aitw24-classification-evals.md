@@ -1,36 +1,32 @@
-# Notes — "#24 Evals for Classification"
-**Speaker/Guest:** AI That Works (Vibhav "BoundaryML/BAML", Dex "HumanLayer", guest Kevin Gregory, ML engineer at EvolutionIQ) · **Venue:** AI That Works · **Type:** podcast · **URL:** https://www.youtube.com/watch?v=5Fy0hBzyduU
+# 笔记——《第 24 期：分类评测》
+**演讲者/嘉宾：** AI That Works（Vibhav、Dex、Kevin Gregory） · **场合：** AI That Works · **类型：** 播客 · **URL：** https://www.youtube.com/watch?v=5Fy0hBzyduU
 
-## Summary
-A live, screen-shared walkthrough of a production-grade evaluation harness for large-scale classification: routing a user query into one of ~1,400 hardware-store categories. The core argument is that the eval, not the pipeline, is the hard and valuable part — building the multi-stage pipeline (embed → LLM-narrow → LLM-select) is now "almost free" with coding agents, but figuring out how to ingest results so the right next action "jumps off the page" is the real engineering. The episode demonstrates a "probes/breakpoints" architecture: instead of dumping 1,400 categories into one LLM call (which gives you few knobs), you stage the narrowing so you can see exactly which stage drops the correct answer. The deepest lesson is about ground truth: when they dug into 100% of the "failures," nearly all were data/spec problems (overlapping categories, multiple valid answers, ground truth simply wrong) rather than model failures — meaning a raw "80% accuracy" metric was misleading. It matters for agent evals because tool selection is the same problem as classification, and because it shows how to make correctness *definitions* tunable rather than treating accuracy as a fixed number.
+## 摘要
+节目现场构建了一个生产级分类评测：把用户查询路由到约 1,400 个五金店类别。流水线用嵌入把 1,400 缩至 100，LLM 再缩至 50/25/15，最后选 1；每层都是可观察断点。真正困难且有价值的是评测界面，而非几小时即可搭好的流水线。深入检查全部失败后，几乎都来自类别重叠、多答案和错误真值，而非模型；原始 80% 准确率因此具有误导性。工具选择本质上也是分类，正确性定义应可调，而不是固定数字。
 
-## Key points
-- **Problem shape:** 1,400 hardware-store categories (Lowe's/Home Depot taxonomy, hierarchical), user query like "ceiling fan" → must select one final category. Generalizes to Amazon retail, ICD billing codes (~80,000 codes, one per toe), and MCP tool selection.
-- **Pipeline as probes:** Naive approaches (dump all 1,400 into an LLM, or pure embedding similarity) give you "only a couple of levers." Kevin's staged design: embedder narrows 1,400→top 100 → LLM narrows 100→50 (later 25/15) → final LLM selects 1. Each stage is a breakpoint where you can see if the correct answer survived.
-- **Hyperparameters vs content:** The narrowing stages have knobs (top-K output count) that have "nothing to do with the query" but control the system's dimensions — distinct from the prompt/content levers. Also a possible intermediate "beef up the categories" step (expand terse category names into descriptive sentences before re-ranking).
-- **The eval UI is the product, not the pipeline:** Building the pipeline took "a couple hours" (mostly Claude-coded); the value was in the visualization. Total ~2 full days of work end to end.
-- **UI evolution (war story):** v0 = reading raw JSON by hand (useless). v1 = NetworkX/Matplotlib tree diagram — looked great at 30 categories but "doesn't scale," became an unreadable hairball at 100 categories, and you "can't do command-F" or collapse nodes. v2 = a sortable **table** with one column per filter stage and color-coded rows — same screen real estate, far denser.
-- **Stage-level error attribution:** The dashboard showed 68 test cases (54 correct / 14 wrong). Of the 14, only 2 failures were at the LLM-filter stage; the other 12 were at final selection — pointing the obvious fix (tighten the LLM filter). Embedding-filter errors were ~zero so that column effectively vanished from the chart.
-- **Tuning by visual sweep:** Going from 50→25 LLM candidates improved accuracy (14→13 failures, fewer final-selection mistakes); dropping to 15 made it worse — so ~25 was the sweet spot, found by eyeballing versioned runs.
-- **Correctness is subjective / tunable:** "Stove with red knobs" returned *gas ranges* when ground truth was *double oven gas ranges*. Is that wrong? Depends on UX. They added a **dropdown to change the correctness definition** (strict vs lenient: "right subtree but too specific = OK", "general by one level = OK"), which jumped the score from ~80% to 84–85% with zero prompt changes.
-- **Ground truth is polluted:** Digging into 100% of failure cases revealed nearly all were not real failures — overlapping categories, multiple correct answers, or ground truth created by people "who don't really know much about hardware stores." Fix proposed: make ground truth an *array* of acceptable answers, and have the model "pick the top 3" with a UI that says "you might have also meant this."
-- **Cut distracting metrics:** Kevin instinctively showed per-stage latency to look like a "good engineer," but Vibhav pointed out it doesn't change any decision in an accuracy-focused UI — "it's just distracting." Show only what drives the decision.
-- **Model upgrade isn't always the lever:** Live, they swapped GPT-4o → GPT-5/mini on the failing final-selection stage. Distribution "didn't really change" — proving the bottleneck was the *category definitions / data*, not the model.
-- **Throwaway eval code, durable pipeline code:** Treat eval UIs like Jupyter notebooks — vibe-code them, use Streamlit (not React) if you only know Python, don't optimize what doesn't need optimizing, then discard. But *do* build them; don't skip evals. Only the core pipeline needs to be good code.
-- **Iteration-loop philosophy:** Start with the smallest slice (Kevin began with 20 of 1,400 categories). Two dimensions (problems × data slice) grown in parallel; most of the 40%→80-90% accuracy gain comes from a small dataset you can actually look at. "Vibe-eval" by looking at data until you have too many cases, then build UI.
-- **Generalization to agents:** A tool call "is the same as a classification" — structured output about "what type of thing is this." GitHub MCP with all tools on = ~60,000 tokens of tool definitions that "tanks your performance"; the embed→narrow→select pattern is how you scope thousands of tools.
-- **Chatbot/ambiguous evals:** For non-binary problems, before building evals, **spot-check and tie to an end business metric** (returns, sales, or a proxy like "did the user copy-paste the code snippet, and on which generation"). A chatbot with no business-metric tie is "freaking useless" because you can't converge.
+## 要点
+- 问题可推广到零售、约 8 万个 ICD 账单码和 MCP 工具选择。
+- 分阶段嵌入→LLM 缩小→最终选择，比一次输入 1,400 类更易定位正确答案在哪层丢失；top-K 是独立于查询内容的系统超参数。
+- 流水线约两小时由 Claude 辅助写成，完整工作约两天；价值主要在可视化。
+- 原始 JSON 难读，NetworkX 树在 30 类漂亮、100 类变毛球，无法搜索或折叠；最终采用每阶段一列、按颜色标行的可排序表格。
+- 68 个案例中 54 对、14 错；仅 2 个在 LLM 过滤阶段丢失，12 个错在最终选择，直接指明改进位置。50→25 候选改善，降到 15 反而变差。
+- “红色旋钮炉灶”预测 gas ranges，而真值是 double oven gas ranges；是否错误取决于 UX。界面用下拉框切换严格/宽松正确性，零提示修改即可从约 80% 升至 84–85%。
+- 全查失败后发现大多是真值错误或多解。应允许可接受答案数组，让模型给前三名并在界面提示其他可能。
+- 与决策无关的延迟指标只会干扰，应删除。换 GPT-4o 为 GPT-5/mini 也几乎不改变分布，说明瓶颈是类别定义和数据。
+- 评测界面可像 Jupyter/Streamlit 一样快速编写并丢弃，核心流水线代码才需长期维护；但不能省略评测。
+- 从 20/1,400 的小切片开始，同时扩展问题与数据；大量 40%→80–90% 提升来自可人工查看的小数据集。
+- GitHub MCP 全开时工具定义约 60,000 token，会拖垮表现；嵌入→缩小→选择适用于数千工具。
+- 模糊聊天任务应先抽查并连接退货、销售或用户是否复制代码等业务指标。
 
-## Verified quotes
-- "What's hard is figuring out how to ingest the information in a way that's helpful and tells you what to do to make the pipeline really, really good. That's kind of where the magic comes in." [18:33]
-- "You don't always know the right thing to build to visualize it until you build the wrong thing and it's like it's not very useful." [45:24]
-- "For the use case of what this UI is trying to do, it doesn't add anything. It just takes up space that distracts from the actual point." [28:59] *(re: showing latency)*
-- "If you just took this as a raw metric and you didn't dig in, you'd be like, oh, this system's only 80% correct. But if we actually looked at 100% of the failure cases, all of them are actually not failures. It's a problem specification problem much more so than a failure." [56:31] *(lightly de-duplicated ASR filler)*
-- "Make sure your core code is good and... Vibe code the rest of it. Vibe code the UIs, Vibe code the Evals, Vibe code the testing harness. But, do Vibe code them. Don't skip those parts." [46:53]
-- "A tool call is the same as a classification in many points. We're asking the model to output structured data about what type of thing is this." [58:41] *(lightly fixed: "in in many points")*
+## 已核验引述（中文翻译）
+- “真正困难的是怎样摄取信息，让下一步行动直接跃然纸上；魔力就在这里。”[18:33]
+- “往往只有先做出错误的可视化，才知道正确的该是什么。”[45:24]
+- “如果只看原始指标，会认为系统仅 80% 正确；检查全部失败后，它们其实都不是失败，而是问题规格错误。”[56:31]
+- “核心代码要好，其余界面、评测和测试运行框架可快速编写，但必须做，不能跳过。”[46:53]
+- “工具调用在很多方面就是分类：让模型输出这属于哪类事物的结构化数据。”[58:41]
 
-## What it adds
-Most written eval guidance treats accuracy as a number to maximize; this talk's non-obvious move is making the **correctness definition itself a runtime knob** (a dropdown), forcing you to ask "how bad is this failure *for the user*?" before chasing the metric. The second talk-specific gem is the concrete UI-failure narrative — the NetworkX tree that looked beautiful and scaled terribly — which is rarely written down but instantly recognizable. Third, the "look at 100% of failures and discover the ground truth is wrong" episode is a vivid, specific instance of the abstract advice to "look at your data," with a clear remedy (multi-answer ground truth + a "did you also mean" UI). Fourth, the explicit equation of *tool selection = classification* (with the 60K-token GitHub-MCP figure) bridges classic ML classification evals to agent harness design. Finally, the candid time estimates (pipeline ~2 hrs, first UI 4-5 hrs, final UI 5-8 hrs, ~2 days total) and the "throwaway eval code / durable pipeline code" split give a realistic process model rather than principles in the abstract.
+## 独特价值
+把**正确性定义本身**设为运行时开关，迫使团队先判断失败对用户的实际损害。漂亮树图扩展失败、检查全部失败后发现真值有误、工具选择等于分类，以及“可丢弃评测界面/耐久流水线代码”的分工，都是极具操作性的经验。
 
-## Themes
-1 why-evals · 4 observability · 5 eval infra · 6 benchmark-vs-eval · 9 agent-specific
+## 主题
+1 为何评测 · 4 可观测性 · 5 评测基础设施 · 6 基准与评测 · 9 智能体专项

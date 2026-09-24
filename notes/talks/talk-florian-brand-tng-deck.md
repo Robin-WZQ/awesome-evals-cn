@@ -1,37 +1,37 @@
-# Notes — "LLM benchmarks in the era of agents (deck)"
-**Speaker/Guest:** Florian Brand · **Venue:** TNG / Big Techday · **Type:** slides · **URL:** (local slide deck)
+# 笔记——《智能体时代的 LLM 基准（幻灯片）》
+**演讲者/嘉宾：** Florian Brand · **场合：** TNG / Big Techday · **类型：** 幻灯片 · **URL：**（本地幻灯片）
 
-## Summary
-Brand traces how LLM benchmarks evolved alongside model capabilities — from pre-training knowledge (MMLU, TruthfulQA) to reasoning (GPQA, HLE, FrontierMath) to narrow product capabilities (IFBench, τ-bench) to white-collar work (SWE-bench Verified, Terminal-Bench, GDPVal) — and argues that as models become agents, evaluation has shifted from scoring a single LLM+API call to scoring an entire *system*. His core thesis is that the final score is shaped by every component in the stack: prompt, LLM, grader, engine/API, harness, sandbox, and even hardware. Because of this, "evals are dead, just measure vibes" is wrong: evals are still the only way to make informed decisions about capabilities. The deck is a war-story tour of the failure modes — broken inference engines, sampling-parameter sensitivity, harness gaps worth months of model progress, hardware/timeout effects, reward hacking, and underelicitation — that make agent benchmarks hard to run correctly. The payoff: you can only answer "how good are models at X?" or "how big is the closed-vs-open gap?" with correct elicitation.
+## 摘要
+Brand 梳理了 LLM 基准随模型能力的演进：从预训练知识（MMLU、TruthfulQA），到推理（GPQA、HLE、FrontierMath），再到狭窄产品能力（IFBench、τ-bench）和白领工作（SWE-bench Verified、Terminal-Bench、GDPVal）。他的核心论点是，模型成为智能体后，评测对象已从一次 LLM+API 调用变成完整**系统**。最终分数受到提示、LLM、评分器、引擎/API、运行框架、沙箱乃至硬件的共同影响。因此，“评测已死，只看感觉”是错误的：评测仍是对能力作出知情判断的唯一途径。整套幻灯片以失败案例说明正确运行智能体基准的困难，包括损坏的推理引擎、采样参数敏感性、相当于数月模型进步的运行框架差距、硬件与超时效应、奖励投机和能力激发不足。只有正确激发能力，才能回答“模型在 X 上多强”或“闭源与开源差距多大”。
 
-## Key points
-- **The eval pipeline is layered, and each layer moves the score.** The deck builds up a diagram from `Prompt → LLM → Grader → Final Score`, then adds `Engine/API`, then `Harness · Sandbox · Hardware`. The argument: in the agent era every one of these silently influences results.
-- **Sampling parameters are "free" performance.** Qwen3.5 MoE on FS-G (avg@4) scored 0.369 at temp=1.0 vs 0.403 at temp=0.6 — a real gap from a single config knob. Brand stresses reading `generation_config.json` / README; sampling "matters, even in 2026."
-- **Inference engines themselves can be broken.** Kimi K2's release in vLLM had ~20% tool-calling accuracy due to engine bugs (since resolved). APIs do not guarantee correctness — a broken engine silently tanks an otherwise capable model.
-- **Even expert-annotated benchmarks contain wrong answers.** The HLE noble-gas example ("rarest noble gas… in 2002", answer given as Oganesson) is wrong on three counts — "not a gas, not noble, not terrestrial." Even PhDs and professors are wrong.
-- **Annotation for work-grade evals is expensive.** White-collar evals (coding, accounting, law) need domain experts with >5 YoE; data annotation costs run mid five- to six-figures and are trending higher.
-- **The harness is worth months of model progress.** Harness = the tools, prompts, and settings around an LLM (Codex CLI, OpenCode, Claude Cowork). Models are trained *in* their respective harness, so a bad harness is enormously costly — Brand cites a Kimi K2 harness difference equal to ~6–9 months of model progress.
-- **Hardware is an uncontrolled variable.** Some benchmarks require specific hardware (KernelBench, PostTrainBench); others unintentionally measure it — a resource-intensive command can kill the sandbox. On Terminal-Bench 2, tight timeouts mean better hardware lets the agent iterate more: 5× timeouts boosted GPT-5.2 high from 52.8%→60.67% (+7.87) and xhigh from 46.3%→60.97% (+14.67).
-- **Evaluation has moved from single calls to systems.** Example "OpenClaw": persistent filesystem, remembering interactions with a user over multiple days. Runtime per sample has gone from seconds to hours or even days.
-- **Four standing problems for evaluating systems:** infrastructure, cheating, underelicitation, and cost.
-- **Reward hacking is now a first-class threat.** Agents take shortcuts: reading git history for future commits (SWE-bench Verified), circumventing URL blocklists via GitHub/HuggingFace mirrors or third-party sites with the solution, embedding test results/binaries in code, and abusing test-runner properties.
-- **Defenses against cheating:** remove access to everything not strictly needed; run verification/tests in a second, separate sandbox; and use a second LLM to monitor the first (flagged as "$$$").
-- **Underelicitation is the inverse failure — you under-measure capability.** ARC-AGI 3 officially disallows harnesses to discourage hand-written-rule harness engineering; yet Twitter user `patience_cave` used the general Codex CLI + `/goal` + a minimal prompt and hit 61% (SOTA on the public set) over >12 hours and >30K actions.
-- **New "re-implementation" benchmarks resist memorization.** ProgramBench and MirrorCode give programs as binaries (no decompilation, no source), grade on auto-generated hidden test suites; MirrorCode lets the model hill-climb against a public test set with no limits imposed. Brand notes an in-depth full-suite run could cost >$100K.
-- **The bottom line for safety-relevant decisions:** questions like "how good are models in offensive cybersecurity?" and "how big is the gap between closed and open models?" can only be answered with correct elicitation.
+## 要点
+- **评测流水线分层，且每层都会改变分数。** 从 `提示 → LLM → 评分器 → 最终分数`，再加入 `引擎/API` 和 `运行框架 · 沙箱 · 硬件`；智能体时代的每层都可能成为隐蔽混杂因素。
+- **采样参数能带来“免费”性能。** Qwen3.5 MoE 在 FS-G（avg@4）上，温度 1.0 得 0.369，温度 0.6 得 0.403。应阅读 `generation_config.json` 和 README；即使在 2026 年，采样仍然重要。
+- **推理引擎本身可能损坏。** Kimi K2 刚在 vLLM 发布时因引擎缺陷，工具调用准确率约为 20%，后来才修复。API 并不保证正确性，故障引擎会无声地拖垮强模型。
+- **专家标注基准也可能有错误答案。** HLE 将“2002 年最稀有的稀有气体”答为 Oganesson；该答案同时不符合“气体”“惰性”和“地球上存在”三个条件。博士和教授也会错。
+- **工作级评测的标注昂贵。** 编程、会计、法律等白领任务需要五年以上经验的领域专家，标注成本为五位数中段至六位数，且还在上升。
+- **运行框架差异可相当于数月模型进步。** 运行框架包括围绕 LLM 的工具、提示与设置，如 Codex CLI、OpenCode、Claude Cowork。模型在各自框架中训练；Brand 称 Kimi K2 的框架差距相当于约 6–9 个月模型进展。
+- **硬件是未受控变量。** KernelBench、PostTrainBench 明确要求特定硬件；其他基准也可能意外测到硬件。Terminal-Bench 2 超时严格，更好硬件让智能体多迭代：将超时放宽 5 倍后，GPT-5.2 high 从 52.8% 升至 60.67%（+7.87），xhigh 从 46.3% 升至 60.97%（+14.67）。
+- **评测已从单次调用转向系统。** 如 OpenClaw 具有持久文件系统，并能记住与用户数日间的互动；单样本运行时长从数秒变成数小时乃至数天。
+- 系统评测长期面临四类问题：基础设施、作弊、能力激发不足和成本。
+- **奖励投机已是一级威胁。** 智能体会读取 Git 历史中的未来提交、借 GitHub/HuggingFace 镜像或第三方解答绕过 URL 黑名单、把测试结果或二进制嵌入代码，并滥用测试运行器特性。
+- 防作弊方式包括：移除非必要访问权限；在第二个隔离沙箱中验证和测试；使用第二个 LLM 监控第一个，但成本很高。
+- **能力激发不足是作弊的反向失真。** ARC-AGI 3 为避免手写规则式框架而禁止运行框架；但 `patience_cave` 使用通用 Codex CLI、`/goal` 和极简提示，在公开集上经过 12 小时以上、3 万多次动作达到 61%，成为 SOTA。
+- **重实现基准可抵抗记忆污染。** ProgramBench 与 MirrorCode 只提供二进制程序，不允许反编译或访问源码，并用自动生成的隐藏测试评分；MirrorCode 允许模型不受限制地针对公开测试集爬坡。深入运行完整套件可能花费超过 10 万美元。
+- 与安全相关的结论同样依赖正确激发，例如模型的进攻性网络安全能力，以及闭源与开源模型的能力差距。
 
-## Verified quotes
-- "Evals are dead, just measure vibes" [slide, line 8] — quoted as the *strawman* he rejects; immediately followed by "Evals are meant to measure capabilities."
-- "Even PhDs and professors are wrong!" [line 164]
-- "Kimi K2 difference in harness: ~6-9 months of model progress" [lines 291–292]
-- "Some benchmarks like Terminal-Bench 2 set tight timeouts → better hardware means the agent can iterate more!" [lines 337–339]
-- "Agents love to take shortcuts or find ways around guardrails, 'reward hacking'" [lines 386–387]
-- "We can only answer these questions with correct elicitation" [line 605]
+## 已核验引述（中文翻译）
+- “评测已死，只要凭感觉衡量。”[幻灯片第 8 行]（这是他随后以“评测旨在衡量能力”反驳的稻草人观点。）
+- “即使博士和教授也会错！”[第 164 行]
+- “Kimi K2 的运行框架差距：约相当于 6–9 个月模型进步。”[第 291–292 行]
+- “Terminal-Bench 2 等基准设定了严格超时 → 更好的硬件意味着智能体可以进行更多轮迭代！”[第 337–339 行]
+- “智能体喜欢走捷径，或设法绕过护栏，即‘奖励投机’。”[第 386–387 行]
+- “只有正确激发能力，我们才能回答这些问题。”[第 605 行]
 
-(Source is a slide deck, not auto-captioned audio; quotes are lifted verbatim from slide text. "Line" refers to the transcript file line rather than an mm:ss timestamp, as the deck has no timestamps.)
+（来源是幻灯片而非音频自动字幕；引述直接来自幻灯片文字，“行”指转录文件行号。）
 
-## What it adds
-Most written eval guidance treats the model as the unit under test. Brand's contribution is the explicit, additive **pipeline diagram** — prompt, LLM, grader, engine/API, harness, sandbox, hardware — and the insistence that *every* layer is a confound you must control, backed by concrete numbers rather than hand-waving. Three things stand out versus canonical sources: (1) hard magnitudes — a temp change worth ~3.4 points, a vLLM bug capping tool-calling at 20%, a harness gap worth 6–9 months of progress, 5× timeouts worth +7.87/+14.67 points — that quantify how much "infrastructure" can swamp model quality; (2) the framing of **underelicitation** as a distinct, dangerous failure symmetric to cheating, illustrated by a hobbyist beating an official harness-banned setup with a generic Codex CLI; and (3) the safety angle that broken or under-eliciting evals directly corrupt the cyber-capability and open-vs-closed-gap decisions policymakers and labs actually rely on. The binary-only re-implementation benchmarks (ProgramBench, MirrorCode) are also a fresh, contamination-resistant design point.
+## 独特价值
+多数评测指南将模型本身视为受测单元。Brand 明确画出由提示、LLM、评分器、引擎/API、运行框架、沙箱和硬件组成的可累加流水线，并用具体数字证明每层都是需要控制的混杂因素。尤为重要的是：（1）温度变化约带来 3.4 个百分点、vLLM 缺陷使工具调用只有 20%、框架差距相当于 6–9 个月进展、5 倍超时带来 +7.87/+14.67 个百分点，这些量级说明基础设施足以淹没模型质量差异；（2）将**能力激发不足**定义为与作弊对称且同样危险的失真；（3）指出错误或激发不足的评测会直接污染实验室和政策制定者依赖的网络安全能力及开闭源差距判断。只给二进制的 ProgramBench、MirrorCode 也提供了新颖的抗污染设计。
 
-## Themes
-1 why-evals · 3 model/harness/skill · 5 eval infra · 6 benchmark-vs-eval · 8 judge/verifiers · 9 agent-specific · 10 safety
+## 主题
+1 为何评测 · 3 模型/运行框架/技能 · 5 评测基础设施 · 6 基准与评测 · 8 裁判/验证器 · 9 智能体专项 · 10 安全

@@ -1,41 +1,27 @@
-# Notes — "How to look at your data"
-**Speaker/Guest:** Jeff Huber & Jason Liu · **Venue:** AI Engineer World's Fair 2025 · **Type:** talk · **URL:** https://www.youtube.com/watch?v=jryZvCuA0Uc
+# 笔记——《查看你的数据》
+**演讲者/嘉宾：** Huber、Liu · **类型：** 演讲 · **主题：** 数据驱动评测
 
-## Summary (3-6 sentences — what it argues, why it matters for agent evals)
-A two-part talk: Huber (Chroma) on evaluating retrieval *inputs*, Liu on analyzing system *outputs*. The core thesis is "you can only manage what you measure," operationalized as a demand to literally **look at your data** rather than trusting public benchmarks (MTEB), vibes, or slow/expensive LLM-judge pipelines. Huber argues for "fast evals" — cheap query/document golden sets that run in seconds for pennies — so you can run many retrieval experiments and pick embedding models empirically for *your* data, not the leaderboard. Liu argues that once you have real traffic, the highest-leverage move is extracting structured metadata from conversations, clustering it, and comparing KPIs *across clusters/segments* so a meaningless aggregate ("factuality is 0.5") becomes an actionable, impact-weighted product decision. The unifying message for agent evals: aggregate scores are useless; segmentation + cheap iteration + continuous monitoring is how you actually find what to fix, build, or ignore.
+## 摘要
+这场演讲主张，AI 应用质量问题应先通过数据查看、聚类与检索评测定位，而不是立即调整模型或使用昂贵的 LLM 裁判。检索可用黄金查询-文档对和 recall@k 建立快速、便宜的反馈环；输出则应聚类后比较各簇使用量与质量指标。真实应用中的嵌入模型排名与 MTEB 不同，证明公开排行榜不能替代自有评测。很多所谓模型问题实际上需要正确基础设施。
 
-## Key points (6-14 substantive bullets)
-- **Fast eval defined:** a golden dataset is just a set of (query → expected document) pairs; you feed all queries in, retrieve top-k (5/10/20 depending on the app), and measure whether the right documents come out. It is "very fast and very inexpensive to run," in contrast to LLM-judge factuality frameworks that "cost $600 and take three hours to run."
-- **Why speed matters for evals:** experimentation energy collapses when you have to "click go and then come back six hours later." Cheap, fast evals let you test many hypotheses, which is the actual marker of progress.
-- **Don't trust public benchmarks for your data:** MTEB tells you which embedding model is best *on English*, not on your corpus. Benchmark datasets are also "overly clean" — example given of an MTEB-style pair "What is a pergola used for in a garden?" matched to a document literally starting "A pergola in a garden…", which real-world data never looks like.
-- **Synthetic queries can work if aligned:** naive "LLM, write me a question for this document" is a bad strategy and over-fits to your data, fooling you into thinking the system works. Chroma's research aligned synthetic query *specificity* to real user queries semantically, so generated queries behave like ground-truth ones.
-- **Weights & Biases chatbot case study:** compared four embedding models on recall@10, plotting ground-truth (logged in Weave) vs synthetic queries. Validation criteria: the two should track closely AND preserve the same accuracy *ordering* (no rank flips between ground-truth and generated).
-- **Concrete embedding findings (W&B):** the app's *original* model, `text-embedding-3-small`, performed **worst** of the four tested; `jina-embeddings-v3` (top on MTEB English) "didn't actually perform that well" for this app; **`voyage-3-large` performed best** — determined empirically by running the fast eval, not by leaderboard.
-- **North star metric for retrieval:** success rate / recall — "how many documents do I get for my queries" — though real model-swap decisions also weigh re-embedding cost, latency, and API flakiness.
-- **Outputs: manual review until it doesn't scale.** A few hundred conversations: read everything manually. "Only use the language models if you think you're not smarter than the language model." At thousands-to-tens-of-thousands of conversations (with tool calls, chains, reasoning steps), volume and detail make manual scanning impossible.
-- **Feedback already lives in the conversation:** retry/frustration signals ("try again, this is not really what I meant," "be less lazy next time") carry more signal than thumbs-up/down widgets; extract them instead of only relying on explicit feedback.
-- **Extract → embed → cluster → segment → test hypotheses:** pull structured metadata (summary, tools used, errors, satisfaction, frustration), then do "very traditional data analysis, no different than any data scientist." This is the `kura` library (summarize, cluster, build hierarchies, compare evals across KPIs).
-- **The marketing analogy (why aggregates are useless):** "factuality 0.5" is unactionable; but discovering factuality is low on time-filter queries and high on contract-search queries "draws a line in the sand" and lets you decide where to invest. Cites Anthropic's Clio finding that code use was ~40x over-represented among Claude users vs its GDP value share.
-- **The solution is often infrastructure, not a smarter model:** if many queries need a time filter you never built, adding the filter improves the eval more than any LLM change. Example: extracting one more OCR step (whether a contract was signed) enabled large-scale filtering.
-- **Two-by-two for prioritization:** usage (low/high) × eval performance (good/bad). High-usage + bad = fix now; low-usage + good-but-unused = product/education problem; nobody-uses + bad = one-line prompt change ("Sorry, I can't help you"). Decisions = fix / build / ignore.
-- **Impact-weighted framing for roadmaps:** not "we should build viz tools" but "40% of conversations are data-visualization and our code engine does it poorly ~10% of the time — let's build two plotting tools." Research leads to products rather than products justifying research.
-- **Takeaway hierarchy:** fix retrieval first because "that is the only thing an LLM improvement won't fix" — you "earn the right to tinker with the LLM by having good retrieval." Use synthetic data only when you have no users; once you have users, look at the outputs. Build classifiers/routers, then monitor KPIs by category over time.
+## 要点
+- 为检索建立少量黄金查询-文档对，用 recall@k 评估相关文档是否进入前 K，成本低且迭代快。
+- 不应先用慢而昂贵的 LLM 事实性裁判；检索若错，生成端再好也无济于事。
+- 真实应用中 MTEB 英文榜首 jina-v3 未胜出，默认 text-embedding-3-small 最差，voyage-3-large 最好；排行榜不能预测特定领域。
+- 可由文档生成合成查询，但必须对齐真实查询的具体程度，并验证合成集与真实集保留相同模型排名，避免排名翻转。
+- 利用 W&B/Weave 日志作真值。检索质量建立后，才有资格调整 LLM。
+- 对输出先聚类，再逐簇比较事实性等 KPI；总体 0.6 之类分数难行动，而“需要时间过滤的查询事实性低”直接指出问题。
+- 使用量×质量的 2×2 矩阵支持决策：高使用低质量优先修复，高使用高质量继续建设，低使用项目谨慎投入。
+- `kura` 和 Anthropic Clio 展示了大规模会话聚类；Chroma 研究提供生成式检索评测方法。
+- 解决方案往往不是让 AI 本身更强，而是提供正确的检索、日志和分析基础设施。
 
-## Verified quotes (verbatim, with timestamps)
-- "our contention is that you can really only manage what you measure." [00:23]
-- "the goal is to say look at your data I think at least 15 times this presentation." [01:10]
-- "you're using, you know, some of these frameworks where you're checking factuality and other metrics like this and they cost $600 and take three hours to run." [01:49]
-- "It's too easy to trick yourself into thinking that your system's working really well with synthetic queries that are overly specific to your data." [03:58]
-- "factuality is 6 that's really hard but if it turns out that factuality is really low for queries that require time filters... Now we know something's happening in one area, something's happening in another." [11:33] *(lightly de-garbled ASR; "factuality is 6" reads as "factuality is 0.6" in context)*
-- "oftentimes the solution isn't really making the AI better. It's really just providing the right infrastructure." [13:45]
-- "you need to earn the right to sort of tinker with the LLM by having good retrieval." [16:51] *(ASR "twink tinker" corrected to "tinker")*
+## 已核验引述（中文翻译）
+- “当事实性只有 0.6 时很难行动；若发现需要时间过滤的查询事实性特别低，我们就知道问题集中在哪。”[11:33]
+- “很多时候，解决方案并不是让 AI 更好，而只是提供正确的基础设施。”[13:45]
+- “你需要先通过良好检索，才有资格去折腾 LLM。”[16:51]
 
-## What it adds (non-obvious, talk-specific value vs canonical written sources)
-- A crisp, **runnable definition of a "fast eval" for retrieval** — golden (query, doc) pairs scored by recall@k for pennies — positioned explicitly against the dominant "LLM-as-judge factuality" eval culture as too slow/expensive to iterate on. Most written eval guides focus on output/judge evals and under-weight retrieval.
-- **Empirical refutation of leaderboard-driven model selection** with named numbers: the MTEB-English winner (jina-v3) lost on a real app; the incumbent default (text-embedding-3-small) was worst; voyage-3-large won. This is a concrete "benchmark ≠ your eval" datapoint.
-- A **validation methodology for synthetic eval data**: don't just generate questions — align specificity to real queries and require that synthetic vs ground-truth preserve model *ranking* (no rank flips), using W&B/Weave logs as ground truth.
-- Liu's **"cluster then compare KPIs across clusters" loop** is the talk's distinctive output-side contribution: it reframes evals from a single scalar into a segmentation/data-analysis problem, with the 2x2 (usage × quality) giving a direct fix/build/ignore decision rule and impact-weighting for roadmap arguments.
-- Names concrete open tooling/prior art: Chroma's research (research.trychroma.com), the `kura` clustering library, and Anthropic's Clio as the canonical large-scale conversation-clustering example.
+## 独特价值
+它给出可执行的“快速检索评测”定义，并用真实排名反转反驳榜单选型。对合成查询要求保持真实模型排名，是重要验证标准；“先聚类、再按簇比较 KPI”的循环则把单一分数转为可直接决定修复、建设或忽略的产品分析。
 
-## Themes
-1 why-evals · 4 observability · 5 eval-infra · 6 benchmark-vs-eval · 8 judge/verifiers · 9 agent-specific
+## 主题
+1 为何评测 · 4 可观测性 · 5 评测基础设施 · 6 基准与评测 · 8 裁判/验证器 · 9 智能体专项

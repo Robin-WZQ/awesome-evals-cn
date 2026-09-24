@@ -1,35 +1,33 @@
-# Notes — "Building LLM Applications for Production"
-**Speaker/Guest:** Chip Huyen · **Venue:** MLOps LLMs in Prod 2023 · **Type:** talk · **URL:** https://www.youtube.com/watch?v=spamOhG7BOA
+# 笔记——《构建生产级 LLM 应用》
+**演讲者/嘉宾：** Chip Huyen · **场合：** MLOps LLMs in Prod 2023 · **类型：** 演讲 · **URL：** https://www.youtube.com/watch?v=spamOhG7BOA
 
-## Summary
-Chip Huyen walks through a ranked list of open, unsolved challenges in shipping LLM applications to production (circa mid-2023), explicitly reframing the talk away from "how to build" toward "what's still broken" because tactical advice goes stale fast. Several of the challenges are squarely eval problems: output consistency/non-determinism, hallucination and factuality, weak benchmark performance on hard structured tasks (text-to-SQL), data drift / knowledge cutoff, and — most pointedly for evals — the fragility of prompts when you swap the underlying model. Her recurring theme is that LLMs are stochastic black boxes with no enforceable output schema, which makes downstream parsing, measurement, and regression testing genuinely hard. For agent evals, the talk matters because it names the failure modes (silent prompt-model coupling, factuality on code/SQL, multilingual blind spots, eval-on-device) that an eval harness has to catch, and it flags that almost no one was studying prompt portability across models. It's a problem-framing talk, not a methods talk — the value is the taxonomy of where evaluation is needed and why it's underdeveloped.
+## 摘要
+Huyen 按优先级梳理了 2023 年中生产 LLM 应用仍未解决的挑战，包括输出非确定性、幻觉、结构化难任务表现弱、数据漂移、提示随模型替换而失效等。LLM 是随机黑箱且无法强制输出模式，使解析、测量和回归测试都很困难。对智能体评测最重要的是提示与模型的隐性耦合、代码/SQL 事实性、多语言盲点和端侧评测；她指出几乎无人研究提示跨模型的可移植性。这是一份评测需求分类，而非方法教程。
 
-## Key points
-- **No enforceable output schema is the core production pain.** She wanted to use an LLM to emit a 1–5 review score and have a downstream app parse it, but "there's no way to enforce the output schema of LLMs" — small input changes flip the output, even at temperature 0. Temperature=0 gives determinism but does not fix input-sensitivity ([04:46]–[05:40]).
-- **Hallucination is ranked as the single biggest blocker to enterprise adoption**, especially for factuality-critical tasks (legal/contracts, code). She cites a teacher who had ChatGPT write essays and had students fact-check them — "every single one" contained hallucinated information ([05:41]–[06:12]).
-- **LLMs benchmark poorly on text-to-SQL** — she points to a "BIRD" SQL leaderboard where the best model is "under 50% accuracy," used as concrete evidence that code-generation factuality is far from solved ([06:34]–[06:43]).
-- **Two competing hypotheses for *why* models hallucinate:** (a) DeepMind's framing about the model's understanding of cause-and-effect of its actions; (b) an OpenAI-associated view that it's a mismatch between the LLM's internal knowledge and the *labeler's* internal knowledge — if labelers annotate answers using facts the model never learned, fine-tuning effectively *teaches the model to hallucinate*. She stresses no one knows for sure ([06:45]–[07:58]).
-- **Context-dependence is intrinsic, not a passing hack.** Citing the SituatedQA paper, ~16.5% of questions require context (e.g., "best Chinese restaurant" depends on location); in-context learning won't disappear even if specific prompt hacks do ([09:16]–[10:14]).
-- **Long context ≠ effective context.** A model may *accept* 100k tokens, "but how efficiently can that model use [those] tokens" is an open question — a direct caution against equating context-window size with capability ([10:24]–[10:59]).
-- **Data drift / knowledge cutoff is now widely felt.** Same SituatedQA-style result: models trained on past data fail to answer present-day questions *even when given the evidence in context*, with a ~15% performance drop. She shows a breakdown of how fast facts go stale (one week → six months → two years → 50 years) ([10:59]–[11:53]).
-- **Prompt-model coupling is an under-studied regression risk.** If your prompts are tuned and tested against the current model, swapping in a new model underneath — and you *will* get new models — raises the question of how well those prompts still work, "and there's very little study around this area right now" ([11:53]–[12:32]). This is the most eval-specific gap she names.
-- **On-device / edge LLMs break the eval+training loop:** healthcare data you can't send out, unreliable internet, autonomous vehicles. On-device *training* (continual learning, evaluation) is "today's bottleneck," limited by compute/memory — and updating a base model while preserving a user's on-device fine-tuning is unsolved ([12:39]–[15:53]).
-- **Parameter count is a bad capability proxy.** A 100B *sparse* model behaves very differently from a 100B *dense* model; sweet spot is performance-vs-cost and it shifts over time. She notes little public research on sparse vs dense for LLMs ([16:08]–[17:03]).
-- **Multilingual evaluation is a major blind spot.** ChatGPT performed badly in Vietnamese (it once translated "AI" into "reproductive AI"); standardized-task benchmarks across languages show poor performance on low-resource languages. Critically, this is **not proportional to speaker count** — a language with hundreds of millions of speakers can be ~0.0x% of Common Crawl ([17:03]–[17:55], [28:31]–[28:58]).
-- **Tokenization is a hidden cost/latency tax.** Jenny's study on median token length per language in GPT-4: low-resource languages (Burmese, Amharic) tokenize into far more tokens, inflating both latency and cost since APIs bill by output tokens ([17:55]–[18:50]).
-- **LLM-as-annotator / distillation is real and useful** — "the whole premise behind Alpaca": use a better model to generate outputs, train a smaller model to copy that behavior. She confirms she's seen this used a lot ([30:33]–[32:31]).
-- **Data is the durable bottleneck.** Training-set size is growing faster than new data is generated; she cites an estimate (Villalobos et al.) that publicly available data runs out ~2026, compounded by the internet filling with AI-generated text — so future LLMs may be trained on prior-LLM output ([23:28]–[24:27]).
+## 要点
+- LLM 无法强制 1–5 分等输出模式，小输入变化会改变格式；温度 0 只提供一定确定性，不能消除输入敏感性。
+- 幻觉是企业采用最大障碍，尤其影响法律、合同和代码；一位教师让学生核查 ChatGPT 文章，称每篇都有虚构信息。
+- BIRD 文本转 SQL 排行榜当时最佳模型准确率低于 50%，说明代码事实性远未解决。
+- 幻觉原因可能是模型不理解行动因果，也可能是模型知识与标注者知识不匹配，使微调教会模型编造；尚无定论。
+- SituatedQA 表明约 16.5% 问题需要地点等语境；上下文学习不会因提示技巧变化而消失。
+- 可接收 100k token 不代表能有效使用。过时训练数据即使配合证据上下文仍造成约 15% 性能下降。
+- **提示-模型耦合是回归风险：** 提示针对当前模型调试后，替换底层模型会怎样，研究极少。
+- 医疗、断网和自动驾驶等端侧场景无法上传数据；端侧持续学习与评测受计算和内存限制，保留用户微调同时更新基础模型也未解决。
+- 参数量不是能力代理：100B 稀疏与 100B 稠密模型截然不同，性能成本最佳点持续变化。
+- 多语言是巨大盲区。ChatGPT 曾在越南语中把 AI 错译为“生殖 AI”；低资源语言基准很差，且训练语料占比与使用者数量不成比例。
+- 低资源语言分词更碎，API 按输出 token 计费时会同时增加延迟和成本。
+- 用强模型标注或蒸馏小模型已很实用；但公开数据可能约在 2026 年耗尽，且互联网正被 AI 文本填充。
 
-## Verified quotes
-- "I realize that this is really hard because there's no way to enforce the output schema of LLMs." [05:36] *(lightly fixed ASR: "om"/"LMS" → "LLMs")*
-- "I haven't met anyone who knows for sure [why] LLMs hallucinate, but there are hypotheses." [06:45] *(lightly fixed ASR: "what LMS hallucinate" → "why LLMs hallucinate"; auto-caption garble)*
-- "A model might be able to take in a hundred thousand tokens as input length, but how efficiently can that model use [these] tokens — I think this is still [an] open question." [10:48]
-- "If you swap out the model underneath, then how often — how well can the prompt still work on the new model? And I think there's very little study around this area right now." [12:23] *(lightly fixed ASR: "problem" → "prompt")*
-- "On-device training is like today's bottleneck ... a lot of it is still bottlenecked by compute and memory and technology, like for continual learning and evaluations." [14:40] *(lightly fixed ASR: "continue learning" → "continual learning")*
-- "It's not proportional — so the other languages do have a lot of speakers, but they're not represented equally in the corpus of training data." [28:31]
+## 已核验引述（中文翻译）
+- “我意识到这真的很难，因为没有办法强制 LLM 的输出模式。”[05:36]
+- “我还没遇到谁确切知道 LLM 为什么会幻觉，但存在一些假说。”[06:45]
+- “模型可以接收十万 token，但能多高效地使用它们，仍是开放问题。”[10:48]
+- “如果替换底层模型，提示在新模型上还能多好地工作？这个领域目前研究很少。”[12:23]
+- “端侧训练是今天的瓶颈……持续学习和评测仍受计算、内存与技术限制。”[14:40]
+- “语料代表性并不与说话人数成比例。”[28:31]
 
-## What it adds
-Versus Chip's canonical written piece ("Building LLM applications for production," her blog), the talk's distinctive value is two-fold. First, it explicitly elevates **prompt-model portability** to a first-class, unstudied evaluation problem — the realization that a tested prompt suite is implicitly an eval *of one specific model*, and silently regresses when the model changes underneath you. That framing is more pointed live than in most written sources and directly motivates model-swap regression testing in an eval harness. Second, the **multilingual + tokenization** angle is grounded in her own native-speaker failures (Vietnamese), giving concrete, non-obvious evidence that eval coverage skewed to English systematically hides capability gaps that are *not* predictable from speaker population — a sampling-bias warning for anyone building "general" agent benchmarks. The talk also usefully separates determinism (solvable via temperature=0) from input-sensitivity (not solvable), a distinction often blurred in reliability discussions. It is a problem-taxonomy, not a methods cookbook — no judge rubrics, no harness design.
+## 独特价值
+演讲把**提示跨模型可移植性**明确提升为尚未研究的一等评测问题：已测试的提示套件其实只评测了某个特定模型，换模后可能静默回归。越南语失败和分词成本说明英语偏置会隐藏与人口不成比例的能力缺口；它还区分了温度零可缓解的随机性与无法消除的输入敏感性。
 
-## Themes
-1 why-evals · 6 benchmark-vs-eval · 8 judge/verifiers · 9 agent-specific
+## 主题
+1 为何评测 · 6 基准与评测 · 8 裁判/验证器 · 9 智能体专项

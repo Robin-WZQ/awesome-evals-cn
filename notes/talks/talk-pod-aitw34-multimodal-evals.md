@@ -1,34 +1,31 @@
-# Notes — "#34 Multimodal Evals"
-**Speaker/Guest:** AI That Works · **Venue:** AI That Works · **Type:** podcast · **URL:** https://www.youtube.com/watch?v=jzhVo0iAX_I
+# 笔记——《第 34 期：多模态评测》
+**演讲者/嘉宾：** AI That Works · **场合：** AI That Works · **类型：** 播客 · **URL：** https://www.youtube.com/watch?v=jzhVo0iAX_I
 
-## Summary
-Hosts Dexter and Vaibhav bring back Kevin Gregory (ML engineer at Evolution IQ, building insurance-claims guidance software) to walk through a real multimodal extraction pipeline: pulling structured data (line items, subtotals, taxes, grand totals) from photographed receipts (the CORD Indonesian-receipt Hugging Face dataset). The central argument is that you can evaluate a multimodal extraction pipeline with *no golden/labeled dataset* by encoding **invariants that must hold about the data itself** — e.g. line items must sum to the subtotal, subtotal plus tax plus rounding must equal the grand total, unit price times quantity equals line amount, all values positive — and running them as pass/fail checks at runtime. The whole system (extraction + eval + Streamlit dashboard) took ~3–4 hours to build because it reused the data-shape and tooling design from a prior pipeline, illustrating that *system design*, not code-writing, is the hard, reusable, durable part. It matters for agent evals because it shows a concrete, cheap path from "messy real-world data, no labels" up to a golden dataset, and reframes evals as online/self-correcting product mechanisms rather than just offline scorecards. Practical war stories abound: switching GPT-4o → Gemini 2.5 Flash was the single biggest accuracy jump, and "false failures" (correct negative discounts) are a trap that naive guardrails would break.
+## 摘要
+节目用 CORD 印尼小票数据现场构建多模态抽取流水线，提取明细、税和总额。核心方法是在没有黄金标签时编码数据自身必须满足的**不变量**：明细之和等于小计，小计加税和舍入等于总额，单价乘数量等于行金额，数值应合理。抽取、评测和 Streamlit 界面约 3–4 小时完成，说明系统设计比写代码更难、更可复用。换 GPT-4o 为 Gemini 2.5 Flash 是最大提升；而正确的负折扣被误判为失败，也警示不能盲信护栏。
 
-## Key points
-- **No golden dataset needed — use invariants.** The eval checks are self-consistency properties of receipts, not comparisons to ground truth: data completeness, grand-total calculation, subtotal consistency, sum validation (line items add to subtotal), unit-price accuracy (qty × unit price = line amount), and positive-values. All are simple math on the extracted JSON, all pass/fail.
-- **Look at your data first — literally step one.** Before any code, Kevin downloaded the data and scrolled random receipt images; that's how he discovered they were Indonesian (different comma/decimal conventions), and later found grease stains, shadows, crinkles, sometimes-applied restaurant taxes ("PB1"), random discounts, and rounding.
-- **Three decoupled pipelines sharing one data contract.** (1) extraction, (2) eval-runner, (3) Streamlit visualizer — fully disjoint except for the shared receipt BAML data model. Eval results are written to JSON next to the extraction results; the dashboard just reads JSON. Adding a new eval is "effectively zero cost" — append one function to a list.
-- **Model swap was the biggest win.** Same prompt, same data model: GPT-4o → Sonnet → Gemini 2.5 Flash. Flash dropped a 100-receipt run to essentially one mistake; Kevin calls Flash "the best at OCR... notably better than Sonnet or 4o." (Caveat: Gemini 3 gave him a ton of extraction/tool-calling failures.)
-- **"False failures" are signal, not noise.** A receipt failed positive-values because a discount was extracted as a negative-priced line item ("1" and "minus 1"). The sum still came out correct. A naive guardrail (`abs()` on unit price, assuming LLM error) would have *broken* a correct answer. Lesson: investigate failing checks before "fixing" them.
-- **Tolerance from day one.** Floating-point math means every numeric invariant needs a tolerance — "if you're ever doing floating-point math calculations, you will always have this error... you don't have a choice."
-- **Prompt and data model co-evolve.** Fields like `roundingAmount`, `unitDiscount`, `discountOnTotal`, `itemDiscount` were not in the v1 model (which was just transactions + subtotal/total); they were discovered by iterating and "prompting through your output format." Named runs in the dashboard let you read the whole improvement journey.
-- **Escalate sample size as you gain confidence.** Started at ~21 receipts (cheap GPT-4o, "training wheels"), then 50/51, 100, finally 350 — bumping up only after the small set looked clean, so compute isn't wasted while things are broken.
-- **Why not OCR-then-LLM?** OCR loses structural/spatial semblance; a slightly rotated image forces you to reconstruct normals to recover layout. Multimodal sidesteps that.
-- **Why not a prompt optimizer (DSPy/GEPA)?** You can't optimize what you can't define as correct, and real-world data is messy — optimizing on a noisy "failure" (e.g. legitimate negatives) overfits to a wrong objective. Self-driving analogy: clean sunny-highway data is useless; the valuable data is the weird edge case (a tow truck carrying cars + a broken median in the road). Find the odd data, *then* build the golden set and optimizer.
-- **Evals as online/self-correcting product mechanisms.** Vaibhav sketches shipping this in a Brex/Concur-style app: at ~3% grand-total failure, ship it but (a) flag failing receipts for forced human double-check (human-in-the-loop only on the ~1-in-20 that fail), and (b) feed the grand-total error back to the model ("your total is off by X, re-extract") up to 3 retries before escalating to a human. Don't wait for a perfect prompt — "if you can only ship your product when it's perfect, you will lose the battle of shipping product."
-- **Evals as a business.** Consensus: the *metric* is domain/problem-specific and yours to own (analogy: you buy front-end hosting and staging, not your UI components). "Anyone that's... selling you a metric is scamming you." Vendors sell harnesses/infra/versioning (Vercel-for-evals), which is fine to pay for at scale, but the eval design itself is the hard, proprietary work (cites a prior guest who would share product code but never the evals).
-- **Scaling the storage.** JSON-on-filesystem is fine for hundreds; the storage layer (S3, MongoDB, Parquet, LanceDB) is an orthogonal engineering problem. The JSON is structured so you can pull just the small `evaluations` field separately from the heavy extracted data, enabling pagination/sharding later.
+## 要点
+- 无需黄金集，可对完整性、总额、小计、明细求和、单价×数量及正值作简单通过/失败检查。
+- 开始前先随机查看图片，才能发现印尼逗号/小数习惯、油渍、阴影、折痕、PB1 税、折扣和舍入。
+- 抽取、评测运行器、可视化三条流水线只共享 BAML 数据模型；评测 JSON 与抽取结果并存，新增评测只需加一个函数。
+- 同提示同模型结构下，GPT-4o→Sonnet→Gemini 2.5 Flash；Flash 在 100 张小票上几乎只错一次，但 Gemini 3 曾频繁抽取/工具调用失败。
+- 负折扣使“正值”检查失败，但总和正确；若对单价取绝对值，反而会破坏正确答案。浮点不变量从第一天就必须设容差。
+- 数据模型随发现演进，逐步加入 `roundingAmount`、各种折扣字段；命名运行可查看整个改进历程。
+- 样本从 21→50/51→100→350，只有小集稳定后才扩展，避免在系统仍损坏时浪费计算。
+- OCR 后再交 LLM 会丢失空间结构，多模态模型可直接利用布局。
+- 正确定义尚不稳时，DSPy/GEPA 会对噪声失败过拟合；应先挖掘奇异边界案例，再形成黄金集。
+- 可把失败不变量反馈给模型重试最多三次，仅把约 3% 失败小票交人工，从离线评测变成在线自纠机制。
+- 指标必须由领域团队拥有；供应商可卖运行框架、版本和存储，但不能出售通用质量定义。
 
-## Verified quotes
-- "What I love about the design of this so much is you didn't have to do any hand labeling. You needed no golden data set. You designed a system to evaluate the accuracy of extraction solely based on like the invariants that you know should be true about the receipt." [09:35→ ~22:52] *(ASR lightly fixed: "invariance"→"invariants"; timestamp region ~[22:50])*
-- "One of the biggest uh improvements I made was just switching to Gemini Flash. You can see I I tried GD4O then Sonnet and then Gemini 2.5 Flash and you can see the difference it made just right there." [00:11]/[42:26] *(ASR: "GD4O" = GPT-4o)*
-- "If you're ever doing floating point math calculations, you will always have this error. You need like you need a tolerance. You don't have a choice." [30:57]
-- "What I want to see is a car carrying three other cars on a tow truck that looks like a car headed towards your direction with a median that's completely in the middle of the road cuz it's broken. That is useful data." [00:38]/[48:05]
-- "If you can only ship your product when it's perfect, you will lose the battle of shipping product." [54:13]
-- "Anyone that's... selling you a metric, it is scamming you because the metric is so domain specific, so problem specific that it... doesn't really matter. And then everything else is just like harnesses to run stuff." [56:47]
+## 已核验引述（中文翻译）
+- “你不需要手工标注或黄金数据集，只凭小票应满足的不变量就设计出了抽取准确率评测。”[约 22:50]
+- “最大的提升之一只是换成 Gemini Flash。”[42:26]
+- “做浮点计算永远会有误差，必须设容差，别无选择。”[30:57]
+- “只有产品完美才能发布，你就会输掉产品发布之战。”[54:13]
+- “卖给你指标的人是在骗你，因为指标高度依赖领域与问题；其余只是运行工具。”[56:47]
 
-## What it adds
-The canonical written advice ("look at your data", "start small", "use an LLM judge") is here, but the talk's distinctive contribution is the **invariant-based, golden-set-free eval pattern for multimodal extraction** — using arithmetic self-consistency of the document as a zero-label proxy metric, then *escalating* from that proxy toward a real golden set by mining the edge cases the proxy surfaces. It also contributes a concrete **architecture** (three disjoint pipelines + one shared data contract + JSON-next-to-results + named runs for diffing models) that makes adding evals zero-cost and made a full build a 3–4 hour job. The **"false failure" war story** (correct negative discount that naive normalization would corrupt) is a vivid, specific caution against over-trusting your own checks. The **online/self-correcting reframe** (feed the failing invariant back to the model as a retry signal; force human verification only on flagged failures) blurs the eval/product boundary in a way most written sources don't. And the **anti-optimizer argument** — that prompt optimizers overfit when your correctness definition is itself uncertain on messy data — is a non-obvious, talk-specific nuance against premature DSPy/GEPA use.
+## 独特价值
+不变量提供了无标签多模态评测模式，并能从代理检查逐步挖掘黄金集。三条解耦流水线、共享数据契约和命名运行使新增评测近乎零成本。负折扣“假失败”与在线失败反馈则说明评测既可能伤害正确答案，也可成为产品自纠组件。
 
-## Themes
-9 agent-specific · 6 benchmark-vs-eval · 8 judge/verifiers · 4 observability · 5 eval infra · 2 eval⇄capability⇄RL-env
+## 主题
+9 智能体专项 · 6 基准与评测 · 8 裁判/验证器 · 4 可观测性 · 5 评测基础设施 · 2 评测⇄能力⇄强化学习环境

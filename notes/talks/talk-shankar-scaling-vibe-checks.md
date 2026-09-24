@@ -1,35 +1,32 @@
-# Notes — "Scaling Up Vibe Checks for LLMs"
-**Speaker/Guest:** Shreya Shankar · **Venue:** Stanford MLSys #97 · **Type:** talk · **URL:** https://www.youtube.com/watch?v=eGVDKegRdgM
+# 笔记——《扩展 LLM 的感觉检查》
+**演讲者/嘉宾：** Shreya Shankar · **场合：** Stanford MLSys #97 · **类型：** 演讲 · **URL：** https://www.youtube.com/watch?v=eGVDKegRdgM
 
-## Summary
-Shankar (then a 3rd-year Berkeley PhD, databases + HCI) argues that the only task-specific eval most LLM-pipeline builders actually use — manually eyeballing outputs ("vibe checks") — does not scale, and asks how to mechanize it into reusable assertion sets without training custom evaluator models. She presents two systems: **SPADE**, which auto-generates candidate assertions by mining a prompt's *version history* (the diffs developers make are evidence of what they care about and what the LLM is bad at) and then filters them with an integer linear program; and **EvalGen**, a human-in-the-loop interface (on ChainForge) that interleaves criteria editing and output grading to align assertions with how the human actually grades. The talk's central empirical finding — **criteria drift** — is that the act of grading outputs changes the grader's own criteria, so there is no fixed ground truth to align to; eval definitions are always evolving. This matters for agent evals because it reframes evals as continual, human-steered unit tests rather than one-time fixed benchmarks, and surfaces hard problems (assertion interactions, false-failure-rate blowup, credit assignment in long chains) that only get worse as pipelines grow into hundred-step agentic workflows.
+## 摘要
+Shankar 研究如何把人工浏览输出的“感觉检查”扩展为可复用断言集，而无需训练专用评估模型。**SPADE** 从提示版本历史中挖掘候选断言——开发者的修改揭示其关切和模型弱点——再用整数线性规划过滤；**EvalGen** 在 ChainForge 上交替进行标准编辑和输出评分，使断言对齐人的实际判断。核心实证发现是**标准漂移**：评分输出会反过来改变评分者自己的标准，因此没有固定真值。智能体评测应是持续的人类引导单元测试；长链还会放大断言交互、假失败率和信用分配问题。
 
-## Key points
-- **Vibe checks are the default and they don't scale.** Plotting task-specificity vs. scalability, the only thing that is both task-specific *and* commonly used is manual vibe-checking of outputs — but it doesn't scale; fine-tuning evaluator models is high-effort and rarely a priority. The goal is to push vibe checks toward scalable, task-specific *assertion sets*.
-- **Problem formulation:** generate a *minimal* set of assertion functions that *cover all the bad outputs* with good accuracy. A trivial "return bad for everything" function gets 100% failure coverage but is useless — hence the minimality + accuracy constraints.
-- **SPADE's key insight — mine prompt version history.** Prompt edits over time reveal (1) what the developer cares about and (2) what the LLM is uniquely bad at following. Example: a developer keeps rephrasing "don't include sensitive information," signaling the model misread the first phrasing.
-- **Edit taxonomy** built from ~11 prompt versions per chain across LangChain pipelines; **inclusion/exclusion instructions** (phrases that must / must not appear in every output) were the most common edit type and the best candidates for assertions. GPT-4 uses the taxonomy as grounding to extract criteria, then emits both **code-based** (structure, keyword checks) and **LLM-based** (e.g., professional tone) implementations.
-- **Deployment scale:** SPADE was deployed with LangChain on **2,000+ LLM pipelines**. Two big failure modes emerged: **redundant assertions** (many prompt versions → duplicate functions) and **incorrect assertions** (e.g., an `assert_sensitive` that passes anything not literally containing the words "race"/"gender"/"name" — which is almost everything).
-- **Naive threshold filtering fails on assertion interactions.** Setting per-assertion thresholds (e.g., false-failure-rate ≤ 10%) breaks because the *disjunction* of assertions blows the global FFR past the budget — observed often in the **10–15%** range, especially for LLM-based assertions which genuinely interact.
-- **ILP filtering + subsumption.** They reformulate filtering as an integer linear program (a set-cover variant) to meet a global FFR. A coverage-only ILP wrongly drops good-but-non-covering assertions (e.g., a "professional tone" check that passes all *labeled* outputs gets pruned because the dev's labels don't include all failure modes). Fix: build a **subsumption graph** (function A implies B if A never flags something B wouldn't) and penalize the objective when non-subsumed assertions are dropped. Subsumption is often **bidirectional** for LLM evaluators; GPT-4 determines subsumption with high precision.
-- **Results:** on LangChain pipelines with ~75 labeled outputs each, the naive baseline failed aggregate constraints for **a third** of pipelines; the subsumption-based ILP covered **14% more** bad outputs.
-- **EvalGen's design principle — hide LLM latency behind human work.** While metrics generate/run under the hood (lots of idle wait), solicit human input: edit criteria, grade outputs. Built on ChainForge; flow = pick criteria → grade a sample → pick implementations that align with grades → run on ungraded outputs.
-- **Active-learning sampling for grading.** Users tire of grading after ~10 outputs, so EvalGen samples outputs to grade weighted by the **selectivity** of the assertions that flag them — a failure from a highly selective assertion (one that passes most outputs) is more trustworthy/informative than one from an assertion that fails everything. (Token yes/no probabilities are unreliable on chat-tuned models, so they avoid them.)
-- **Criteria drift (the headline finding).** In a 9-expert study, grading outputs didn't just *add* criteria — people **reinterpreted existing criteria to fit the LLM's behavior**. Example: a "no hashtags as entities" rule; after seeing the model extract "Colin Kaepernick" sensibly, a grader decided the real criterion was "no `#` symbol in output" and went back to *change earlier grades*. Implication: there is no fixed ground truth; grading must be continual as prompts/models/artifacts change.
-- **Code-based vs. LLM-based evals serve different jobs and want different human involvement.** Devs know exactly when to use which: LLM-based when criteria are fuzzy *or input data is dirty* (e.g., a typo in input that the LLM silently corrects, which a string-match code assert would wrongly fail). They like grading to align LLM evals but find grading to align code evals (markdown, word count) a waste — they'd rather just pick a code implementation directly.
-- **War-stories on agentic scale:** LangChain users run hundred-step chains; nobody knows which steps need assertions, and the FFR-interaction problem compounds. The Q&A converges on viewing this as a **credit-assignment / root-cause problem** — trace a wrong final output back through the graph (like an error log in coding) to find the at-fault prompt — and notes it gets much harder once an agent takes never-before-seen divergent routes.
-- **Where the gap is:** asked whether the bigger gap is criteria *specification* vs. LLM *execution accuracy*, Shankar says the second — even with good prompts, ~1-in-10 unpredictable failures across 5 interacting assertions destroy reliability at scale.
+## 要点
+- 感觉检查既任务专用又常用，但不可扩展；目标是自动生成最小断言集，准确覆盖坏输出，避免“全部判坏”的无用解。
+- SPADE 从提示修改推断关切与模型难点。约每条链 11 个版本中，包含/排除指令最常见，也最适合生成断言。
+- GPT-4 借编辑分类提取标准，并生成代码式结构/关键词检查与 LLM 式语气检查。
+- 在 2,000 多条 LangChain 流水线部署后，主要问题是重复和错误断言。
+- 单项假失败率阈值无效，因为多个断言取“或”会把全局假失败率推到 10–15%，LLM 断言尤其会交互。
+- 以集合覆盖 ILP 约束全局假失败率，再用蕴含图避免删除尚未覆盖但有价值的断言；GPT-4 可高精度判断断言蕴含。
+- 每条流水线约 75 个标签时，朴素基线在三分之一流水线上违反总体约束；蕴含 ILP 多覆盖 14% 坏输出。
+- EvalGen 在指标后台生成时让人编辑标准和评分，隐藏 LLM 延迟。
+- 人通常评到约 10 条就疲劳，因此按断言选择性主动采样；很少报错的断言一旦触发更有信息。
+- 9 名专家研究发现，评分不只增加标准，还会重新解释已有标准并回改旧标签，说明标准持续漂移。
+- 标准模糊或输入脏时适合 LLM 评测；Markdown、字数等明确规则适合代码，没必要为代码检查反复人工对齐。
+- 百步智能体链中应在哪步放断言、怎样把最终错误归因回具体提示，成为信用分配和根因分析问题；动态分叉使其更难。
 
-## Verified quotes
-- "most people do this and it can be quite effective and Tas specific especially in the early days of prompt engineering" [05:56] *(ASR: "Tas" = "task")*
-- "we can infer the assertion criteria by looking at prompt version history or how the prompt evolved over time" [09:32]
-- "what we did not expect to find was that people reinterpret their existing criteria to better fit the LLM's behavior" [27:08]
-- "people are not lazy people want to put in effort but in ways that they find are meaningful and efficient" [38:53]
-- "there are no ground truth set of grades grades are always evolving... The definition of good is always changing and it's very very important to build interfaces for humans that steer assertion generation and evaluations" [31:54]
-- "people are very they know exactly when they want to use a LLM based eval and exactly when they want to use a code based eval... they want to use LLM based evals when criteria is fuzzy or when input data is dirty" [30:12] *(ASR cleanup: "a llm" → "an LLM")*
+## 已核验引述（中文翻译）
+- “可以通过提示版本历史，也就是提示如何演进，推断断言标准。”[09:32]
+- “意外的是，人们会重新解释已有标准，以更贴合 LLM 的行为。”[27:08]
+- “人并不懒，只是希望把努力用在有意义且高效的地方。”[38:53]
+- “不存在固定真值评分；评分一直演进……‘好’的定义始终变化，必须构建让人引导断言生成和评估的界面。”[31:54]
+- “人很清楚何时用 LLM 评测、何时用代码评测；标准模糊或输入脏时才用前者。”[30:12]
 
-## What it adds
-Beyond the canonical "look at your data / write evals as unit tests" advice, this talk contributes three non-obvious, research-grade ideas. (1) **Prompt version history as a free supervision signal** — the diff between prompt revisions encodes both developer intent and model weaknesses, so you can mine assertions without a labeled set. (2) **Criteria drift as an empirical phenomenon** — the strong claim that grading *changes the grader's criteria*, which formally undermines the premise of a fixed gold standard and argues for continual, interface-mediated evals over static benchmarks; this is the talk's most cited contribution. (3) **Treating assertion *sets* as an optimization problem with interactions** — the false-failure-rate blowup from disjoined assertions, and the subsumption-graph fix, are a concrete reason naive "add more checks" pipelines silently fail their own accuracy budgets. The 2,000+-pipeline LangChain deployment and the 9-expert qualitative study give field evidence (e.g., the dirty-input/typo case for LLM-vs-code judge choice) that is absent from most written eval guides.
+## 独特价值
+提示版本差异是无需标签的监督信号；标准漂移实证上否定固定黄金标准；断言集合的交互则说明“多加检查”会无声突破错误预算。2,000 多流水线和 9 名专家研究为这些结论提供了现场证据。
 
-## Themes
-1 why-evals · 4 observability · 5 eval infra · 8 judge/verifiers · 9 agent-specific
+## 主题
+1 为何评测 · 4 可观测性 · 5 评测基础设施 · 8 裁判/验证器 · 9 智能体专项

@@ -1,43 +1,36 @@
-# Notes — "Ep 50: A Field Guide to Rapidly Improving AI Products"
-**Speaker/Guest:** Hamel Husain (Vanishing Gradients) · **Venue:** Vanishing Gradients · **Type:** podcast · **URL:** https://www.youtube.com/watch?v=rWToRi2_SeY
+# 笔记——《第 50 期：快速改进 AI 产品的实地指南》
+**演讲者/嘉宾：** Hamel Husain（Vanishing Gradients） · **场合：** Vanishing Gradients · **类型：** 播客 · **URL：** https://www.youtube.com/watch?v=rWToRi2_SeY
 
-## Summary (3-6 sentences — what it argues, why it matters for agent evals)
-Hamel Husain argues that "evals" is not a metric but an entire process: the disciplined work of looking at your data, doing error analysis, and externalizing what "better" actually means for your product. His central claim is that humans cannot articulate what they want from an LLM in the abstract — they only discover it by reacting to real LLM outputs, so evaluation and product development are the same activity. He repeatedly observed (in public office hours and courses) that practitioners get lost not because they lack agent frameworks, RAG databases, or prompting tricks, but because they skip the fundamentals: looking at traces and doing error analysis. The talk is essentially a tour of his "Field Guide to Rapidly Improving AI Products" blog post — data viewers, integrated/admin prompt environments for domain experts, error-analysis-driven prioritization, and knowing when (and when not) to write an eval. For agent evals specifically it matters because it frames evals as a prioritization and discovery loop driven by the most-upstream observed failure, not a saturated test suite.
+## 摘要
+Hamel Husain 指出，“评测”不是一个指标，而是查看数据、开展错误分析并把产品中“更好”的含义外显出来的完整过程。人无法在抽象状态下说清希望 LLM 做什么，只能通过对真实输出作出反应逐渐发现需求，因此评测与产品开发是同一件事。他在公开答疑和课程中反复看到，实践者迷失并非因为缺少智能体框架、RAG 数据库或提示技巧，而是跳过了阅读轨迹与错误分析。这场演讲围绕数据查看器、面向领域专家的集成提示环境、错误驱动的优先级，以及何时写或不写评测展开。对智能体而言，评测是由最上游已观察错误驱动的发现与排序循环，而非趋于饱和的测试套件。
 
-## Key points (6-14 substantive bullets)
-- **"Evals" is a process, not a metric.** If you think of evals as just a number, you're thinking about it wrong; it's the whole loop of looking at data, error analysis, and refining your vision of what the AI should do. ([00:04], [20:53])
-- **Error analysis reveals the highest-ROI improvements** and is how you prioritize across an "infinite surface area" of things you could test. Let error analysis show you that RAG — and specifically retrieval — is the problem before you build eval harnesses for retrieval. ([01:28], [14:56])
-- **A simple data viewer is your most important AI investment.** Hamel/Greg vibe-code custom JSON viewers (and spreadsheets) with pass/fail, reason, and logging fields to look at LLM logs and telemetry. ([07:53], [16:01])
-- **Don't write evals for obvious engineering bugs.** When you first do error analysis you'll see broken things (RAG syntax errors, docs not being pulled) — just go fix those. This is unlike code TDD where you'd write a test for any error. ([12:25], [13:43])
-- **Write evals for things you're not yet sure how to fix** and need to iterate on (e.g., dates being interpreted incorrectly when users make appointments; model parroting "would you like to go to the next step?"; system-prompt content like user IDs leaking into output). ([13:09], [18:30])
-- **Choose hard / non-trivial evals** — ones you don't quite know the answer to yet. Trivial always-passing evals tell you nothing. ([14:32])
-- **LLM evals carry overhead, so do a cost-benefit analysis per eval** — more so than with unit tests. Costs aren't just compute/API; the scarcest cost is your limited **attention bandwidth**. Curate and remove evals to keep signal high. ([13:23], [17:42])
-- **Don't saturate your evals / don't chase 100% pass rate.** He cites a YC company, Case Text, advising "get to 100% pass rate" as bad advice — a 100% pass rate means the eval is telling you nothing. ([18:11])
-- **Don't over-write evals prospectively** for every conceivable brainstormed problem; that paralyzes you. Respond to error analysis instead. ([14:38])
-- **Fix the most-upstream failure first.** In a chain or multi-turn conversation, stop at the first failure you notice, note it, and fix upstream failures before downstream ones — a simplifying heuristic. ([16:21])
-- **During first-pass error analysis, just observe — don't categorize.** Build intuition first, categorize later. It's diagnostic, not prescriptive, at this stage. ([16:52])
-- **Empower domain experts, not just engineers, via "integrated prompt environments."** A key failure mode: infrastructure where only engineers can change prompts. Build an admin view in your app (with templating/settings) so domain experts can edit prompts; hiding prompts from them slows you down tremendously. ([08:55], [09:43])
-- **Start with vibe checks and an MVP, then add a minimum viable evaluation (MVE).** Hugo's framing: alongside the MVP build a small harness so swapping the model gives results you can iterate on; don't be dogmatic about evals at the very start. ([11:42], [11:59])
-- **Levers to tune, error-analysis-driven:** prompt engineering, few-shot examples, fine-tuning with curated data, chunking strategies, retrieval changes — choose whichever your system gives you access to, guided by error analysis. ([23:44])
-- **Qualitative vs quantitative:** qualitative evals suit LLM-as-judge; quantitative is often code-based. RAG is special — use standardized information-retrieval metrics, especially for the retrieval ("R") component. ([25:05])
-- **Backed by research:** he points to Shreya Shankar et al.'s paper — "alignment is iterative, criteria- and implementation-specific": participants needed to externalize criteria to grade outputs, but also needed to grade outputs (with feedback on why they were bad) in order to externalize their criteria — a large-scale study, not just anecdote. ([23:08], [24:47])
+## 要点
+- **评测是过程，不是指标。** 它包含查看数据、错误分析，以及不断精炼 AI 应有行为的愿景。[00:04] [20:53]
+- 可测试表面无限，错误分析负责找到最高回报改进并排序；应先让分析证明问题在 RAG、尤其是检索，再搭建检索评测。[01:28] [14:56]
+- 最重要的 AI 投资是简单数据查看器。可快速编写 JSON 查看器或电子表格，记录通过/失败、原因和日志。[07:53] [16:01]
+- 对 RAG 语法错误、文档未拉取等明显工程缺陷，直接修复，不要像测试驱动开发那样为每个错误都写评测。[12:25] [13:43]
+- 对尚不知道如何修复且需要迭代的问题写评测，如日期解释错误、模型鹦鹉学舌式询问下一步、系统提示中的用户 ID 泄露。[13:09] [18:30]
+- 选择困难且非平凡的评测；永远通过的简单评测不提供信息。[14:32]
+- 每项 LLM 评测都有成本，最稀缺的不是 API 费用而是人的**注意力带宽**。应主动筛选和删除评测，保持高信号。[13:23] [17:42]
+- 不要追求 100% 通过率。Husain 反对 Case Text 提出的建议，因为饱和评测不再提供信息。[18:11]
+- 不要为所有想象中的问题预先写大量评测，否则会陷入瘫痪；应响应错误分析。[14:38]
+- 在链式或多轮轨迹中，发现第一个错误就停下并记录，优先修复最上游错误。[16:21]
+- 首轮错误分析只观察，不分类；先形成直觉，之后再归类。[16:52]
+- 应通过应用内管理视图和模板设置，让领域专家而非只有工程师可修改提示；把提示藏起来会显著拖慢迭代。[08:55] [09:43]
+- 先凭感觉检查并构建 MVP，再增加最小可行评测（MVE）；小型运行框架可在替换模型时立即返回可迭代结果，起步阶段无需教条。[11:42] [11:59]
+- 根据错误分析选择提示工程、少样本、精选数据微调、分块或检索调整。质性问题适合 LLM 裁判，量化问题常用代码；RAG 的检索部分应使用标准信息检索指标。[23:44] [25:05]
+- Shreya Shankar 等人的研究表明，对齐是迭代且依赖具体标准与实现的：参与者需外显标准来评分，也需先评分并解释错误才能外显标准。[23:08] [24:47]
 
-## Verified quotes (VERBATIM with [mm:ss] timestamps)
-- "If in your mind, if evals is just a metric, then you're thinking about evals wrong. It's not a metric. It's a entire process." ([00:04] / repeated [20:53])
-- "There's an infinite surface area for you to test and for you to eval. And so, you need to let the error analysis help you prioritize." ([01:28])
-- "Discovering what you want takes work. Discovering what your users want, that takes work. So, evals in in that is wrapped up so tightly together." ([01:14])
-- "A YC company called Case Text, they went on this podcast and said, 'Hey, you should try to get to 100% pass rate on your evals.' And that is bad because if you get to 100% pass rate, it means... your eval is not telling you anything. So, you should not saturate your evals." ([18:18], lightly trimmed ASR filler; wording faithful)
-- "There's compute API costs, there's all but the most important one is your attention. You have a limited attention bandwidth... and you need to be very careful not to completely overwhelm that and have it be high signal as possible." ([17:42], minor ASR cleanup)
-- "You can't really make the LLM better if you don't have a precise definition of what that is." ([22:29], lightly fixed from ASR "if you don't give it if you don't have")
+## 已核验引述（中文翻译）
+- “如果你心里的评测只是一个指标，那就想错了。它不是指标，而是一整套过程。”[00:04] [20:53]
+- “你能测试和评测的表面是无限的，所以必须让错误分析帮助你排序。”[01:28]
+- “发现自己想要什么需要工作，发现用户想要什么也需要工作，因此评测与这个过程紧密缠绕。”[01:14]
+- “Case Text 说应让评测达到 100% 通过，这是糟糕建议……达到 100% 意味着评测已不再告诉你任何东西。”[18:18]
+- “有计算和 API 成本，但最重要的是你的注意力。注意力带宽有限……必须避免让它完全过载，并尽量保持高信号。”[17:42]
+- “如果没有对‘更好’的精确定义，你就无法真正让 LLM 变得更好。”[22:29]
 
-## What it adds (non-obvious, talk-specific value vs canonical written sources)
-- The **office-hours war story**: Hamel stopped running public office hours because *every single* conversation went the same way — people building agentic/multi-turn things, asking "what next?", and universally not looking at traces or doing error analysis. This is the lived evidence behind the written field guide. ([07:22], [08:01])
-- The explicit **"don't write an eval for it" rule**: drawing a sharp line between obvious engineering bugs (just fix them) and genuine model-behavior uncertainty (worth an eval) — a nuance softer in TDD-flavored eval advice. ([12:25])
-- **Attention as the binding constraint** on how many evals to keep — reframing eval cost away from $ toward human signal-bandwidth, and the corollary to actively prune evals. ([17:42])
-- The **anti-100%-pass-rate / don't-saturate** point with a named source (Case Text on a podcast) as a concrete cautionary tale. ([18:18])
-- The **most-upstream-failure heuristic** for multi-turn/agent traces as a concrete triage rule. ([16:21])
-- **"Observe first, categorize later"** for first-pass error analysis — actionable workflow detail rarely spelled out. ([16:52])
-- Grounding the "you discover what you want by reacting to outputs" thesis in Shreya Shankar's empirical study of many AI engineers, not just intuition. ([23:08])
+## 独特价值
+Husain 停止公开答疑的经历说明，几乎每个智能体团队都在问下一步，却普遍不看轨迹、不做错误分析。演讲明确划分“不要为明显工程错误写评测”与“为模型行为不确定性写评测”，把注意力而非金钱定义为评测数量的硬约束，并要求主动修剪评测。反对 100% 通过率、先观察后分类、优先最上游失败，都是可立即应用的细节；“通过输出反应发现需求”的论点也由大规模实证研究支撑。
 
-## Themes
-1 why-evals · 3 model/harness/skill · 4 observability · 5 eval infra · 6 benchmark-vs-eval · 8 judge/verifiers · 9 agent-specific
+## 主题
+1 为何评测 · 3 模型/运行框架/技能 · 4 可观测性 · 5 评测基础设施 · 6 基准与评测 · 8 裁判/验证器 · 9 智能体专项

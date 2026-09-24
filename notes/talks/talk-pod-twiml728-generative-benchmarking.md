@@ -1,40 +1,35 @@
-# Notes — "#728 Generative Benchmarking"
-**Speaker/Guest:** Kelly Hong (TWIML) · **Venue:** TWIML AI · **Type:** podcast · **URL:** https://www.youtube.com/watch?v=3kbiGPn0cOo
+# 笔记——《#728 生成式基准评测》
+**演讲者/嘉宾：** Kelly Hong（TWIML） · **场合：** TWIML AI · **类型：** 播客 · **URL：** https://www.youtube.com/watch?v=3kbiGPn0cOo
 
-## Summary (3-6 sentences — what it argues, why it matters for agent evals)
-Kelly Hong (researcher at Chroma) argues that public retrieval benchmarks like MTEB are a poor basis for picking embedding models because they are generic, use clean/polished data, and are likely contaminated by memorization — so their scores don't transfer to your domain-specific production use case. Her "generative benchmarking" project instead builds a custom retrieval eval set from your *own* documents in two steps: (1) LLM-judge document/chunk filtering, and (2) context-and-example-steered query generation, validated against real logged production queries from Weights & Biases. The headline empirical result: rankings flip vs. public benchmarks — Jina AI's model beat OpenAI text-embedding-large on MTEB but lost on real W&B data, and Voyage-3-large won. A central methodological point is that an LLM judge must be *aligned* to human labels (via the EvalGen framework) before you trust it: their naive judge scored only ~46% alignment, lifted to >70% by iterating on criteria. The talk repeatedly stresses this is human-in-the-loop, not a hands-off "auto-eval" button.
+## 摘要
+Chroma 研究员 Kelly Hong 指出，MTEB 等公开检索基准通用、数据整洁，且很可能被模型记忆污染，因此不适合据此为领域化生产场景选择嵌入模型。她的“生成式基准评测”分两步从用户自己的文档构建检索评测集：（1）用经校准的 LLM 裁判过滤文档块；（2）结合场景背景和示例生成查询，并与 Weights & Biases 的真实生产查询验证。结果表明公开与真实排名会反转：Jina AI 模型在 MTEB 上胜过 OpenAI text-embedding-large，在真实 W&B 数据上却更差，Voyage-3-large 最佳。方法论重点是，必须先通过 EvalGen 框架使 LLM 裁判与人工标签对齐；朴素裁判一致率仅约 46%，迭代标准后超过 70%。这始终是人在环路的流程，并非“一键自动评测”。
 
-## Key points (6-14 substantive bullets)
-- **The transfer-failure war story:** On real W&B production data, Jina AI's embedding model performed *worse* than OpenAI text-embedding-large, the opposite of their published MTEB rankings; Voyage-3-large performed best. Public-benchmark scores "don't necessarily translate to your specific use case." [20:54–21:33]
-- **Generative benchmarking = custom eval set from your own data:** user supplies documents + context describing the application; the system generates query→document pairs to test retrieval. Two steps: document/chunk filtering, then query generation. [09:28–09:55]
-- **Filtering is a core differentiator, done at the chunk level:** filter out chunks users wouldn't realistically ask about (e.g., funding-news pages in a tech-support corpus, or a podcast's "goodbye, goodbye" outro chunk) so the benchmark reflects the true use case. [10:17–11:13, 13:52–14:45]
-- **Query generation is steered, not naive:** feed the same context plus *example queries* to make generated queries match real production style — vague, statement-like, not well-formed questions with question marks. [14:55–15:31]
-- **Naive query generation inflates scores deceptively:** feeding just a chunk and asking for a query yields queries *more* relevant than real production queries, boosting retrieval numbers that don't reflect production. "You don't just want to get high numbers — you want something that's more realistic." [42:40–43:26]
-- **LLM-judge alignment via EvalGen:** write a small set of criteria (relevance, completeness, ~3 total), manually label 200 of ~13,000 chunks as good/bad, pass chunks + criteria to the LLM, apply a pass-threshold (e.g., 2 of 3 criteria), compare to ground truth to get an alignment score, then iterate criteria. Raised alignment from ~46% to the 70s. [24:11–27:42]
-- **Judges are very sensitive to prompting:** small rewordings of the three criteria, or adding/removing one, swing alignment "quite a bit." [25:31–26:13]
-- **Labeling cost is small:** ~200 manually labeled chunks out of ~13,000 (chunks ~400 tokens each); align the judge on those, then extend to the full corpus. [28:08–30:14]
-- **Representativeness is *proven*, two ways:** (1) generated queries reproduce the *same embedding-model ranking* as ground-truth queries; (2) on contaminated public sets (Wikipedia), naive generation reproduces near-identical / word-for-word ground-truth queries, evidence of data leakage/memorization (clearest cases are in the report appendix, not the obvious "Deliverance" example). [46:40–47:55, 43:46–45:46]
-- **Metric choice: recall@K, not NDCG.** Ranking within retrieved context doesn't materially affect LLM output, so they only ask "was the relevant doc retrieved." Real data needed recall@10 where public benchmarks were readable at recall@1. [22:42–23:18, 41:04–41:35]
-- **Domain specificity makes retrieval harder:** narrow internal corpora are hard to disambiguate between chunks (vs. broad Wikipedia), so retrieval performance drops a lot — an open area to improve. [35:39–36:42]
-- **Distractors degrade generation:** too many retrieved chunks (e.g., create/query/filter-a-collection all retrieved when you asked only "create") distract the LLM; pick K empirically, "as few distractors as possible," no universal number. [39:20–41:01]
-- **Debug components, not just I/O:** people over-focus on the LLM output and tweak prompts when the real problem is retrieval — garbage in, garbage out; inspect what documents are actually retrieved. [37:58–39:06]
-- **Not auto-eval:** human-in-the-loop enters via user-provided context/example queries and via judge alignment; "it's not 100% autogenerated." Future work: iterating the eval set from logged queries (query alignment, surfacing document-corpus gaps), and a multi-party alignment open question (aligning to both the query-issuing user and the system creator). Next project at Chroma: agent memory. [48:00–53:01]
+## 要点
+- **迁移失败案例：** 真实 W&B 生产数据上，Jina AI 嵌入模型弱于 OpenAI text-embedding-large，与 MTEB 排名相反；Voyage-3-large 最佳。公开分数不一定迁移到具体用例。[20:54–21:33]
+- **生成式基准 = 用自有数据构建定制评测集。** 用户提供文档和应用背景，系统生成查询→文档对；先过滤文档块，再生成查询。[09:28–09:55]
+- **过滤是核心差异。** 去掉用户不会询问的块，如技术支持语料中的融资新闻，或播客结尾反复出现的 “goodbye”，让基准贴近真实用途。[10:17–11:13, 13:52–14:45]
+- **查询生成必须受引导。** 输入同样的背景和示例查询，使生成内容贴近生产风格：含糊、像陈述、未必有问号。[14:55–15:31]
+- 只给文档块并要求生成查询，会得到比真实查询更相关的内容，从而虚高检索分数；目标不是高分，而是真实。[42:40–43:26]
+- **通过 EvalGen 对齐裁判：** 设定相关性、完整性等约三项标准；对约 13,000 个文档块人工标注 200 个好/坏样本；让 LLM 按标准判断，并用“3 项中通过 2 项”等阈值与真值比较，再迭代标准。一致率从约 46% 提升到 70% 以上。[24:11–27:42]
+- 裁判对提示非常敏感；三项标准的轻微改写或增删一项都会大幅改变一致率。[25:31–26:13]
+- 标注成本较低：约 13,000 个、每个约 400 token 的文档块中，只需人工标 200 个即可校准后扩展到完整语料。[28:08–30:14]
+- **用两种方式证明代表性：** 生成查询复现了真实查询下相同的模型排名；在可能受污染的 Wikipedia 集上，朴素生成会复现几乎完全一致乃至逐字相同的真值查询，构成泄漏/记忆证据。[46:40–47:55, 43:46–45:46]
+- **指标采用 recall@K，而非 NDCG。** 被检索文档在上下文内的次序对 LLM 输出影响不大，因此只看相关文档是否被取回。真实数据要看 recall@10，公开集用 recall@1 即可读。[22:42–23:18, 41:04–41:35]
+- 狭窄内部语料的文档块彼此相似，较广泛 Wikipedia 更难区分，检索性能会显著下降。[35:39–36:42]
+- 检索块过多会干扰生成；例如只问“创建”却同时取回创建、查询和过滤内容。K 应通过实验选择，尽量减少干扰项，没有通用值。[39:20–41:01]
+- 不应只看 LLM 输入输出并反复改提示；真实问题可能在检索，应检查实际取回的文档。[37:58–39:06]
+- **并非自动评测。** 人通过背景、示例查询和裁判对齐参与。未来方向是利用日志查询迭代评测集、发现语料缺口，以及同时对齐终端用户与系统创建者的多方对齐。Chroma 的下个项目是智能体记忆。[48:00–53:01]
 
-## Verified quotes (verbatim, with timestamps)
-- "So in spite of performing better on the public benchmarks, it performed worse on real world data." [21:10]
-- "I think a mistake that a lot of people make is they just blindly use an LLM judge without any alignment just assuming that it is aligned." [24:43]
-- "It only got around like 46% alignment, which is pretty bad. So, we basically use this framework ... to like iterate on our LLM criteria and get it up to like over 70%." [24:36] *(ASR: "or like eval" lightly corrected to "EvalGen," the framework named elsewhere in the talk)*
-- "If you're just looking at the numbers it looks good but it's not really reflective of what you'll actually see in production." [43:02]
-- "You don't just want to get like high numbers like you want something that's more realistic." [43:23]
-- "We do need some like human in the loop to actually make this process more reliable ... So it's not 100% autogenerated." [49:21] *(lightly de-duplicated ASR filler; wording faithful)*
+## 已核验引述（中文翻译）
+- “尽管它在公开基准上表现更好，但在真实世界数据上反而更差。”[21:10]
+- “很多人的错误是完全不做对齐就盲目使用 LLM 裁判，并默认它已经对齐。”[24:43]
+- “它只有约 46% 的一致率，非常差。因此我们用这个框架迭代 LLM 标准，把一致率提高到了 70% 以上。”[24:36]（按演讲其他位置将自动字幕名称校正为 EvalGen。）
+- “如果只看数字，它显得很好，但这并不能真实反映生产环境中的情况。”[43:02]
+- “你不只是想得到高数字，而是想得到更真实的东西。”[43:23]
+- “我们确实需要人在环路中，让过程更可靠……所以它并非百分之百自动生成。”[49:21]
 
-## What it adds (non-obvious, talk-specific value vs. canonical written sources)
-- A concrete, reproducible **transfer-failure data point** (Jina vs. OpenAI rank flip; Voyage-3-large winning) that operationalizes the abstract "benchmarks don't generalize" warning into a specific embedding-model decision.
-- A **validation methodology for synthetic evals** that most "generate-a-test-set" tools skip: prove representativeness by checking that generated queries reproduce the same *model ranking* as real logged queries — the thing a developer actually cares about.
-- Hard numbers on **judge-alignment economics**: ~46%→70s alignment from iterating just three criteria, achieved by labeling only 200/13,000 chunks — a cheap, concrete recipe vs. the usual hand-wavy "align your judge" advice.
-- A sharp distinction between **naive vs. steered generation**, including the counterintuitive finding that naive generation makes scores look *better* while being less faithful — a trap for anyone bootstrapping evals.
-- The **data-leakage detector**: using word-for-word query regeneration on public sets as evidence of memorization/contamination.
-- Explicit framing that generative benchmarking positions evals as an *early, approachable first step* (for teams with no golden set / no logged queries), not an advanced stage — plus the open **multi-party alignment** framing (aligning a judge to both end-user and system-creator simultaneously).
+## 独特价值
+Jina 与 OpenAI 排名反转、Voyage-3-large 胜出，把“基准不泛化”变成具体模型选型证据。它提出了合成评测常缺少的验证方法：检查生成查询是否复现真实日志查询下的**模型排名**。裁判对齐的经济性也有硬数字：只标注 200/13,000 个文档块、迭代三项标准，即可从约 46% 升至 70% 以上。朴素生成会虚高分数，而受引导生成更忠于生产；在公开集上逐字再生查询还能检测记忆污染。生成式基准被定位为没有黄金集或查询日志的团队可采用的早期步骤，并提出了终端用户与系统创建者同时对齐的开放问题。
 
-## Themes
-6 benchmark-vs-eval · 8 judge/verifiers · 1 why-evals · 4 observability · 9 agent-specific
+## 主题
+6 基准与评测 · 8 裁判/验证器 · 1 为何评测 · 4 可观测性 · 9 智能体专项

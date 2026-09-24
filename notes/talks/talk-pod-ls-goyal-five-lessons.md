@@ -1,34 +1,32 @@
-# Notes — "Five Hard-Earned Lessons About Evals"
-**Speaker/Guest:** Ankur Goyal (Latent Space) · **Venue:** Latent Space · **Type:** podcast · **URL:** https://www.youtube.com/watch?v=a4BV0gGmXgA
+# 笔记——《关于评测的五条血泪经验》
+**演讲者/嘉宾：** Ankur Goyal（Latent Space） · **场合：** Latent Space · **类型：** 播客 · **URL：** https://www.youtube.com/watch?v=a4BV0gGmXgA
 
-## Summary
-Ankur Goyal (founder of Braintrust) distills five practical lessons from running evals across many production AI teams. His central argument is that good evals are *engineered*, not free: synthetic datasets and off-the-shelf LLM-as-judge scorers don't reflect reality, and the highest-leverage work is continuously reconciling your dataset against what real users experience and writing custom scorers that encode your product spec. He reframes evals as an *offense* tool — a way to forecast which ambitious use cases become viable before you ship — rather than just regression tests. Two strong operational signals of "eval competence" are shipping a new model within 24 hours of release and having a clean path from a user complaint to a new eval case. He also stresses that in modern agents tools dominate the token budget, so tool definitions and outputs must be engineered for the LLM, and that optimization must target the whole system (data + task + scorers), not just the prompt. This matters because it reframes evals from a QA checkbox into the core infrastructure that lets a product capitalize on model releases.
+## 摘要
+Braintrust 创始人 Goyal 总结生产团队的五条经验：优秀评测必须被工程化，合成数据和通用 LLM 裁判不会自动反映现实；最高杠杆工作是持续使数据集与真实用户体验一致，并编写体现产品规格的自定义评分器。评测不仅防守回归，也应在发布前预测雄心勃勃用例何时可行。两项成熟信号是新模型发布 24 小时内可上线，以及用户投诉能直接转成评测案例。现代智能体的 token 大多花在工具定义和输出上，优化对象应是数据、任务、评分器组成的整个系统。
 
-## Key points
-- **Three signs evals are providing value:** (1) you can ship a product update incorporating a new model within 24 hours of its release; (2) a user complaint has a clear, straightforward path into your eval set; (3) you use evals on offense to know how well a use case works *before* you ship, not just to catch regressions [00:19]–[02:06]. He cites Notion (via Sarah) as a team that ships a new model within 24 hours every release [00:47].
-- **Datasets are an engineering problem, not a given.** No dataset is perfectly aligned with reality; the few that are (e.g. competition math) already work and need no eval. The best datasets are ones you can *continuously reconcile* against what actually happens in production [02:51]–[03:10].
-- **Scorers are a spec / PRD for your AI app.** Every sufficiently advanced company Braintrust works with writes and constantly modifies its own scoring functions. Using a generic/open-source scorer means coding to "a spec for someone else's project, not yours" [03:11]–[04:00]. (Braintrust's open-source scorer library is `autoevals`, deliberately flexible for this reason.)
-- **Tools dominate the token budget in modern agents.** Goyal sampled real agent trajectories and found the system prompt is a small minority of tokens; tool definitions and tool responses dominate. So precision on tool definitions and tool outputs is where most leverage sits [04:49]–[05:08], [16:59]–[17:24].
-- **Design tools for what the LLM wants to see, not as an API mirror.** Don't just wrap your existing GraphQL/REST API or product surface as tool calls — writing good tools is "very disruptive," not an API layer on top of what you have [05:11]–[05:48]. Think of writing a tool like writing a prompt: it's your chance to set the LLM up for success [13:08]–[13:31].
-- **JSON → YAML war story.** On a recent internal project, switching a tool's output from JSON to YAML made a "significant difference" — more token-efficient and easier for the LLM to analyze, even though to JavaScript the two are identical structured data [05:48]–[06:32].
-- **Build deliberately "unviable" evals so you can pounce on new models.** Construct ambitious evals likely *not* achievable with today's models, so when a new model drops you "plug the new model in and try it" with a few keystrokes [08:11]–[08:32]. Credits the Replit team for pioneering the pattern of re-architecting around each new model [07:09]–[07:23].
-- **Concrete model-progression numbers on a real feature (the "loop" prompt-optimizer agent):** GPT-4o was best for a long time and sat around ~10% (unviable); GPT-4.1 a bit better; Sonnet 3.7 much better; Claude 4 Sonnet "remarkably better" — crossing the viability threshold. Claude 4 Opus scored a couple percentage points above Sonnet. Gemini 2.5 Pro (05-20) scored ~1% on this benchmark, so it wasn't even charted [07:25]–[08:01], [08:45]–[09:04], [10:21]–[10:33].
-- **Shipped two weeks after a model release.** Claude 4 Sonnet came out two weeks prior; because the eval was already in place and "ready," Braintrust shipped the first version of the loop feature two weeks later [07:55]–[08:11].
-- **Optimize the whole system, not just the prompt.** They benchmarked an LLM prompt-auto-optimizer two ways: given only the prompt vs. given prompt + dataset + scorers. The whole-system version produced a "very dramatic difference," moving the feature from unviable to viable [09:09]–[10:18].
-- **"Loop" product reveal:** a Braintrust feature-flagged agent that auto-optimizes evals — it can generate prompts, datasets, and scorers, and answers prompts like "what am I missing from this dataset?", "why is my score so low?", or "write a harsher scorer" [10:21]–[11:19]. Goyal argues much of the manual labor of iterating on evals goes away once LLMs can read prompts + data and improve them automatically [11:46]–[12:18].
-- **Overfitting Q (Joti):** asked if turning every piece of feedback into an eval risks overfitting. Goyal says he's *more* worried about overfitting to a static dataset *without* user feedback than to one updated with it; what matters is not the dataset's state at any instant but how well-equipped you are to reconcile it with reality. Braintrust deliberately does *not* auto-add user feedback to datasets — a human with taste should curate which user data points are interesting [14:36]–[16:10].
-- **Eval-set composition is use-case dependent:** some tasks (e.g. identifying a movie from a quote) have worked since GPT-3.5 and never move; others are so ambitious they don't work on any model today. Building evals for the ambitious ones means you're "well prepared… to just push a button and find out" when a new model lands [18:59]–[19:38].
+## 要点
+- 评测带来价值的三个迹象：24 小时内接入新模型；投诉有清晰路径进入评测集；发布前主动衡量新用例，而非只抓回归。Notion 据称每次都在 24 小时内接入。
+- 数据集是工程问题，没有数据集天然完全贴近现实；关键是持续与生产事件核对。
+- 评分器等于 AI 应用的规格/PRD。通用评分器编码的是别人的产品规格；成熟公司都会持续修改自有评分函数。
+- 真实智能体轨迹中系统提示只占少数 token，工具定义与响应占主导；工具应按 LLM 想看到的形式设计，而非机械包装 REST/GraphQL API。
+- 内部案例把工具输出从 JSON 改为 YAML 后效果显著，因后者更省 token、便于 LLM 分析。
+- 应提前构建当前模型无法完成的雄心评测，新模型发布时一键测试。Loop 提示优化智能体在 GPT-4o 上约 10%，GPT-4.1 略好，Sonnet 3.7 大幅提升，Claude 4 Sonnet 跨过可行阈值，Opus 再高几个百分点；Gemini 2.5 Pro 05-20 约 1%。
+- Claude 4 Sonnet 发布两周后，已有评测使 Braintrust 能推出 Loop 首版。
+- 只给提示的自动优化器明显弱于同时给提示、数据集和评分器的版本；应优化整个系统。
+- Loop 可生成提示、数据和评分器，回答数据缺什么、低分原因、如何写更严格评分器等问题。
+- 比起把用户反馈纳入数据，Goyal 更担心静态数据集过拟合；但 Braintrust 不自动收录反馈，仍由有品味的人筛选。
+- 有些任务自 GPT-3.5 起就不再变化，另一些当前模型均无法做；后者使团队为新能力到来做好准备。
 
-## Verified quotes
-- "Great eval — they have to be engineered. They don't just come for free with synthetic data sets and random LLM as a judge scores that you read about online." [02:10] *(lightly fixed ASR: "evals"→"eval")*
-- "One way to think about scorers is they're like a spec or like a PRD for your AI application… if you just use an open-source or generic scorer, that's a spec for someone else's project, not yours." [03:39]–[04:00]
-- "You can't just take tools as a reflection of your APIs or your product as it exists today. You have to think about tools in terms of what the LLM wants to see." [05:11]–[05:25]
-- "Shifting the output of a tool from JSON to YAML actually made a significant difference… it's just so much more token efficient and easy for an LLM to look at YAML shaped data while doing analysis than extremely verbose JSON." [05:48]–[06:09]
-- "Create evals that are very very ambitious and likely not viable with today's models and construct them in a way that when a new model comes out you can just plug the new model in and try it." [08:11]–[08:32]
-- "The most important thing about a data set is not the state of the data set at any point in time. It is how well you are equipped to reconcile the data set with the reality that you want." [16:17]–[16:30]
+## 已核验引述（中文翻译）
+- “优秀评测必须工程化，不会从合成数据集或网上看到的随机 LLM 裁判分数中免费出现。”[02:10]
+- “评分器就像 AI 应用的规格或 PRD；通用评分器是别人的产品规格，不是你的。”[03:39–04:00]
+- “不能把工具当作现有 API 或产品的映射，而要从 LLM 想看到什么来设计。”[05:11–05:25]
+- “把工具输出从 JSON 改为 YAML 带来显著差异；对 LLM 而言，YAML 更省 token、也更易分析。”[05:48–06:09]
+- “构建今天很可能不可行的雄心评测，让新模型出现时能直接接入试验。”[08:11–08:32]
+- “数据集最重要的不是任一时刻的状态，而是你能多好地让它与目标现实重新一致。”[16:17–16:30]
 
-## What it adds
-Beyond the canonical "write your own evals / use LLM-as-judge" advice, this talk contributes: (1) **concrete, operational success criteria** — the 24-hour-to-ship and complaint→eval-case tests give teams a way to self-assess "eval competence"; (2) the **scorer-as-PRD framing**, which reframes the build-vs-buy scorer decision as encoding your product spec rather than a convenience tradeoff; (3) a **token-budget empirical claim** from real agent traces showing tool definitions + tool responses (not the system prompt) dominate, which redirects prompt-engineering effort toward tool design and outputs; (4) the **JSON→YAML** field anecdote with the sharp caveat that the format only matters *to the LLM*, not to downstream code; (5) **named, dated model-progression numbers** (GPT-4o ~10%, Claude 4 Sonnet crossing viability, Gemini 2.5 Pro ~1%) tied to a real shipped product, illustrating the "unviable→viable threshold" dynamic; and (6) a **counterintuitive overfitting take** plus the deliberate product decision *not* to auto-ingest user feedback, inserting human taste as a curation gate. The "optimize the whole system" benchmark (prompt-only vs prompt+data+scorers) is a rarely-quantified point that ties directly into agentic auto-optimization.
+## 独特价值
+24 小时接入和“投诉→评测”是衡量评测成熟度的具体标准；评分器即 PRD 重新界定了自建与采购。工具 token 占主导和 JSON→YAML 的案例把提示优化注意力转向工具设计。具名模型进展则展示了预建“不可行评测”如何捕捉可行阈值，且优化全系统远胜只优化提示。
 
-## Themes
-1 why-evals · 3 model/harness/skill · 5 eval infra · 8 judge/verifiers · 9 agent-specific
+## 主题
+1 为何评测 · 3 模型/运行框架/技能 · 5 评测基础设施 · 8 裁判/验证器 · 9 智能体专项

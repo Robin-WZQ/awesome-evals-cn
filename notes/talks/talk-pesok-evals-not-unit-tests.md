@@ -1,43 +1,37 @@
-# Notes — "Evals Are Not Unit Tests"
-**Speaker/Guest:** Ido Pesok (Vercel v0) · **Venue:** AI Engineer 2025 · **Type:** talk · **URL:** https://www.youtube.com/watch?v=L8OoYeDI_ls
+# 笔记——《评测不是单元测试》
+**演讲者/嘉宾：** Ido Pesok（Vercel v0） · **场合：** AI Engineer 2025 · **类型：** 演讲 · **URL：** https://www.youtube.com/watch?v=L8OoYeDI_ls
 
-## Summary
-An introductory, application-layer (not research-lab) framing of evals, built entirely around one extended analogy: an eval is a basketball court, not a unit-test suite. Pesok argues that because LLMs are non-deterministic, the demo-to-prod gap is real and dangerous ("demo savvy" apps that hallucinate in production), and that the hard part is the crucial 5% of behavior that classic unit/E2E tests can't cover. The core discipline he prescribes is "understand your court": collect the real distribution of user queries, plot where the system succeeds (blue) vs fails (red), and avoid wasting effort on out-of-bounds (off-domain) queries. He decomposes an eval into data (points on the court), task (the shot / the code path you're testing), and score (did the ball go in), and pushes for deterministic pass/fail scoring, factoring constants into data and variables into the task, sharing code between eval and production, and wiring evals into CI for regression reports. The throughline: "improvement without measurement is limited and imprecise."
+## 摘要
+Pesok 从应用层而非研究实验室出发，用一个贯穿全场的类比解释评测：评测像篮球场，而非单元测试套件。LLM 具有非确定性，演示到生产的差距真实且危险；传统单元和端到端测试覆盖不了的关键 5% 行为，恰恰最容易失败。他要求团队“理解自己的球场”：收集真实用户查询分布，标出成功与失败区域，避免把精力浪费在领域边界外。评测由数据、任务和分数组成，分别对应球场落点、投篮方式和是否命中；评分宜尽可能采用确定性通过/失败，将常量放入数据、变量放入任务，并让评测与生产共用代码、接入 CI。核心结论是：没有测量，改进既有限又不精确。
 
-## Key points
-- **Concrete war story (the framing device):** "Fruit Letter Counter," a joke app counting letters in fruit (a riff on "how many R's in strawberry"). GPT-4.1 returns "three" twice in testing, ships, then a user ("John") gets "two" in prod — illustrating non-determinism surviving manual spot-checks.
-- **The demo-to-prod trap:** AI apps are "demo savvy" — they look great in a demo for coworkers, then "hallucinations come and get you" in production. This is presented as a distinct failure mode of AI products vs normal software.
-- **The 5% that matters:** "95% of our app works 100% of the time" — you can unit-test/E2E-test login, signout, every function — but the crucial ~5% of LLM behavior is what fails, and it's exactly what traditional tests don't catch.
-- **Users invent inputs you can't imagine:** the second failure comes from a compound multi-fruit query. Lesson: production users generate queries "you could have never imagined."
-- **The basketball-court model:** data = a point on the court; distance from the basket = difficulty (farther shots are harder); court boundaries = your domain. Blue dot = make, red dot = miss; a make that lands out of bounds doesn't count.
-- **Eval = data + task + score** (using Braintrust's vocabulary, which he names): data is the point, the **task** is "the way you shoot the ball" (the code path under test), and the **score** checks whether it went in.
-- **"Understand your court" is the most important step.** Two traps: (1) out-of-bounds — don't build evals for queries users don't care about (e.g. "how many syllables in carrot"); (2) concentrated points — don't cluster all test cases in one region; test across the whole court including boundaries.
-- **Data-collection tactics:** thumbs up/down (noisy but good signal on where you struggle); reading ~100 random log samples once a week if you have observability ("highly recommended"); community forums; X/Twitter (great but noisy). "There really is no shortcut here."
-- **Factor constants into data, variables into the task** — like factoring constants in math/programming. The user question ("how many R's in strawberry") is a constant that lives in data; the system prompt / preprocessing / RAG you're varying lives in the task. This means changing your system prompt doesn't force you to rebuild the dataset.
-- **Share code between eval and production:** recommends AI SDK **middleware** as the abstraction holding preprocessing/RAG/system-prompt logic, shared between the live API route and the evals — "you want your practice to be as similar as possible to the real game."
-- **Scoring: lean deterministic, pass/fail.** Over-engineered scores are hard to debug and hard to share across teams ("no one will understand how these things are getting scored"). Guiding question: "what am I looking for to see if this failed?" — for v0 it's "did the code not work."
-- **Human review is acceptable when code can't capture the signal** — "you must do human review to get the correct signal... it will pay off in the long run."
-- **Scoring trick:** add a little extra to the prompt for eval-time only — e.g. "output your final answer in these answer tags" — to make string matching easy, even though you wouldn't want that in production.
-- **Evals in CI:** Braintrust eval reports run the task across all data and surface improvements/regressions per PR — visualize whether a prompt change flipped tiles red→blue, and crucially whether it fixed one region while breaking another.
-- **Run on a schedule:** the v0 team runs evals "every day at least" to catch regressions; a Q&A point raised running the same question N times (e.g. 4/5, 5/5) as a reliability percentage, especially for harder (farther) questions.
-- **Payoff framing:** good evals → better reliability/quality, higher conversion and retention, and less time on support/ops.
+## 要点
+- 示例应用 Fruit Letter Counter 在测试中两次都把 strawberry 中的 R 数为三个，上线后却向用户回答两个，展示了手工抽查无法消除非确定性。
+- AI 应用很“会演示”，向同事展示时漂亮，生产中幻觉才暴露；这不同于普通软件。
+- 应用 95% 的部分可能一直正常且可由传统测试覆盖，关键约 5% 的 LLM 行为却是传统测试抓不到的失败点。
+- 生产用户会提出开发者无法预想的多水果复合查询。
+- 篮球场模型中，数据是场上一点，离篮筐越远表示越难，边界代表领域；蓝点是命中、红点是失误，界外命中也不计分。
+- 按 Braintrust 术语，评测 = 数据 + 任务 + 分数：数据是位置，任务是投篮方式或受测代码路径，分数判断是否命中。
+- **理解球场最重要。** 不要评测用户不关心的界外问题，也不要让样本集中在一个区域；应覆盖全场和边界。
+- 数据来源包括点赞/点踩、每周阅读约 100 条随机日志、社区论坛和 X/Twitter。信号可能有噪声，但没有捷径。
+- **常量放数据，变量放任务。** 用户问题属于数据；会迭代的系统提示、预处理和 RAG 属于任务，因此更改提示无需重建数据集。
+- 评测与生产应共用代码。建议用 AI SDK **中间件**承载预处理、RAG 和系统提示逻辑，使练习尽量接近真实比赛。
+- 评分倾向确定性通过/失败。复杂分数难调试、难跨团队解释；应问“看到什么就说明失败”。v0 的标准是“代码是否无法运行”。无法编码的信号可人工审核，长期值得投入。
+- 可仅在评测提示中添加“把最终答案放入指定标签”等要求，以方便字符串匹配，即使生产中不这样做。
+- 在 CI 中运行 Braintrust 报告，按 PR 显示改进与回归，观察某区域由红变蓝时是否破坏另一处。v0 至少每天运行评测。
+- 对较难问题可重复 N 次，用 4/5、5/5 等比例衡量可靠性。好评测最终提升可靠性、转化、留存，并减少支持与运维成本。
 
-## Verified quotes
-- "by nature, LMS can be very unreliable. And this principle scales from a small letter counting app all the way to the biggest AI apps in the world." [02:44]
-- "an interesting thing if you think about it is 95% of our app works 100% of the time. We can have unit tests for every single function... but it's that most crucial 5% that can fail on us." [04:16]
-- "To make good evals, you must understand your court. This is the most important step." [06:13]
-- "you want to put constants in data, variables in the task. So just like in math or programming, you want to factor constants so it improves clarity, reuse, and generalizations." [09:17]
-- "you want your practice to be as similar as possible to the real game. That's what makes a good practice. So you want to share pretty much the exact same code between evals and what you're actually running." [10:30]
-- "improvement without measurement is limited and imprecise. And evals give you the clarity you need to systematically improve your app." [13:39]
+## 已核验引述（中文翻译）
+- “LLM 天生可能非常不可靠，这条原则从一个数水果字母的小应用，一直适用于世界上最大的 AI 应用。”[02:44]
+- “有趣的是，我们应用 95% 的部分 100% 时间都正常……但会失败的正是最关键的 5%。”[04:16]
+- “要做好评测，你必须理解自己的球场。这是最重要的一步。”[06:13]
+- “常量应放在数据里，变量放在任务里。就像数学或编程中提取常量一样，这能提升清晰度、复用性和泛化。”[09:17]
+- “练习应尽可能接近真实比赛……评测与实际运行应共用几乎完全相同的代码。”[10:30]
+- “没有测量，改进既有限又不精确。评测为系统性改进应用提供了所需的清晰度。”[13:39]
 
-*Note: lines are auto-captioned. I lightly corrected obvious ASR errors (e.g. "Verscell"→Vercel, "Vzero"→v0, "ChachiBT"→ChatGPT, "evout"→evals are not changed inside quotes; the quoted "LMS" is left as in the transcript). Wording is otherwise faithful.*
+（来源为自动字幕，明显的专名识别错误已校正。）
 
-## What it adds
-- **A genuinely useful pedagogical model**: the basketball-court visualization (difficulty = distance, domain = boundaries, red/blue tiles) is a memorable, talk-specific way to reason about *test coverage of an input distribution* — something canonical written guides describe abstractly. The "out-of-bounds trap" and "concentrated points trap" are concrete coverage anti-patterns most write-ups don't name.
-- **The "constants in data, variables in the task" factoring rule** is a crisp, practical insight: it decouples your dataset from your system-prompt/RAG iteration so you don't rebuild datasets every time you change the harness — a workflow point rarely stated this explicitly.
-- **Concrete tooling specifics from a high-volume production app (v0, 100M+ messages):** the Braintrust data/task/score vocabulary, AI SDK middleware as the shared abstraction between eval and prod, eval-in-CI regression reports, and "run daily." This grounds the advice in a real shipping system rather than theory.
-- **The eval-time prompt-tweak hack** (adding answer tags only for scoring) is a tactical detail that's easy to miss and rarely written down.
-- Caveat for a curated base: this is an *intro* talk at the application layer. It does not cover LLM-as-judge rubrics in depth, agent/multi-step trajectory evals, RL environments, or statistical rigor (sample sizes, confidence intervals) — the N-times reliability idea only surfaces briefly in Q&A.
+## 独特价值
+篮球场把输入分布覆盖具象为难度、领域边界和红蓝落点，并明确命名“界外陷阱”和“样本集中陷阱”。“常量放数据、变量放任务”使数据集与系统提示/RAG 迭代解耦。演讲还给出来自 v0 大规模生产的具体做法：Braintrust 的三元术语、AI SDK 中间件、CI 回归报告和每日运行；仅在评测时加入答案标签也是易忽略的实用技巧。局限是它属于应用入门演讲，未深入裁判量规、多步轨迹、强化学习环境或统计严谨性。
 
-## Themes
-1 why-evals · 4 observability · 5 eval infra · 6 benchmark-vs-eval · 8 judge/verifiers · 9 agent-specific
+## 主题
+1 为何评测 · 4 可观测性 · 5 评测基础设施 · 6 基准与评测 · 8 裁判/验证器 · 9 智能体专项

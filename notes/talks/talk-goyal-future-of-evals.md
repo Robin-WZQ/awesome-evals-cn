@@ -1,35 +1,35 @@
-# Notes — "The Future of Evals"
-**Speaker/Guest:** Ankur Goyal (Braintrust) · **Venue:** AI Engineer 2025 · **Type:** talk · **URL:** https://www.youtube.com/watch?v=MC55hdWLq4o
+# 笔记——《评测的未来》
+**演讲者/嘉宾：** Ankur Goyal（Braintrust） · **场合：** AI Engineer 2025 · **类型：** 演讲 · **URL：** https://www.youtube.com/watch?v=MC55hdWLq4o
 
-## Summary (3-6 sentences — what it argues, why it matters for agent evals)
-This is a short (~5 minute) product-launch talk in which Goyal argues that the *practice* of running evals, while now critical to building the best AI products, is still painfully manual: you stare at a dashboard and then hand-edit prompts, data sets, and scorers. His thesis is that this is about to be automated. Braintrust is launching "Loop," an agent built into the product that automatically optimizes the three pillars of an eval — prompts, data sets, and scorers — and he frames this as only newly possible because frontier models have just gotten good enough at eval-improvement tasks (he cites Claude 4 as a ~6x breakthrough over the prior leading model). For agent evals, the key claim is recursive: evals are themselves becoming an agent-driven optimization loop, and the quality of an eval is the *combination* of good prompts, good data, and good scorers, not any one alone. The talk is mostly product demo and a hiring pitch, light on hard methodology.
+## 摘要
+这是一场约 5 分钟的产品发布演讲。Goyal 指出，评测已成为打造优秀 AI 产品的关键，但实践仍十分手工：人们盯着仪表盘，再逐项修改提示、数据集和评分器。他认为这一流程即将被自动化。Braintrust 发布了内置智能体 **Loop**，可自动优化评测的三大支柱——提示、数据集与评分器；这种能力直到前沿模型近期才足够成熟，他称 Claude 4 在评测改进任务上较此前领先模型实现了约 6 倍跃升。对智能体评测而言，核心观点具有递归性：评测本身正成为由智能体驱动的优化循环，评测质量取决于三大支柱的组合，而非其中任何单项。演讲以产品演示和招聘宣传为主，严谨方法论较少。
 
-## Key points (6-14 substantive bullets)
-- Adoption data from Braintrust's customer base: the average org that signs up runs **almost 13 evals/day**; some customers run **more than 3,000 evals/day**; the most advanced teams spend **more than two hours/day** working in the product on their evals.
-- The core pain Goyal names: even with a good dashboard, the eval workflow ends with a human looking at it and deciding "what changes can I make to my code or prompts so this eval does better" — the improvement step is entirely manual.
-- **Loop** is an agent built into Braintrust that automatically optimizes prompts — from a single prompt up through "very complex agents" — and, importantly, also helps build better **data sets** and better **scorers**.
-- Explicit framing that great evals are the *combination of three things*: prompts + data sets + scorers. Loop targets all three, not just prompt optimization.
-- Loop exists only because of a measured capability jump: every quarter for two years Braintrust ran evals on frontier models testing how well they improve prompts, data sets, and scorers — and "until very, very recently they actually weren't very good."
-- **Claude 4** is called out as the breakthrough moment, performing "almost six times better than the previous leading model before it" at these eval-improvement tasks.
-- Availability: shipping behind a **feature flag** ("Loop") that existing or new Braintrust users can flip on immediately.
-- Model-agnostic: defaults to Claude 4 but you can point Loop at any model you have access to — OpenAI, Gemini, or your own custom LLMs.
-- Human-in-the-loop UX is deliberate: a lesson from users was how important it is to *look at the data and prompts* while working, so every suggested edit (to data, to a scoring idea, or to a prompt) is shown **side-by-side** in the UI before acceptance.
-- For "the more adventurous," a **"just go for it"** autonomous toggle lets Loop optimize end-to-end without per-edit review — which Goyal says "actually works really well."
-- Forward claim: over the next year evals "are going to be completely revolutionized" by frontier-model capability, shifting eval work from manual dashboard-staring to agent-driven optimization.
+## 要点
+- Braintrust 客户数据显示：注册组织平均每天运行近 **13 次评测**；部分客户每天超过 **3,000 次**；最先进团队每天花在产品内评测上的时间超过 **2 小时**。
+- 即便已有良好仪表盘，最终仍需人来判断如何修改代码或提示以提高结果，改进步骤完全依赖手工。
+- Braintrust 内置智能体 **Loop** 可从单条提示到“非常复杂的智能体”自动优化提示，也协助构建更好的**数据集**和**评分器**。
+- 优秀评测由提示、数据集和评分器共同构成，Loop 同时优化三者，而不仅是提示。
+- Braintrust 连续两年按季度测试前沿模型改进提示、数据集和评分器的能力；直到最近，这些模型仍表现不佳。
+- **Claude 4** 被视为突破点，在这些评测改进任务上的表现“几乎是此前领先模型的六倍”。
+- Loop 通过名为 **Loop** 的功能开关发布，新老用户均可立即启用。
+- 它默认使用 Claude 4，但可接入用户有权访问的 OpenAI、Gemini 或自定义 LLM。
+- 产品有意保留人在环路：每项数据、评分思路或提示修改都会在界面中并排展示，用户确认后才采用。
+- 愿意尝试更高自治度的用户可开启 **“直接执行”** 开关，让 Loop 无需逐项审核即可端到端优化；Goyal 称其效果很好。
+- 他预测未来一年，前沿模型能力将彻底改变评测，使工作从人工查看仪表盘转为智能体驱动优化。
 
-## Verified quotes (verbatim, with timestamps)
-- "The average org that signs up for Brain Trust runs almost 13 EVELs a day. Some of our customers run more than 3,000 EVELs a day." [01:00] *(ASR renders "evals" as "EVELs"; otherwise verbatim.)*
-- "the best thing you can do is look at a dashboard ... and you walk away and think okay what changes can I make to my code or to my prompts so that this eval does better." [01:40]
-- "Every quarter for the last two years, we've run evals on the frontier models to see how good they are at actually improving prompts, improving data sets, and improving scorers. And until very, very recently, they actually weren't very good." [02:11]
-- "we think that Claude 4 in particular was a real breakthrough moment ... it performs almost six times better than the the previous leading model before it." [02:28]
-- "it also helps you build better data sets and better scorers because it's really the combination of these three things that make for really great evals." [02:49]
-- "there's also a toggle that you can turn on that says like just go for it and it will go and optimize away. Um, which actually works really well." [03:58]
+## 已核验引述（中文翻译）
+- “注册 Braintrust 的组织平均每天运行近 13 次评测。有些客户每天运行超过 3,000 次评测。”[01:00]（自动语音识别将 evals 误写为 “EVELs”。）
+- “你能做的最好事情就是看仪表盘……然后离开时思考，我能怎样修改代码或提示，让这项评测表现得更好。”[01:40]
+- “过去两年里，我们每季度都会评测前沿模型，看它们在改进提示、数据集和评分器方面有多好。而直到最近，它们其实都不太行。”[02:11]
+- “我们认为 Claude 4 尤其是一个真正的突破点……它的表现几乎是此前领先模型的六倍。”[02:28]
+- “它也会帮助你构建更好的数据集和评分器，因为真正优秀的评测来自这三者的组合。”[02:49]
+- “还有一个开关，你可以把它设成类似‘直接执行’，它就会自行持续优化。嗯，实际上效果很好。”[03:58]
 
-## What it adds (non-obvious, talk-specific value vs canonical written sources)
-- **Concrete usage telemetry** rarely published elsewhere: 13 evals/day median, 3,000/day at the high end, 2+ hours/day of hands-on eval work — useful priors for how heavy real-world eval workflows actually are.
-- A **dated capability signal** for the "can a model improve evals?" question: Braintrust ran a quarterly internal benchmark for two years and reports Claude 4 as a discrete ~6x step-change. This is a rare longitudinal, vendor-measured data point on meta-eval (models optimizing evals), even if the exact benchmark is undisclosed.
-- The **three-pillar framing** (prompts + data sets + scorers must improve together) reframes "eval optimization" away from prompt-tuning alone — the data set and the scorer/judge are co-equal optimization targets.
-- A practical product stance that the **human-review-vs-autonomy tradeoff** is a toggle, not a fixed mode — side-by-side diff review by default, full autonomy opt-in — which is a concrete pattern for self-improving eval loops.
+## 独特价值
+- 提供罕见的具体使用数据：平均每天 13 次、高端客户每天 3,000 次、先进团队每天投入两小时以上，可用于估计真实评测工作负荷。
+- 给出关于“模型能否改进评测”的时间性能力信号：Braintrust 持续两年的季度内部基准显示 Claude 4 出现约 6 倍跃升。尽管基准细节未公开，这仍是少见的纵向元评测数据。
+- “提示 + 数据集 + 评分器”三支柱框架表明，评测优化不能等同于提示调优，数据与评判机制同样是优化对象。
+- 将人工审核与自治设为可切换模式：默认并排审阅差异，可选择完全自治，为自我改进评测循环提供了具体产品范式。
 
-## Themes
-5 eval infra · 1 why-evals · 2 eval⇄capability⇄RL-env · 9 agent-specific · 8 judge/verifiers
+## 主题
+5 评测基础设施 · 1 为何评测 · 2 评测⇄能力⇄强化学习环境 · 9 智能体专项 · 8 裁判/验证器

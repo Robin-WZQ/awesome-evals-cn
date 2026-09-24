@@ -1,35 +1,35 @@
-# Notes — "3 Key Ideas in AI in 2025 (Verifier's Law)"
-**Speaker/Guest:** Jason Wei (OpenAI) · **Venue:** Stanford AI Club 2025 · **Type:** talk · **URL:** https://www.youtube.com/watch?v=b6Doq2fz81U
+# 笔记——《2025 年 AI 的三个关键思想（验证器定律）》
+**演讲者/嘉宾：** Jason Wei（OpenAI） · **场合：** Stanford AI Club 2025 · **类型：** 演讲 · **URL：** https://www.youtube.com/watch?v=b6Doq2fz81U
 
-## Summary
-Wei lays out three frames for understanding AI in 2025, the middle of which — **Verifier's Law** — is the load-bearing idea for anyone building evals. The claim: the ability to *train* AI on a task is roughly proportional to how *easily verifiable* that task is, which means measurement is not downstream of capability but a *driving factor* of it. He decomposes verifiability into five concrete properties (objective truth, speed, scalability of checking, low noise, continuous reward), and shows that "any benchmark can be rapidly solved once it provides a clear reward signal." For eval builders this reframes the job: a good eval is simultaneously a candidate RL environment, and the act of designing a verifiable metric *is* the act of unlocking a capability. The talk also supplies a practical taxonomy (the asymmetry-of-verification plane, and a digital/easy-for-humans/data-abundant heuristic) for predicting which tasks evals will and won't be able to drive progress on.
+## 摘要
+Wei 提出理解 2025 年 AI 的三种框架，其中最关乎评测的是**验证器定律**：AI 学会一项任务的能力，大致与该任务被轻松验证的程度成正比。这意味着测量不是能力形成后的下游步骤，而是驱动能力发展的因素。他把可验证性拆为客观真值、验证速度、规模化检查、低噪声和连续奖励五项，并指出一旦有明确奖励信号，任何基准都可被迅速攻克。对评测构建者而言，优秀评测同时是候选强化学习环境；设计可验证指标本身就是解锁能力。他还通过验证不对称平面，以及“数字化、对人类简单、数据丰富”的启发式，预测评测在哪些任务上能推动进展。
 
-## Key points
-- **Verifier's Law:** "the ability to train AI to solve a task is proportional to how easily verifiable the task is." Corollary: any solvable, easily-verifiable task will eventually be conquered by AI. This makes eval/benchmark design upstream of capability, not a scoreboard after the fact.
-- **Five-factor decomposition of verifiability** — the actionable checklist for whether a task is RL/eval-friendly: (1) is there an *objective truth* about good vs bad responses; (2) how *fast* is it to verify; (3) is it *scalable* — can you check ~a million proposed responses at once; (4) is it *low noise*; (5) does it give *continuous reward* (full spectrum of quality) vs only pass/fail.
-- **Asymmetry of verification:** for many tasks verifying a solution is far easier than producing it (Sudoku, "code to run Twitter"). But the asymmetry runs *both ways* — a factual essay or "best diet" is easy to generate and brutally hard to verify. He plots tasks on a 2D plane: x = ease of generation, y = ease of verification.
-- **You can move a task on the verification plane with privileged information.** Giving an answer key makes competition math trivially checkable; giving test cases (as in SWE-bench) makes code trivially checkable. "Do some work beforehand and increase the asymmetry of verification" — directly relevant to how you construct an eval harness.
-- **Benchmarks are by definition easy to verify**, which is why essentially every benchmark the field cared about over the past ~5 years got solved relatively quickly — a clean instantiation of Verifier's Law.
-- **BrowseComp** (OpenAI's "browsing competition" benchmark): questions whose answers are easy to verify but take a long time to find. Many questions took humans >2 hours and a large fraction were unsolved by humans within two hours; OpenAI's deep research model solves ~half.
-- **War story on the verify-easy / find-hard gap:** "how many couples got married in Busan in 1983" — o3 *could not* do it, but OpenAI Operator could, because it had to navigate the KOSIS database and click through until it hit the exact correct query. Illustrates harness/tool access mattering more than raw model.
-- **AlphaEvolve (DeepMind)** as the canonical "leverage asymmetry of verification" success: sample many candidate solutions from an LLM, grade them (possible by task definition), feed the best back in as inspiration, iterate with lots of compute. The hexagon-packing example satisfies all five verifiability criteria (objective, scalable, low-noise, continuous reward).
-- **The AlphaEvolve trick — collapse train and test:** for most of deep learning we cared about generalization (unseen example or unseen task), but here train == test — you only want the answer to *one specific problem*, which sidesteps generalization issues. You must pick problems where a better-than-known answer is attainable.
-- **"Building ways to measure things" is a startup-shaped opportunity:** one of the nascent growth areas is "coming up with ways to measure things that can then be optimized by AI." Eval infra as a business thesis.
-- **Jagged edge of intelligence:** self-improvement / capability rate must be reasoned about *per task*, not as a single scalar — peaks (hard math, competition coding) next to valleys (9.11 > 9.9 errors, speaking a rare language). This argues against a single benchmark number standing in for "intelligence."
-- **Three predictive heuristics for where evals can drive progress:** AI improves fastest on tasks that are (1) **digital** (iteration speed / cheap compute scaling vs robots), (2) **easy for humans**, and (3) **data-abundant**. Math performance scales cleanly with how much data a language has.
-- **The RL escape hatch from the data-abundance rule:** if you have a single objective metric, you can generate synthetic data via RL (AlphaEvolve / AlphaZero style) — quoting Danny Zhou: any benchmark can be rapidly solved given a clear evaluation metric usable as a reward signal.
-- **Capability-timing table** built purely from those heuristics (his own admittedly made-up dates): competition math done 2024; conducting AI research ~2027 (hard, digital, but data not easy to create); making a movie ~2029; hairdressing / carpet-making / "taking a girlfriend on a date she's happy with" — not digital, no data, won't happen soon.
+## 要点
+- **验证器定律：** “训练 AI 解决任务的能力与任务的易验证程度成正比。”推论是，任何可解且易验证的任务最终都会被 AI 攻克。评测设计位于能力上游，而非事后记分牌。
+- **可验证性的五项检查：** 是否有客观好坏真值；验证多快；能否同时检查约百万份回答；噪声是否低；奖励能否覆盖完整质量谱，而不仅是通过/失败。
+- **验证不对称：** 数独、编写可运行 Twitter 的代码等任务，验证远易于生成；事实性文章或“最佳饮食”则易生成、难验证。可在横轴“生成难度”、纵轴“验证难度”的平面上定位任务。
+- **特权信息可移动任务位置。** 答案表让竞赛数学易检查，SWE-bench 测试用例让代码易检查。预先投入工作可扩大验证不对称，直接改变评测运行框架。
+- 基准按定义必须易验证，因此过去约五年中领域重视的几乎每个基准都很快被解决。
+- **BrowseComp** 的问题有了答案后易验证，却很难查找。许多题人类需两小时以上，大量题在人类两小时内仍未解决；OpenAI deep research 模型约解决一半。
+- 例题“1983 年釜山有多少对夫妇结婚”：o3 无法完成，OpenAI Operator 通过浏览 KOSIS 数据库并逐步点击找到精确查询。运行框架和工具访问可能比原始模型更关键。
+- **AlphaEvolve** 是利用验证不对称的典型：LLM 采样许多候选，用任务定义评分，把最佳解反馈为灵感并以大量算力迭代。六边形装填同时满足客观、可扩展、低噪声和连续奖励等条件。
+- **AlphaEvolve 的关键是训练集与测试集重合。** 目标只是一道具体问题的答案，不要求对新样本或新任务泛化；前提是该问题存在比已知答案更好的可达解。
+- “构建测量方法”是一种创业机会：找到可由 AI 进一步优化的测量方式，将成为增长领域。
+- **智能的锯齿边缘：** 能力与自我改进速度必须按任务判断，竞赛数学和编程的峰旁边可能是 9.11 与 9.9 比较错误、稀有语言等谷。单一分数不能代表“智能”。
+- 评测最易推动三类任务：**数字化**、**对人类容易**、**数据丰富**。数学表现与对应语言的数据量存在清晰关系。
+- 若存在单一客观指标，可用强化学习生成合成数据，从而绕开数据稀缺；Wei 引用 Danny Zhou：只要有可作训练奖励的清晰指标，任何基准都能迅速解决。
+- 他基于启发式给出自认虚构的时间表：竞赛数学 2024 年完成；AI 研究约 2027；制作电影约 2029；理发、织地毯、让约会对象满意等非数字且缺数据的任务不会很快实现。
 
-## Verified quotes
-- "the ability to train AI to solve a task is uh basically proportional to how easily verifiable the task is. Um and the implication is any solvable easily verifiable task will eventually be conquered by AI." [13:49]
-- "do you differentiate only between passing and non-passing or do you give like the entire spectrum of response quality?" [14:37]
-- "there are certain tasks where you can do some work beforehand and increase um the asymmetry of verification." [13:30]
-- "it's a bunch of questions where uh once you have the answer, it's like easy to verify the answer, but it actually take a pretty long time to try to solve one of these problems." [07:23] *(on BrowseComp)*
-- "Any benchmark can be rapidly solved as long as the task provides a clear evaluation metric that can be used as a reward signal during [training]." [25:44] *(Wei quoting Danny Zhou; ASR rendered "fighting" — corrected to "training")*
-- "one of the sort of [nascent] you know areas like if you want to make a company or I think that is going to grow is like coming up with ways to measure things that then can then be optimized by AI." [18:37] *(ASR "nent" → "nascent")*
+## 已核验引述（中文翻译）
+- “训练 AI 解决一项任务的能力，基本与该任务有多容易验证成正比。其推论是，任何可解且易验证的任务最终都会被 AI 征服。”[13:49]
+- “你是只区分通过与未通过，还是给出覆盖回答质量的完整谱系？”[14:37]
+- “对某些任务，可以预先做一些工作，扩大验证的不对称性。”[13:30]
+- “这是一组一旦得到答案就很容易验证，但实际求解要花很久的问题。”[07:23]（谈 BrowseComp。）
+- “只要任务提供可在训练期间作为奖励信号的清晰评估指标，任何基准都可以被迅速解决。”[25:44]（Wei 引用 Danny Zhou；修正自动字幕误识别。）
+- “如果你想创业，我认为一个刚萌芽且会增长的领域，就是构建测量事物的方法，然后让 AI 对其进行优化。”[18:37]
 
-## What it adds
-The canonical written source here is Wei's own "Asymmetry of verification and verifier's law" essay; this talk adds three things on top of it. First, the **five-factor verifiability checklist stated as an operational rubric** — objective truth, speed, scalability-of-checking, low noise, continuous reward — which is directly usable as a design review for any proposed eval/RL environment. Second, the **concrete eval war-stories with numbers**: BrowseComp's >2-hour human questions and the deep-research ~50% solve rate, and the o3-fails-but-Operator-succeeds Busan example, which ground the abstract "verify-easy / find-hard" quadrant in a real harness-vs-model distinction. Third, the **train==test reframing of AlphaEvolve** and the explicit "privileged information moves a task on the verification plane" move (answer keys, SWE-bench test cases) — practical levers for *manufacturing* verifiability rather than waiting for it. The jagged-edge framing is also a useful caution for eval consumers: a single benchmark score is a peak/valley artifact, not a scalar measure of intelligence.
+## 独特价值
+相较 Wei 的书面文章，演讲提供了可直接审查评测或强化学习环境的五项量规：客观真值、速度、检查规模、低噪声和连续奖励。BrowseComp 两小时以上的人类问题、deep research 约 50% 解题率，以及 o3 失败而 Operator 成功的釜山案例，将“易验证/难查找”落到运行框架与模型区别上。AlphaEvolve 的训练集=测试集框架，以及用答案表和测试用例等特权信息主动制造可验证性，都是可操作杠杆。锯齿边缘也提醒评测使用者：单一基准分数只是局部峰谷，而非标量智能。
 
-## Themes
-1 why-evals · 2 eval⇄capability⇄RL-env · 6 benchmark-vs-eval · 7 RL environments · 8 judge/verifiers · 9 agent-specific
+## 主题
+1 为何评测 · 2 评测⇄能力⇄强化学习环境 · 6 基准与评测 · 7 强化学习环境 · 8 裁判/验证器 · 9 智能体专项

@@ -1,39 +1,31 @@
-# Notes — "Failure is a Funnel"
-**Speaker/Guest:** Bryan Bischof · **Venue:** Data Council 2025 · **Type:** talk · **URL:** https://www.youtube.com/watch?v=k98gDjYbSaU
+# 笔记——《失败是一只漏斗》
+**演讲者/嘉宾：** Bryan Bischof · **场合：** Data Council 2025 · **类型：** 演讲 · **URL：** https://www.youtube.com/watch?v=k98gDjYbSaU
 
-## Summary (3-6 sentences — what it argues, why it matters for agent evals)
-Bischof argues that a single end-to-end "did the agent do the job?" pass/fail eval is necessary but radically insufficient for agentic systems, because capabilities are *sequences of dependent steps* and an early failure censors your ability to observe everything downstream. He stages the entire talk as a deliberately botched live coffee-brewing demo — a "coffee agent" that fails at the funnel, the filter, the grind, the temperature, and the ratio — to make visceral the point that you never even get to evaluate the pour if you fluffed the funnel. The core prescription: decompose a capability into as many meaningful, *dependent* steps as possible (each step masking/censoring the next), then evaluate each stage as a **funnel** so you can see *where* performance falls off, not just *that* it did. He grounds this in eval history (Codex's pass@k and execution evaluation, BLEU's failure, state-machine and checkpoint papers) and shows real Hex tooling — funnel charts, flux charts, and color-coded transition matrices — for diagnosing model upgrades (e.g., a natural-language-to-SQL pipeline). The payoff for agent evals: funnel decomposition turns "the new model is better" into a causal, prescriptive diagnosis of *which* sub-capability improved and where to invest next.
+## 摘要
+Bischof 指出，端到端“智能体是否完成任务”的通过/失败评测虽必要，却远远不够，因为能力由相互依赖的步骤组成，上游失败会遮蔽所有下游观测。他用一场故意失败的现场煮咖啡演示说明：漏斗、滤纸、研磨、温度和比例依次出错，尚未倒水便无法评价冲泡。方法是把能力拆成尽可能多且有意义的依赖步骤，以**漏斗**评测每一层，观察性能在哪里流失。他结合 Codex pass@k、执行评测、状态机和检查点论文，并展示 Hex 的漏斗图、流量图与转移矩阵。这样，“新模型更好”可被转成具体的因果诊断。
 
-## Key points (6-14 substantive bullets)
-- **What great evals actually do: "they tell you which of your assumptions are false."** Not just "did it succeed" — the value is surfacing the hidden assumptions (output format, that the model knows who Monty Python is, etc.) you must validate before the end-to-end result is even meaningful.
-- **The "line in red" trap:** everyone obsesses over the single final eval — "did the AI succeed in the job the user hired it to do?" That question is right but misses that a stack of prior assumptions must hold first, or you "have no chance of providing any value."
-- **Failure is a funnel because steps are causally dependent and *censor* downstream observation.** In the demo he never got to mess up the pour because he'd already failed at the funnel; he never learned the user's desired coffee ratio because he failed too early. Early failures hide later ones.
-- **Core method:** "decompose your capability into as many meaningful steps as possible, each masking the following steps." The censoring is intentional — it's what lets you attribute cause.
-- **Worked example — natural-language-to-SQL** (his prior job; "the hello world for applied LLM stuff"). Instead of one binary "did it tell me the right number?", evaluate a dependent chain: (1) syntactically valid query? (2) executes without errors? (3) relevant results — queries the right tables? (4) matches user intent (does it think about ARR the way the business does)? (5) does it actually solve the problem with business caveats?
-- **Steps 1 and 2 are not the same** — a query can be syntactically valid but still fail to execute (e.g., selecting columns it doesn't have). SQL *flavor* matters too — Snowflake "loves to generate things that are not allowed in Snowflake."
-- **Eval history shows this was always latent.** The Codex paper introduced **pass@k** and **execution evaluation** (run the output, does it yield the result?) precisely because **BLEU scores didn't predict outcomes**; that paper already hinted that as the number of chained components grows, likelihood of success drops.
-- **Model A-vs-B bake-offs are statistically shaky.** A two-tailed t-test on eval results is "absurd" / "ineffectual" unless you have hundreds of thousands of evaluations to sample from — you rarely do. Same caution applies to comparing new prompts.
-- **The lineage of the funnel idea:** pass@k → **state-machine** evals (transitions like "no docs" → "retrieved docs" → "correct summary," with causal dependency) → recent **checkpoint** papers (tasks split into intermediate-milestone checkpoints, each worth points). He cites a checkpoint paper released "this month" (attributes it to "Gaysorn Tie" per ASR).
-- **Vendor warning:** eval frameworks "have a lot to sell" and oversimplify — e.g., pushing the agents-vs-workflows trade-off toward the workflow end and only giving you tools that fit that paradigm. They're "not necessarily telling you the truth."
-- **Real Hex tooling — three visualizations:** (a) **funnel charts** to see at which pipeline stage examples fall off; (b) **flux charts** to see where examples *move* between stages after a change; (c) **color-coded transition matrices** (green=good, red=bad) to put your hands on every individual example and see exactly what a pipeline change did.
-- **Concrete upgrade story (GPT-4.1 eval on the SQL pipeline):** overall went "from 54 to 93" (nearly doubled). But the funnel revealed the gain came specifically at **table selection** — the new model wasn't just writing better queries, it was selecting the right table, which then *uncensored* downstream examples and yielded more correct data. The "how/where did it improve" matters as much as "it improved."
-- **Observation → operation:** funnel + flux + transition-matrix diagnosis is "prescriptive about where to go next" — it bridges the data-scientist's perennial gap between observing and acting.
-- **Hiring takeaway:** SWE vs MLE background doesn't matter much for an "AI engineer"; **data intuition** is the "really, really valuable and crucial piece."
+## 要点
+- 优秀评测用于揭示哪些假设是错的，而不只是判断成功；输出格式、知识前提等均须在端到端结果前验证。
+- **失败形成漏斗：** 步骤有因果依赖，上游失败会审查性地遮蔽下游；未通过咖啡漏斗阶段，就无法知道冲泡比例是否正确。
+- 核心方法是把能力拆为尽可能多的有意义步骤，每一步都遮蔽后续，以便归因。
+- 自然语言转 SQL 可拆为：语法有效→可执行→查询正确表→符合业务口径→真正解决问题并考虑业务限制。语法有效不等于可执行，数据库方言也会导致失败。
+- Codex 引入 pass@k 和执行评测，是因为 BLEU 无法预测结果；组件越多，链式成功率越低。随后出现状态机评测和按中间里程碑给分的检查点评测。
+- 在样本不足数十万时，用双尾 t 检验比较模型或提示往往很不可靠。
+- 评测供应商可能把复杂问题简化为适合其产品的工作流，不一定反映真相。
+- Hex 使用漏斗图看样本在哪阶段掉落，流量图看变更后如何迁移，红绿转移矩阵逐例检查变化。
+- GPT-4.1 使 SQL 流水线总分从 54 升至 93；漏斗显示关键提升在**选表**，它释放了后续样本并带来更多正确数据。
+- 这些诊断能从观察直接导向下一步行动。招聘 AI 工程师时，SWE 或 MLE 背景不如数据直觉重要。
 
-## Verified quotes (verbatim, with [mm:ss])
-- "They tell you which of your assumptions are false. That's what actual evals are for." [11:22]
-- "Before we can even assess that, there are a bunch of assumptions that if we don't validate, we have no chance of providing any value." [12:22]
-- "I never had a chance to observe the failures downstream of that first upstream failure." [07:39] *(lightly cleaned: ASR repeats "One of the things that I…" before this line)*
-- "So, the way I think about this is you decompose your capability into as many meaningful steps as possible, each masking the following steps." [20:21]
-- "It almost doubled performance. It went from 54 to 93. … But I also want to know how? How did it improve it? Where did it improve it?" [21:08] *(ASR redacted an expletive between "Holy" and "it"; numbers and phrasing kept verbatim)*
-- "Pass@K was introduced specifically because the old way of thinking about evaluation for LLMs didn't work. So, BLEU scores didn't work." [13:33]
+## 已核验引述（中文翻译）
+- “评测会告诉你哪些假设是错的。这才是评测真正的用途。”[11:22]
+- “在评估最终结果前，还有一系列假设必须验证，否则我们根本不可能提供价值。”[12:22]
+- “我从未有机会观察第一次上游失败之后的下游故障。”[07:39]
+- “把能力拆成尽可能多的有意义步骤，每一步都遮蔽后续步骤。”[20:21]
+- “性能几乎翻倍，从 54 到 93……但我也想知道它怎样、在哪里改进。”[21:08]
+- “引入 Pass@K，正是因为旧的 LLM 评估方式无效，BLEU 分数不起作用。”[13:33]
 
-## What it adds (non-obvious, talk-specific value vs the canonical written sources)
-- **The censoring/masking framing is the sharp idea.** Most eval writing (e.g., Hamel Husain's error-analysis, "look at your data") tells you to inspect failures; Bischof adds the structural insight that in a *dependent* pipeline, early failures *prevent you from even observing* later ones — so flat per-example pass/fail systematically under-reports where capability is missing. Designing steps so each deliberately masks the next is the counterintuitive move.
-- **Funnel / flux / transition-matrix as the native visual grammar for agent evals.** He reframes classic data-analytics funnel-analysis (conversion drop-off) onto eval pipelines — a concrete, reusable visualization vocabulary that the canonical eval literature doesn't emphasize.
-- **A clean intellectual lineage** (Codex pass@k + execution eval → state-machine evals → checkpoint papers) that positions step-wise/funnel evaluation as the natural endpoint of where the field was already heading, not a one-off trick.
-- **The model-upgrade diagnosis pattern** (54→93 driven specifically by table selection, which uncensors downstream) is a memorable, transferable example of using funnels to answer *how/where* a model improved rather than just *whether*.
-- **Healthy skepticism of eval vendors** and of naive A/B significance testing (t-tests need hundreds of thousands of samples) — practitioner cautions rarely stated so bluntly.
+## 独特价值
+“遮蔽/审查”是关键洞见：依赖流水线中的早期失败使后续能力不可见，平坦端到端分数会系统性漏报缺口。漏斗、流量和转移矩阵构成智能体评测的原生视觉语法；54→93 由选表提升驱动的案例说明，评测应解释改进发生在哪里，而不只是是否改进。
 
-## Themes
-1 why-evals · 6 benchmark-vs-eval · 9 agent-specific · 4 observability · 8 judge/verifiers
+## 主题
+1 为何评测 · 6 基准与评测 · 9 智能体专项 · 4 可观测性 · 8 裁判/验证器

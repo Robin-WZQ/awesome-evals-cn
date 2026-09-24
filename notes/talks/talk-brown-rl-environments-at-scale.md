@@ -1,33 +1,33 @@
-# Notes — "RL Environments at Scale"
-**Speaker/Guest:** Will Brown (Prime Intellect) · **Venue:** AI Engineer 2025 · **Type:** talk · **URL:** https://www.youtube.com/watch?v=_IzZWeuTx7I
+# 笔记——《规模化强化学习环境》
+**演讲者/嘉宾：** Will Brown（Prime Intellect） · **场合：** AI Engineer 2025 · **类型：** 演讲 · **URL：** https://www.youtube.com/watch?v=_IzZWeuTx7I
 
-## Summary
-Brown argues that an RL environment, an eval, a synthetic-data engine, and a deployed agent are all the *same object*: a harness plus a collection of tasks plus rewards. The talk's real thesis (the "at scale" title is a deliberate red herring) is scaling the *number of people* who can do AI research, not GPUs — by making environment-building the accessible entry point. For agent evals specifically, his sharpest claim is that an agent *environment* differs from an agent *harness* precisely by forcing predefined tasks and rewards: you can no longer vibe-check it, you have "a proper eval." He frames the eval you have to build anyway as a free option on prompt-tuning, model selection, synthetic data, and RL — because they share the same artifact. He backs this with a concrete result: a Qwen3-4B model on a Wikipedia-search task went from 55% to 89% after RL training, reaching parity with GPT-4.1 and GPT-5-mini-class reasoning models.
+## 摘要
+Brown 主张，强化学习环境、评测、合成数据引擎和部署后的智能体其实是**同一个对象**：运行框架、任务集合与奖励的组合。标题中的“规模化”是障眼法，真正目标不是扩展 GPU 数量，而是让更多人能够开展 AI 研究，并把环境构建作为易进入的起点。对智能体评测而言，他最鲜明的论点是：智能体环境与智能体运行框架的区别，恰在于前者强制预先定义任务与奖励，因此无法只凭感觉检查，而会得到“正规的评测”。反正都要构建评测，那么将其设计成环境就免费获得了提示调优、模型选择、合成数据与强化学习的扩展选项。一项具体结果是：Qwen3-4B 在 Wikipedia 搜索任务上经强化学习后从 55% 升至 89%，达到 GPT-4.1 和 GPT-5-mini 类推理模型水平。
 
-## Key points
-- **One artifact, four uses.** An environment = harness + tasks + rewards. The *same* object serves as (a) an RL environment, (b) an eval, (c) a synthetic-data engine for SFT/distillation, and (d) the deployed-and-monitored agent in production. The product of tasks/harness/rewards "whether this is a dataset offline or the stream of user tasks coming in to a product is an environment."
-- **Harness vs. environment is the eval distinction.** The key differentiator between an agent harness and an agent environment is that the environment forces tasks and rewards to be predefined. That makes it "a proper eval" — you can't just vibe-check, you're forced to experiment scientifically (try different models, hyperparameters).
-- **"Product is the model."** The old "model is the product" framing is flipping. Winning examples (Cursor's Composer model, OpenAI's Codex) take a harness representing the product and train the model *inside* that harness — i.e., inside an RL environment. The experience of using the model becomes the experience of using the product.
-- **Concrete eval/RL result — Wiki Search.** A Qwen3-4B agent given Wikipedia-search tools went from ~55% baseline to 89% after training, "on par with much larger models like GPT-4.1 as well as reasoning models like GPT-5-mini." Small-model uplift is the headline payoff (fast/cheap/on-prem latency wins).
-- **Rubrics as composable reward abstraction.** In `verifiers`, rewards are managed by a "rubric" that composes multiple reward components. You can also include zero-weight metrics that contribute no reward but exist purely for *observability* of what the rollout is doing — an evals-relevant pattern.
-- **Hierarchical environment design for extensibility.** They deliberately avoided assuming they knew all cases up front. Environments are built as a hierarchy: a coding-agent env for Terminal-Bench is an instance of the Harbor framework → a CLI agent → a multi-turn environment → an environment; siblings include Text Arena, Wordle, MCP search, Python-REPL-in-sandbox.
-- **Environments Hub.** Open-source community platform for creating/discovering/sharing RL environments *and* evals; each environment is a full Python project with dependencies/versions (a package registry). Hundreds of builders have reimplemented papers/benchmarks or built games. Reimplementing a benchmark for RL often means adapting it (new data/examples) to be appropriate for an RL context.
-- **Why SFT fine-tuning never took off — and why environments fix it.** Getting *labeled solution* data is the hard part of SFT. Environments invert this: you don't need answers up front, you only need to be able to *measure* answers, so you "start creating data on the fly." The environment is "the engine" that unlocks this.
-- **`verifiers` library.** A toolkit of mix-and-match components spanning simple evals/QA/games up to tool use, sandboxes, agent frameworks, CLI coding agents, and math — outputs an environment that's automatically trainable with RL. (Released ~9 months earlier at the same venue.)
-- **`prime-rl` training stack.** Their large-scale asynchronous RL trainer; config files expose algorithm-level knobs but with "sensible defaults." Validated end-to-end (SFT + RL) by training Intellect-3, a 100B+ model on 500 GPUs.
-- **Environments as "the web apps of AI research."** Self-contained, start simple but scale to full product complexity, and pedagogical: as you add complexity you "bump into walls" forcing you to learn scaling, hyperparameters, and algorithms — an on-ramp into research without building training infra from scratch.
-- **Community feedback loop → product.** Manually-reviewed `prime-environments` repo (research residency, grad students) surfaces rough edges, which they distill into an upcoming platform called **Lab** — browse environments, run evals, do inference/fine-tuning without managing torch/flash-attention/vLLM versions yourself. Lab's entry point is always the environment (for synthetic data, evals, or RL).
+## 要点
+- **一个制品，四种用途。** 环境 = 运行框架 + 任务 + 奖励；同一个对象可作为强化学习环境、评测、SFT/蒸馏合成数据引擎，以及部署并受监控的生产智能体。无论任务来自离线数据集还是实时用户流，三者乘积都是环境。
+- **运行框架与环境的差别即评测差别。** 环境强制预先定义任务和奖励，因此成为“正规的评测”；团队无法只凭感觉，而必须科学实验不同模型和超参数。
+- **“产品就是模型”。** 过去“模型就是产品”的说法正在反转。Cursor Composer、OpenAI Codex 等把代表产品的运行框架作为训练环境，使模型在产品的强化学习环境内训练；模型使用体验即产品体验。
+- **Wiki Search 结果。** 带 Wikipedia 搜索工具的 Qwen3-4B 从约 55% 基线经训练升至 89%，与 GPT-4.1 和 GPT-5-mini 等大模型或推理模型相当；小模型可由此获得速度、成本和本地延迟优势。
+- **量规是可组合奖励抽象。** `verifiers` 用量规组合多个奖励组件，也可加入权重为零的指标：它们不贡献奖励，仅用于观察展开过程。
+- **分层环境便于扩展。** Terminal-Bench 编程智能体环境依次属于 Harbor 框架、CLI 智能体、多轮环境和一般环境；同级环境包括 Text Arena、Wordle、MCP 搜索、沙箱内 Python REPL。该设计不预设所有用例。
+- **Environments Hub。** 这是创建、发现和共享强化学习环境及评测的开源社区平台；每个环境都是带依赖与版本的完整 Python 项目。数百名构建者重实现论文、基准或游戏；将基准改造成强化学习环境通常还需加入适合训练的新数据与示例。
+- **环境解决 SFT 的数据瓶颈。** SFT 难在获得带标签解答；环境只要求结果可测量，无需预先给答案，因而可动态生成数据。
+- **`verifiers` 库**组合简单问答、游戏、工具使用、沙箱、智能体框架、CLI 编程和数学等组件，输出可直接用于强化学习训练的环境；约九个月前在同一会议发布。
+- **`prime-rl` 训练栈**是大规模异步强化学习训练器，配置暴露算法参数并提供合理默认值。团队通过在 500 张 GPU 上训练超过 100B 参数的 Intellect-3，对 SFT+RL 全流程进行了验证。
+- **环境是“AI 研究的 Web 应用”。** 它们自包含、可从简单起步并扩展到完整产品复杂度；增加复杂度时遇到的障碍会迫使构建者学习规模化、超参数与算法，无需先搭建训练基础设施。
+- **社区反馈闭环到产品。** 人工审核的 `prime-environments` 仓库汇集研究实习生和研究生项目，暴露的摩擦被凝练进即将推出的 **Lab**：用户可浏览环境并运行评测、推理和微调，无需管理 torch、flash-attention、vLLM 版本；Lab 始终以环境作为合成数据、评测或强化学习的入口。
 
-## Verified quotes
-- "Environments are not just for RL. Environments are also essentially the same thing as evals." [05:58]
-- "And what this means is that you can't just vibe check it. ... It forces you to say, 'Okay, let's think about this a little more scientifically. Let's do some experiments.'" [07:36]
-- "If you can measure the answers, now you kind of can start creating data on the fly. And this engine is really what the environment is about unlocking." [09:16] *(lightly de-ASR'd: "measure" / "create" read cleanly from auto-caption)*
-- "We started with a Qwen3-4B model, which was about 55%. And after training, it was at 89% on par with much larger models like GPT-4.1 as well as reasoning models like GPT-5-mini." [13:11] *(ASR rendered the model names as "Quen 3 4B" and "GBD5 mini"; corrected to Qwen3-4B / GPT-5-mini, wording otherwise faithful)*
-- "If you need to do eval anyways, it's useful to think of them as environments because the environment opens a lot of doors for whether this is prompt tuning or whether it's model selection." [13:48]
-- "A rubric is the abstraction for managing the different pieces of your rewards ... You can also have metrics that are just a zero[-weight] [re]ward but are for observability of what's going on." [11:53] *(ASR "zero award"→"zero[-weight] reward")*
+## 已核验引述（中文翻译）
+- “环境不只用于强化学习。环境本质上也和评测是同一回事。”[05:58]
+- “这意味着你不能只凭感觉检查……它迫使你说：‘好，我们更科学地考虑一下，做些实验。’”[07:36]
+- “如果你能测量答案，就可以开始即时创建数据。而这种引擎正是环境要解锁的东西。”[09:16]（对自动字幕作轻微清理。）
+- “我们从约 55% 的 Qwen3-4B 开始。训练后达到 89%，与 GPT-4.1 等大模型以及 GPT-5-mini 等推理模型相当。”[13:11]（修正自动字幕中的模型名。）
+- “如果无论如何都要做评测，把它视为环境很有用，因为环境打开了很多门，包括提示调优和模型选择。”[13:48]
+- “量规是管理奖励不同组成部分的抽象……也可以设置只用于观察进展、权重为零的指标。”[11:53]（修正自动字幕对 zero-weight reward 的识别。）
 
-## What it adds
-The canonical written sources (the `verifiers` README, "evals as the bottleneck" essays) treat eval and RL as adjacent. Brown's non-obvious contribution is collapsing them into one *identity*: eval, RL env, synthetic-data engine, and the live deployed agent are literally the same harness+tasks+rewards artifact — so the eval you're forced to build is a free option on everything else. The crisp, testable definition of the harness-vs-environment boundary ("the environment forces tasks and rewards predefined → it's a proper eval → you can't vibe-check it") is a usable litmus test for whether your agent setup is actually evaluable. The zero-weight-metric-in-a-rubric pattern is a concrete observability technique most eval writeups omit. And the inversion of the SFT-data problem — you need *measurable* outcomes, not *labeled* solutions — is a sharp reframing of why graded environments scale where supervised fine-tuning stalled. The Qwen3-4B 55%→89% datapoint gives a hard number for small-model-plus-good-environment beating frontier APIs on a scoped task.
+## 独特价值
+常见资料把评测与强化学习视为相邻环节，Brown 则把二者连同合成数据引擎和线上智能体归并为同一个“运行框架+任务+奖励”制品；因此必须构建的评测天然保留了其他用途的选择权。他给出的运行框架与环境边界——环境强制预定义任务和奖励，因此成为正规评测——可直接判断智能体设置是否真正可评。量规中的零权重指标是实用而常被忽略的可观测性技巧。将 SFT 数据问题从“需要带标签解答”倒置为“只需结果可测量”，解释了分级环境为何更易规模化；Qwen3-4B 从 55% 到 89% 的结果则量化了优质环境对小模型的提升。
 
-## Themes
-2 eval⇄capability⇄RL-env · 7 RL environments · 8 judge/verifiers · 6 benchmark-vs-eval · 9 agent-specific · 5 eval infra
+## 主题
+2 评测⇄能力⇄强化学习环境 · 7 强化学习环境 · 8 裁判/验证器 · 6 基准与评测 · 9 智能体专项 · 5 评测基础设施
