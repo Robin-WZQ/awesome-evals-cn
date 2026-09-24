@@ -1,37 +1,37 @@
-# Notes — "Using LLMs as Judges: Insights, Challenges, Best Practices"
-**Speaker/Guest:** Eugene Yan · **Venue:** Jason Liu series 2024 · **Type:** talk · **URL:** https://www.youtube.com/watch?v=7EGF0Mc0_os
+# 笔记——“使用 LLM 作为裁判：洞见、挑战与最佳实践”
+**讲者/嘉宾：** Eugene Yan · **出处：** Jason Liu 2024 系列 · **类型：** 演讲 · **链接：** https://www.youtube.com/watch?v=7EGF0Mc0_os
 
-## Summary (3-6 sentences — what it argues, why it matters for agent evals)
-A loose, three-way working session (Eugene Yan with Hamel Husain and Jason Liu) unpacking how to actually build LLM-as-a-judge evaluators in production rather than in benchmarks. Yan recounts being a skeptic a year earlier — extensive prompt engineering on GPT-4-class models lost to a fine-tuned classifier — then recalibrating after talking to a dozen-plus practitioners and re-running experiments with better models and looser latency constraints (allowing Chain-of-Thought and dynamic few-shot). The core craft claims: simplify judgments to binary (or pairwise) for far better recall/precision, always use Chain-of-Thought because the judge goes "from unusable to usable," and judge offline on a few hundred labeled samples rather than as a real-time guardrail. The deepest insight is socio-technical: LLM-as-a-judge forces humans to confront that they can't articulate their own criteria, so the right workflow is to look at 20-50 input/output examples *before* writing criteria, treating "criteria drift" as the norm. Throughout, Yan and Liu frame this as the same data-labeling problem the industry has solved for a decade (crowdsourcing, guidelines, labeler-quality scoring) — only now the labeler is a cheaper API.
+## 摘要（3—6 句：核心主张及其对智能体评测的意义）
+这是一场较为自由的三人工作讨论，Eugene Yan 与 Hamel Husain、Jason Liu 探讨如何在生产环境而非基准中真正构建 LLM 裁判。一年前 Yan 还是怀疑者：即便对 GPT-4 级模型做大量提示工程，仍不如微调分类器；后来他与十多位实践者交流，并用更强模型和更宽松延迟约束（允许思维链和动态少样本）重做实验，才修正看法。核心实践结论是：将判断简化为二元或成对比较可显著提高召回率和精确率；裁判必须使用思维链，因为它会从“不可用变为可用”；并且应在数百个带标签样本上离线评判，而非充当实时防护。最深层的洞见属于社会—技术层面：LLM 裁判迫使人类承认自己无法说清标准，所以正确流程应在写标准**之前**先查看 20—50 组输入/输出，并把“标准漂移”视为常态。Yan 和 Liu 始终把它视为业界已解决十年的数据标注问题——众包、指南、标注者质量评分，只是如今标注者变成了更便宜的 API。
 
-## Key points (6-14 substantive bullets)
-- **Yan was a skeptic ~1 year prior.** With Claude 2/3.5-class and GPT-4-class models plus heavy prompt engineering, LLM judges "just didn't work as good as a fine-tuned model" — until model jumps (Claude 2→3, GPT-4o/3.5) plus relaxing latency constraints (allowing CoT, bigger prompts, dynamic few-shot) got him to a "satisfactory level."
-- **Simplify to binary.** Literature and practitioners agree: reducing the task to true/false yields better recall and precision than scales/grades. Pairwise comparison works *even better* than binary, but isn't always applicable.
-- **Two deployment regimes, decided by a decision tree.** (1) As an *evaluator* on a few hundred samples run offline — even an hour of runtime per eval is fine since you're comparing against slow, subjective human validation. (2) As a *guardrail* on everything — latency/throughput dominate, so you probably want to distill a cheap fine-tuned classifier; the hard part is collecting high-quality data.
-- **Chain-of-Thought is non-negotiable for judges.** Metric-wise it goes "from [unusable] to usable" — not a marginal gain to justify. Returning bare true/false is ~2-3 tokens (fast); CoT adds ~10-15 seconds, a huge relative latency increase but acceptable because offline. Liu cites ~12% classification-accuracy improvement and says no latency cost would make him skip CoT.
-- **ROC/PRC can be misleading for binary judges.** When the model only returns 0/1, ROC/PRC "unfairly disadvantages it" vs a fine-tuned model that outputs probabilities; comparing broad precision/recall across thresholds is fairer. The curve "hides it."
-- **Probability outputs mostly abandoned.** Yan tried getting the LLM to return calibrated probabilities (with examples); single-decimal calibration was achievable, double-decimal was not. He's now "a Boolean convert."
-- **Ensembling small models beats one strong model.** A cited paper ("Echo"/Cohere-area work) ensembles three smaller LLMs (Command R, GPT-3.5/"GB 25", Haiku) and beats GPT-4 alone — output still just yes/no.
-- **CoT for data generation, then distill without it.** Synthetic-data papers show: generate labels *with* CoT, fine-tune a small model on just the result label — you get better labels and a cheaper model. For high-quality (especially human-written) CoT in the fine-tune set, Yan keeps it: "there is no way in hell I would leave that out."
-- **Criteria drift / look-before-you-write.** Citing Shreya Shankar's "Who Validates the Validators": it's "impossible to write good criteria without looking at output." Yan's workflow flipped — generate input/output pairs, have humans read 20-50 *before* writing criteria. Criteria written first are "from an ivory tower" and may be "actively harmful."
-- **The judge aligns the human, not just the model.** Building a judge forces people to look at data (a stronger incentive than any talk or pushed dataset) and discover they can't articulate the criteria — often a "smell" that the task/product itself is ill-defined and should be scoped more tightly.
-- **The "good→bad relabel" cognitive bias.** When a company's observability traces are already labeled "good," telling them a judge will *replace* them makes them suddenly relabel the same traces as bad — happens "every time."
-- **It's the same old data-labeling problem.** Liu ran $300K/yr labeling budgets; hired $4-6/hr crowd labelers, $15/hr art students, $50/hr English teachers — purely a quality-literacy-to-cost tradeoff. "80% of the work" is writing good instructions/guidelines. Google's search-quality guidelines (~170 pages), Bing's (54 pages) are cited as model artifacts to learn guideline-writing from.
-- **Labeler-quality scoring transfers to LLM judges.** A paper lets you measure each labeler's correlation with consensus (correlated / anti-correlated / random) to decide who to "fire" — proposed as a technique for ensembling 16 prompt/model "labelers."
-- **Skepticism toward DSPy for judge alignment.** Yan: good prompt-writers find DSPy *harder*/more effort; it lifts weak prompters to the median but constrains strong ones. He argues "prompting is thinking / writing is thinking" — a prompt is a spec, closer to writing instructions than hyperparameter optimization. Both invite counterexamples via DM.
+## 要点（6—14 条实质性内容）
+- **Yan 约一年前仍持怀疑态度。**使用 Claude 2/3.5 级和 GPT-4 级模型并投入大量提示工程后，LLM 裁判“仍不如微调模型”；直到模型从 Claude 2 跃迁至 3、出现 GPT-4o/3.5，并放宽延迟约束（允许思维链、更大提示词、动态少样本），才达到“令人满意”的水平。
+- **简化为二元判断。**文献和实践者一致认为，把任务压缩为真/假，比尺度评分和等级评分有更好的召回率与精确率。成对比较甚至优于二元判断，但并非总能适用。
+- **由决策树决定两种部署模式。**（1）作为**评估器**离线运行数百个样本，即使每次评测耗时一小时也可以，因为对照的是缓慢、主观的人工验证。（2）作为覆盖所有请求的**防护栏**，延迟和吞吐量占主导，可能应蒸馏一个廉价微调分类器；困难在于收集高质量数据。
+- **裁判必须使用思维链。**从指标看，加入思维链会让系统“从不可用变为可用”，不是需要权衡的小幅提升。只返回真/假约 2—3 个 token，速度很快；思维链多花约 10—15 秒，相对延迟巨大，但离线可接受。Liu 引述约 12% 的分类准确率提升，认为任何延迟代价都不足以让他放弃思维链。
+- **ROC/PRC 可能误导二元裁判。**模型只返回 0/1 时，ROC/PRC 相比可输出概率的微调模型会“不公平地让它处于劣势”；跨阈值比较宽泛的精确率/召回率更公平，曲线反而会“掩盖它”。
+- **大体放弃概率输出。**Yan 曾让 LLM 在给定示例下返回校准概率；一位小数尚可校准，两位小数则不行。他如今是“布尔值信徒”。
+- **小模型集成胜过单个强模型。**一篇被引论文（“Echo”/Cohere 附近的工作）集成三个较小 LLM：Command R、GPT-3.5（字幕作“GB 25”）和 Haiku，结果超过单独 GPT-4；输出仍只是是/否。
+- **用思维链生成数据，再蒸馏成无思维链模型。**合成数据研究表明：用思维链生成标签，再仅用结果标签微调小模型，可得到更好标签与更廉价模型。若微调集中包含高质量、尤其人工写的思维链，Yan 会保留它：“我绝不可能把它删掉。”
+- **标准漂移：先看再写。**引用 Shreya Shankar 的《Who Validates the Validators》：“不看输出就不可能写出好标准。”Yan 颠倒了工作流：先生成输入/输出对，让人类阅读 20—50 个，**之后**才写标准。预先写出的标准来自“象牙塔”，甚至可能“主动造成伤害”。
+- **裁判不仅对齐模型，也对齐人类。**构建裁判会迫使人查看数据，这比任何演讲或推送数据集都更有效，也会暴露人类根本说不清标准；这通常是任务/产品定义不佳、应进一步缩小范围的“异味”。
+- **“好→坏重标”认知偏差。**公司可观测性轨迹原已标记为“好”，一旦告知裁判将**替代**它们，人们会突然把同一批轨迹重新标成坏；这种事“每次都会发生”。
+- **这仍是老的数据标注问题。**Liu 曾管理每年 30 万美元标注预算：每小时 4—6 美元的众包人员、15 美元的艺术学生、50 美元的英语教师，本质是质量素养与成本权衡。“80% 的工作”是编写优质说明和指南。Google 搜索质量指南约 170 页，Bing 指南 54 页，都是学习如何写指南的范例。
+- **标注者质量评分可迁移到 LLM 裁判。**一篇论文通过每位标注者与共识的相关性，将其区分为正相关、反相关或随机，从而决定应“解雇”谁；该技术也可用于由 16 个提示词/模型“标注者”组成的集成。
+- **对 DSPy 的裁判对齐能力持怀疑态度。**Yan 认为优秀提示词作者使用 DSPy 反而**更难**、投入更多；它能把弱提示者提升到中位数，却限制强提示者。“提示就是思考，写作就是思考”；提示词是一份规格，更接近编写说明，而非超参数优化。双方欢迎通过私信提供反例。
 
-## Verified quotes (verbatim, with [mm:ss])
-- "if you can simplify the binary it actually performs a lot better ... simplifying the true or false actually leads to more reliability like better recall and precision instead of giving a ... scale or whatever" [06:43]
-- "metric wise it is going from [unusable] to usable so it just there's no need to justify it's like even without it it's just not usable" [08:53]
-- "by combining these three models you can see that they get far better results than using a single strong model alone" [11:42]
-- "they actually go as far as saying it is impossible to write good criteria without looking at output ... you should force that we actually look at 20 examples first before writing criteria" [24:46]
-- "on one hand it's aligning the llm with the human on the other hand it's also aligning the human with the [LLM]" [20:24]
-- "prompting is actually thinking prompting is actually writing and writing is actually thinking so you have to think really hard" [37:69] *(lightly cleaned from ASR; the clip reads "[38:01]" — auto-captions garbled surrounding words)*
+## 已核验引述（中文翻译）
+- [06:43] “如果能简化为二元判断，实际表现会好很多……简化为真或假会带来更高可靠性，例如比尺度评分获得更好的召回率和精确率。”
+- [08:53] “从指标看，它就是从不可用变为可用，所以根本无需论证；没有它就完全不能用。”
+- [11:42] “把这三个模型组合起来后，可以看到它们取得的结果远好于单独使用一个强模型。”
+- [24:46] “他们甚至明确说，不看输出就不可能写出好标准……应强制要求先看 20 个示例，再编写标准。”
+- [20:24] “一方面是在让 LLM 与人类对齐，另一方面也是在让人类与 LLM 对齐。”
+- [约 38:01] “提示实际上就是思考，提示就是写作，而写作就是思考，所以你必须非常认真地思考。”（自动字幕将时间写成 [37:69]，并混淆了附近词语。）
 
-*(ASR note: this is an auto-captioned livestream. Speaker/model names are occasionally mangled — e.g., "clot 2/3", "dp4"/"st4"/"j4" for GPT-4, "dpy/dsy/BPI" for DSPy, "command RGB 25"/"Hau" for Command R / GPT-3.5 / Haiku, "RC curve" for ROC. Wording inside quotes is kept faithful; only obvious single-word ASR errors bracketed.)*
+（自动语音识别说明：本视频为自动生成字幕的直播，讲者和模型名偶有误识别，例如 `clot 2/3`、用 `dp4`/`st4`/`j4` 指 GPT-4、用 `dpy`/`dsy`/`BPI` 指 DSPy、用 `command RGB 25`/`Hau` 指 Command R/GPT-3.5/Haiku，以及用 `RC curve` 指 ROC。引述措辞保持忠实，仅对明显的单词级错误作了修正。）
 
-## What it adds (non-obvious, talk-specific value vs the canonical written sources)
-Yan's written LLM-evaluators post argues the *what*; this conversation exposes the *why he changed his mind* and the messy human dynamics the article underplays. The standout, talk-only content: (1) the explicit **skeptic-to-convert arc** with the honest admission that a fine-tuned classifier beat his GPT-4 judge a year earlier — a useful corrective to judge hype; (2) the **"the judge aligns the human" insight** and the "good→bad relabel" cognitive-bias war story, which reframe judge-building as a forcing function for spec clarity rather than a measurement tool; (3) Liu's framing that **LLM-as-a-judge is literally the 2018 crowdsourced-labeling problem with a cheaper API** — complete with real $/hr labeler economics, 170-page Google guidelines, cross-cultural label bias (German labelers + hate speech), and labeler-quality scoring that should transfer to prompt/model ensembles; and (4) the candid, **skeptical-but-open DSPy debate** ("prompting is thinking") you won't find in a polished post. The concrete numbers (12% CoT lift, ~10-15s CoT latency, single- vs double-decimal probability calibration, 2,000 / 600-1,000 triplets for fine-tuning, 300-400 labeled samples to align a judge) are scattered through the dialogue, not a deck.
+## 独特增量（相较于规范书面资料，本演讲提供的非显然价值）
+Yan 的书面 LLM 评估器文章讨论“是什么”，本次对话则揭示了他**为何改变看法**以及文章淡化的人类现实。独特内容包括：（1）从怀疑者到接受者的明确过程，坦言一年前微调分类器胜过其 GPT-4 裁判，为裁判热潮提供重要修正；（2）**“裁判也在对齐人类”**以及“好→坏重标”的认知偏差实战，把构建裁判重新理解为迫使规格变清晰的机制，而非单纯测量工具；（3）Liu 认为 **LLM 裁判就是 2018 年众包标注问题加上更便宜的 API**，并给出真实时薪、170 页 Google 指南、跨文化标注偏差（德国标注者与仇恨言论）和可迁移到提示词/模型集成的标注者质量评分；（4）坦率、保持开放的 DSPy 争论——“提示就是思考”。对话还散布了大量具体数字：思维链提升约 12%、增加约 10—15 秒延迟、一位与两位小数概率校准差异、微调需要 2,000/600—1,000 个三元组，以及对齐裁判需要 300—400 个标注样本。
 
-## Themes
-8 judge/verifiers · 1 why-evals · 5 eval infra · 6 benchmark-vs-eval · 4 observability
+## 主题
+8 裁判/验证器 · 1 为何评测 · 5 评测基础设施 · 6 基准与评测 · 4 可观测性

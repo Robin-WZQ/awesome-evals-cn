@@ -1,10 +1,10 @@
 # 深度笔记中文翻译进度
 
-进度：`[████████████████░░░░] 78%（112/143）`
+进度：`[█████████████████░░░] 83%（118/143）`
 
-- 文章：40/68
+- 文章：43/68
 - 论文：28/28
-- 演讲与播客：44/47
+- 演讲与播客：47/47
 
 ## 翻译规则
 
@@ -127,3 +127,9 @@
 110. `notes/talks/talk-liang-opensource-science-fms.md`
 111. `notes/talks/talk-pod-gd-liang-helm.md`
 112. `notes/talks/talk-pod-howiai-goyal-evals-new-prd.md`
+113. `notes/articles/kanav-garg-rl-environment-lifecycle.md`
+114. `notes/articles/mast-why-multi-agent-llm-systems-fail.md`
+115. `notes/articles/macro-evals-agentic-systems-openai-cookbook.md`
+116. `notes/talks/talk-pod-ls-artificial-analysis.md`
+117. `notes/talks/talk-schulman-rlhf-progress-challenges.md`
+118. `notes/talks/talk-yan-llms-as-judges.md`

@@ -1,42 +1,42 @@
-# Notes — "RLHF: Progress and Challenges"
-**Speaker/Guest:** John Schulman · **Venue:** UC Berkeley EECS 2023 · **Type:** talk · **URL:** https://www.youtube.com/watch?v=hhiLw5Q_UFg
+# 笔记——“RLHF：进展与挑战”
+**讲者/嘉宾：** John Schulman · **出处：** UC Berkeley EECS 2023 · **类型：** 演讲 · **链接：** https://www.youtube.com/watch?v=hhiLw5Q_UFg
 
-## Summary (3-6 sentences — what it argues, why it matters for agent evals)
-Schulman (co-founder of OpenAI, ChatGPT chief architect, PPO/TRPO author) argues that hallucination is fundamentally a *training-objective* problem, not a capacity problem: supervised fine-tuning / behavior cloning provably teaches models to hallucinate because the "correct" target depends on latent knowledge inside the network that the data collector cannot see. RL from human feedback is the right cure because, with a proper-scoring-rule-shaped reward, it can learn the calibrated boundary of when to answer vs. say "I don't know." He grounds this in an unpublished TriviaQA experiment showing RL recovers the analytically-optimal answer/refuse threshold, and in WebGPT, where browsing is framed as an RL environment over a text DSL (search/click/quote) with reward models trained on human comparisons. For agent evals the central lessons are: (1) verifiability via citations makes correctness *checkable* by graders, (2) the gap between "verify a solution" and "generate a solution" (P-vs-NP / scalable oversight) is the scaling frontier for evaluation, and (3) ranking-based reward models systematically fail to score calibration/hedging correctly. He closes by noting RLHF only optimizes for human *approval*, not truth, and gestures at grounded reward signals (future-prediction, formal deduction) as a path to evaluating real correctness.
+## 摘要（3—6 句：核心主张及其对智能体评测的意义）
+Schulman（OpenAI 联合创始人、ChatGPT 首席架构师、PPO/TRPO 作者）认为，幻觉从根本上是**训练目标**问题，而非容量问题：监督微调/行为克隆必然教会模型幻觉，因为正确目标取决于网络内部的潜在知识，而数据收集者看不到它。人类反馈强化学习是合适的修复方向，因为以适当评分规则塑造奖励后，它能学习何时回答、何时说“我不知道”的校准边界。他以未发表的 TriviaQA 实验为依据，显示 RL 能恢复解析意义上的最优回答/拒绝阈值；又以 WebGPT 为例，把浏览描述为基于文本 DSL（搜索/点击/引用）的 RL 环境，奖励模型由人类比较训练。对智能体评测的核心启示是：（1）引用带来可验证性，使评分者能够检查正确性；（2）“验证方案”和“生成方案”之间的差距（P 与 NP/可扩展监督）是评测扩展的前沿；（3）基于排序的奖励模型系统性地无法正确评价校准和保留态度。最后，他指出 RLHF 仅优化人类**赞同**而非真相，并提出未来预测、形式演绎等落地奖励信号，以评估真正正确性。
 
-## Key points (6-14 substantive bullets)
-- **Two classes of hallucination.** (a) Pattern-completion artifacts — the model doesn't "know it's allowed" to say I-don't-know, won't challenge a premise, or continues a lie to stay coherent; these are easy to partially fix with a little SFT data. (b) Genuine "guessing wrong" on fuzzy facts, which is unavoidable. [03:23], [05:18], [06:25]
-- **Behavior cloning provably induces hallucination.** Even cloning on 100%-correct answers teaches the model to guess, because the target answer (e.g. "Solo") may reference facts outside the model's knowledge cutoff — you train it to *guess on that question type*, not to be correct. The correct target "has to actually depend on what knowledge is in the network," which is unknown to the data collector. [12:03], [13:33]
-- **The mirror failure:** training the model to say "I don't know" using human labelers' uncertainty teaches it to *withhold information it actually has*, because the labeler's ignorance ≠ the model's ignorance. [13:01]
-- **Distilling ChatGPT outputs propagates hallucination.** Open-source models fine-tuned on ChatGPT outputs look good but "make things up a lot more than the original" because the SFT targets were calibrated for a *different* model's knowledge graph. (Stated as a prediction.) [14:58]
-- **Models are calibrated and know their own uncertainty.** Minimizing log-loss (a proper scoring rule) forces calibrated next-token distributions; it "would be extremely surprising" if a model could output a reasonable distribution but had no introspective access to that uncertainty. Cited papers show models can express uncertainty in words matching their probabilities. [16:55], [17:56]
-- **The conceptual reward = a proper scoring rule over answers:** high reward for confident-correct, less for hedged-correct, lower for "I don't know," penalty for hedged-wrong, big penalty for confident-wrong. The analytically optimal policy is a *threshold* — answer only when top-choice probability exceeds a cutoff set by the wrong/right reward ratio (e.g. >50%). [19:59], [22:51]
-- **TriviaQA experiment (unpublished).** RL on this reward recovers the optimal thresholding behavior even though the model never sees the raw log-probs (it uses internal state). A reward model trained to predict correctness — which "knows the same information as the policy model" — also works, but "worse than using the Oracle." [22:42], [24:54]
-- **Long-form is the hard, interesting case.** Factuality there isn't right-vs-wrong; "everything is in the gray area," every answer mixes correct/misleading facts. Demo: ChatGPT's description of InstructGPT's reward-model objective was "straight up wrong / misleading" in the headline but correct in the elaboration. [25:21], [27:09]
-- **WebGPT as an RL environment.** Model emits text defining a DSL with actions search / click / quote / back; quoting is essential because of the ~4,000-token context window. An episode = browse 20–100 steps, quote, write answer; reward from a reward model. Pipeline = behavior cloning on expert demos → collect A/B human comparisons → train reward model → RL or best-of-N reranking. [36:42], [38:24]
-- **Best-of-64 with GPT-3 beat human demonstrators** (preferred 55% vs 40%), better on factual accuracy though slightly worse on coherence; roughly tied/ahead of top Reddit answers — but Schulman *distrusts* that win, suspecting citation *style* biased labelers unfairly. [40:55], [41:30]
-- **Self-knowledge enables selective browsing.** The deployed ChatGPT browser "only browses when it doesn't know the answer" — the same uncertainty self-knowledge that powers "I don't know." Demo: answered "dagger" directly, but browsed for the novel "Fleet-DAgger." [44:01]
-- **Ranking reward models score the wrong thing.** They are trained with a pairwise classification loss (P(A beats B) ∝ exp of reward-score difference) so they output only *how confident one is better*, not *how much* better — failing to impose the correct penalty for confident errors or to properly account for hedging. [30:40], [46:07]
-- **Labeling has hard limits.** Labelers make many errors; it's "impossible to read a long answer and catch every single mistake," and some questions reference a user's private codebase the labeler can't access. The elaborate WebGPT highlighting UI ultimately yielded just "one bit of information," and the extra annotation "didn't help very much." [31:43], [40:19]
-- **Scalable oversight = the eval frontier.** "It's often easier to verify that a solution is correct than to generate a correct solution" (P-vs-NP / SAT framing): a weak verifier can incentivize a strong agent to solve hard problems. Approaches: task decomposition + automatic aggregation, mechanism design, and AI-safety-via-debate. [48:35], [50:42]
-- **RLHF optimizes approval, not truth.** It rewards "what sounds convincing... the knowledge of the day." Path toward grounded reward: future-prediction (a million checkable predictions) and formal/semi-formal deduction as sources of verifiable knowledge. [51:43], [52:24]
-- **Inner monologue aids both interpretability and shorter-horizon reward.** A visible monologue lets a human grade a *single* action ("I am scrolling to look for X" + scroll) that would otherwise be unjudgeable, enabling shorter-horizon RL feedback and reducing risky long-horizon optimization — though it could be deceptive or use steganography. [58:54]
+## 要点（6—14 条实质性内容）
+- **两类幻觉。**（a）模式补全产物：模型“不知道自己可以”说不知道，不会质疑前提，或为保持连贯而延续谎言；少量 SFT 数据可部分修复。（b）对模糊事实真正“猜错”，无法彻底避免。[03:23, 05:18, 06:25]
+- **行为克隆必然诱发幻觉。**即使克隆 100% 正确答案，模型仍会学会猜测，因为目标答案（如“Solo”）可能依赖超出模型知识截止时间的事实；训练所得是“对此类问题做猜测”，而非保持正确。正确目标“必须取决于网络内部有什么知识”，数据收集者并不知道。[12:03, 13:33]
+- **镜像失败：**按人类标注者的不确定性训练模型说“我不知道”，会让模型**隐瞒自己实际掌握的信息**，因为标注者无知不等于模型无知。[13:01]
+- **蒸馏 ChatGPT 输出会传播幻觉。**用 ChatGPT 输出微调的开放模型看似优秀，却会“比原模型编造更多”，因为 SFT 目标是按另一个模型的知识图谱校准的。（这是预测。）[14:58]
+- **模型经过校准，也知道自身不确定性。**最小化对数损失这一严格评分规则会迫使下一 token 分布校准；若模型能输出合理概率分布却完全无法内省不确定性，将“极其令人意外”。已有论文显示模型可用与概率匹配的语言表达不确定性。[16:55, 17:56]
+- **概念奖励是针对答案的严格评分规则：**自信且正确奖励最高，保留态度但正确次之，“我不知道”更低，保留态度但错误受罚，自信且错误重罚。解析最优策略是一个**阈值**：仅当首选答案概率超过由对错奖励比例确定的截止值（如 >50%）时回答。[19:59, 22:51]
+- **TriviaQA 实验（未发表）：**即使模型看不到原始对数概率（只使用内部状态），在该奖励上的 RL 仍恢复了最优阈值行为。训练一个预测正确性的奖励模型——它“与策略模型掌握相同信息”——也有效，但“不如 Oracle”。[22:42, 24:54]
+- **长文本才是困难而有趣的情况。**其事实性并非简单对错，“一切都处于灰色地带”，每个回答混合正确与误导性事实。演示中，ChatGPT 对 InstructGPT 奖励模型目标的标题描述“完全错误/误导”，但详细展开却正确。[25:21, 27:09]
+- **WebGPT 是 RL 环境。**模型输出文本定义包含 search/click/quote/back 动作的 DSL；约 4,000 token 上下文窗口使引用尤为重要。一个 episode 包含浏览 20—100 步、引用并写答案，奖励来自奖励模型。流程为：专家演示上的行为克隆 → 收集 A/B 人类比较 → 训练奖励模型 → RL 或 Best-of-N 重排。[36:42, 38:24]
+- **GPT-3 的 Best-of-64 胜过人类示范者**（偏好率 55% 对 40%），事实准确性更高但连贯性稍差，与 Reddit 顶级回答大致持平或领先。但 Schulman **不信任**这一胜利，怀疑引用**风格**使标注者产生不公平偏好。[40:55, 41:30]
+- **自我知识支持选择性浏览。**已部署的 ChatGPT 浏览器“只在不知道答案时浏览”，使用的正是支撑“我不知道”的不确定性自知。演示中它直接回答“dagger”，但会搜索新概念“Fleet-DAgger”。[44:01]
+- **排序奖励模型评分目标错误。**它们用成对分类损失训练（P(A 胜 B) 与奖励分差的指数成正比），因此只表达“一个答案更好的置信度”，而非“好多少”；无法对自信错误施加正确惩罚，也无法恰当计入保留态度。[30:40, 46:07]
+- **标注存在硬性上限。**标注者会犯很多错；“读完长答案并发现每一个错误是不可能的”，有些问题还涉及标注者无法访问的用户私有代码库。WebGPT 复杂的高亮界面最终只产生“一比特信息”，额外标注“帮助不大”。[31:43, 40:19]
+- **可扩展监督是评测前沿。**“验证方案正确往往比生成正确方案容易”（P 与 NP/SAT 框架）；弱验证器可激励强智能体解决难题。方法包括任务分解 + 自动聚合、机制设计，以及通过辩论实现 AI 安全。[48:35, 50:42]
+- **RLHF 优化赞同，不是真理。**它奖励“听起来有说服力的内容……当下的知识”。落地奖励可来自未来预测（一百万个可检查预测）和形式/半形式演绎。[51:43, 52:24]
+- **内心独白兼顾可解释性和短视野奖励。**可见独白让人类能评价单个动作（“我在滚动页面寻找 X” + 滚动），从而实现更短视野的 RL 反馈并降低长视野优化风险；但独白也可能欺骗或使用隐写术。[58:54]
 
-## Verified quotes (VERBATIM, with [mm:ss] timestamps)
-- "even if you clone on 100% correct answers, you're teaching the model to hallucinate because it doesn't have all of those facts." [12:03]
-- "unless you have a way of collecting, looking at what's in the model, you can't train a model to be truthful with behavior cloning." [13:51]
-- "The model's next token predictions are calibrated because you're minimizing log loss and this is a proper scoring rule." [16:55]
-- "it actually doesn't always do browsing, it only browses when it doesn't know the answer. And I think that uses the same self-knowledge of uncertainty that I was describing earlier." [44:01]
-- "it's often easier to verify that a solution is correct than to generate a correct solution. This is one of the most basic ideas in theoretical computer science." [48:49]
-- "one unsatisfying thing about RL from human feedback is it's purely optimizing on human approval. And we don't always know the right answer... we're just optimizing for what sounds convincing." [51:43]
+## 已核验引述（中文翻译）
+- [12:03] “即使你克隆的是百分之百正确的答案，也是在教模型幻觉，因为它并不掌握所有这些事实。”
+- [13:51] “除非有办法在收集数据时查看模型内部有什么，否则无法通过行为克隆把模型训练得诚实。”
+- [16:55] “模型的下一 token 预测经过校准，因为你在最小化对数损失，而它是一种严格评分规则。”
+- [44:01] “它其实并不总会浏览，只在不知道答案时才浏览。我认为这使用了前面所说的同一种对不确定性的自我认识。”
+- [48:49] “验证一个方案正确往往比生成正确方案更容易。这是理论计算机科学中最基础的思想之一。”
+- [51:43] “人类反馈强化学习有一点令人不满：它纯粹优化人类赞同。我们并不总知道正确答案……只是在优化听起来有说服力的东西。”
 
-## What it adds (non-obvious, talk-specific value vs canonical written sources)
-- A crisp, almost *information-theoretic* argument for why SFT-only and distillation pipelines are doomed to hallucinate: the optimal target depends on latent model knowledge the labeler can't observe. This reframes "data quality" debates — the issue isn't wrong data, it's that *correct* data is still wrong relative to a given model's knowledge graph. Directly implies eval datasets and judge rubrics built on one model's outputs will mis-grade another.
-- The **TriviaQA threshold result** (analytically-optimal abstention recovered by RL, reward-model version "worse than Oracle") is unpublished and a concrete, falsifiable demonstration that calibration is *trainable* — useful grounding for anyone building abstention/refusal evals.
-- A candid admission that their **ranking reward model mathematically can't score calibration** (log-odds, not magnitude) — a specific mechanism behind why LLM-judge/reward-model evals under-penalize confident errors, rarely stated this plainly.
-- The "**unsourced answer = proof sketch, sourced answer = proof**" framing reframes citations as a *grader-side* affordance (cheaper verification in training/eval), not just a UX nicety — even if you strip sources at deploy time.
-- The honest **war-story that their elaborate annotation UI collapsed to one bit** and the extra signal "didn't help" is a useful caution against over-engineering eval annotation pipelines.
-- The **inner-monologue → shorter-horizon reward** point is a concrete observability/eval design lever for agents: monologues make per-step process rewards gradeable, with the explicit caveat that they can be deceptive.
+## 独特增量（相较于规范资料，本演讲提供的非显然价值）
+- 给出近乎**信息论式**的论证，说明纯 SFT 和蒸馏为何注定产生幻觉：最优目标取决于标注者无法观察的模型潜在知识。问题不只是错误数据，而是**正确数据**相对特定模型的知识图谱仍可能是错误目标；这也意味着基于一个模型输出建立的评测集与裁判量表可能误判另一个模型。
+- **TriviaQA 阈值结果**显示 RL 可恢复解析最优的弃答策略，而奖励模型版本“不如 Oracle”；它具体、可证伪地表明校准是可训练的，对构建弃答/拒绝评测很有价值。
+- 坦言**排序奖励模型在数学上无法评价校准**：它输出的是对数胜算而非差距大小。这解释了 LLM 裁判/奖励模型为何对自信错误惩罚不足。
+- **“无来源答案是证明草图，有来源答案才是证明”**把引用重构为评分者侧的便利条件，使训练/评测验证更廉价，而不只是一项用户体验功能；部署时甚至可以去掉来源。
+- 复杂标注界面最终收缩为一个比特且额外信号无益的实战经验，提醒不要过度设计评测标注流水线。
+- **内心独白 → 更短视野奖励**是具体的智能体可观测性/评测杠杆：独白让逐步过程奖励可评分，同时也明确承认其可能具有欺骗性。
 
-## Themes
-8 judge/verifiers · 2 eval⇄capability⇄RL-env · 7 RL environments · 1 why-evals · 9 agent-specific · 10 safety
+## 主题
+8 裁判/验证器 · 2 评测⇄能力⇄强化学习环境 · 7 强化学习环境 · 1 为何评测 · 9 智能体特有 · 10 安全

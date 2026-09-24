@@ -1,37 +1,37 @@
-# Notes — "Why Do Multi-Agent LLM Systems Fail?"
+# 笔记——《多智能体大模型系统为何失败？》
 
-**Author:** Mert Cemri, Melissa Z. Pan, Shuyi Yang, Lakshya A. Agrawal, Bhavya Chopra, Rishabh Tiwari, Kurt Keutzer, Aditya Parameswaran, Dan Klein, Kannan Ramchandran, Matei Zaharia, Joseph E. Gonzalez, Ion Stoica (UC Berkeley / CMU / UCSD) · **URL:** https://arxiv.org/abs/2503.13657 · **Type:** paper · **Found:** true
+**作者：** Mert Cemri、Melissa Z. Pan、Shuyi Yang、Lakshya A. Agrawal、Bhavya Chopra、Rishabh Tiwari、Kurt Keutzer、Aditya Parameswaran、Dan Klein、Kannan Ramchandran、Matei Zaharia、Joseph E. Gonzalez、Ion Stoica（UC Berkeley／CMU／UCSD）· **网址：** https://arxiv.org/abs/2503.13657 · **类型：** 论文 · **已找到：** 是
 
-## Summary
-A grounded-theory study of *why* multi-agent LLM systems (MAS) fail, not just whether they do. The authors hand-annotate 1,600+ execution traces across 7 popular MAS frameworks (e.g., MetaGPT, ChatDev, HyperAgent, AG2/AppWorld) and inductively derive **MAST** (Multi-Agent System Failure Taxonomy; called "MASFT" in v1): **14 failure modes clustered into 3 categories** — system/specification design, inter-agent misalignment, and task verification. The taxonomy is built via iterative inter-annotator agreement studies reaching **Cohen's κ = 0.88**, then operationalized as an **LLM-as-a-judge** annotator that scales the labeling (**94% accuracy, κ = 0.77** vs. human labels). The core thesis is organizational: most failures stem from flawed coordination and design — the way agents are wired together — rather than the raw limitations of the underlying models. A reliability case study shows targeted fixes help but don't fully close the gap, implying structural rather than tactical solutions are needed. Data, taxonomy, and judge are released openly.
+## 摘要
+这项扎根理论研究关注多智能体大模型系统为何失败，而不只是是否失败。作者人工标注 MetaGPT、ChatDev、HyperAgent、AG2/AppWorld 等七种流行框架的 1,600 多条执行轨迹，归纳出 **MAST** 多智能体系统失败分类法（v1 称 MASFT）：三大类共 **14 种失败模式**，分别涉及系统／规格设计、智能体间失配和任务验证。分类法通过反复的标注者一致性研究构建，Cohen's κ 达 0.88；随后又实现为可扩展标注的大模型裁判，相对人工标签达到 94% 准确率与 κ=0.77。核心结论是组织性的：多数失败源于协调与设计缺陷，即智能体如何连接，而非底层模型本身能力不足。一项可靠性案例表明，针对性修复虽有帮助，却不能完全弥合差距，因此需要结构性而非战术性解决方案。数据、分类法和裁判均已公开。
 
-## Key points
-- **14 failure modes across 3 categories** (the canonical 5/6/3 split):
-  - **FC1 — Specification / System Design (5):** FM-1.1 Disobey task specification · FM-1.2 Disobey role specification · FM-1.3 Step repetition · FM-1.4 Loss of conversation history · FM-1.5 Unaware of termination conditions.
-  - **FC2 — Inter-Agent Misalignment (6):** FM-2.1 Conversation reset · FM-2.2 Fail to ask for clarification · FM-2.3 Task derailment · FM-2.4 Information withholding · FM-2.5 Ignored other agent's input · FM-2.6 Reasoning-action mismatch.
-  - **FC3 — Task Verification (3):** FM-3.1 Premature termination · FM-3.2 No or incomplete verification · FM-3.3 Incorrect verification.
-- **Grounded theory, not armchair taxonomy:** modes emerge inductively from ~150 traces analyzed by expert annotators with iterative refinement; validated by high inter-annotator agreement (**κ = 0.88**) before being applied at scale.
-- **Scale of evidence:** MAST-Data = **1,600+ annotated traces** across **7 MAS frameworks**, spanning coding, math, and general-agent tasks, and multiple model backbones (GPT-4, Claude 3, Qwen2.5, CodeLlama).
-- **LLM-as-a-judge annotator:** a scalable pipeline with in-context examples reaches **94% accuracy and κ = 0.77** against human labels — the reusable tool that lets others auto-diagnose their own traces.
-- **The thesis is organizational, not just capability-bound:** failures map onto well-studied human-organization breakdowns; the paper deliberately *excludes* generic single-LLM failures (e.g., plain text repetition) because they don't pertain specifically to MAS.
-- **Verification is a thin, leaky layer:** FC3 modes (premature termination, missing/incorrect verification) show that adding more agents doesn't add rigor — many systems lack any genuine checking step, so wrong outputs sail through.
-- **Roughly even spread across categories:** failures are distributed across all three buckets (no single mode dominates), undercutting the simplistic "it's just hallucination" explanation — the problems are systemic and varied.
-- **Fixes help but don't close the gap:** an intervention case study (e.g., improved orchestration/verification on AG2-style systems) yielded a meaningful task-completion bump (~14% in one setting) yet still left tasks failing — evidence that structural redesign, not prompt patches, is required.
-- **Open release:** taxonomy, the 1,600+ trace dataset, and the LLM annotator are public — making MAST a shared diagnostic vocabulary and reproducible measurement substrate.
+## 要点
+- **三类 14 种失败模式（5／6／3）：**
+  - **FC1——规格／系统设计（5）：** 不遵守任务规格、不遵守角色规格、步骤重复、对话历史丢失、不知道终止条件。
+  - **FC2——智能体间失配（6）：** 对话重置、不请求澄清、任务偏航、隐瞒信息、忽略其他智能体输入、推理与行动不匹配。
+  - **FC3——任务验证（3）：** 过早终止、没有验证或验证不完整、错误验证。
+- **来自扎根理论而非主观罗列：** 专家标注者先分析约 150 条轨迹，反复修订并归纳模式；在扩展应用前，标注者一致性达到 κ=0.88。
+- **证据规模：** MAST-Data 包含七种框架的 1,600 多条标注轨迹，覆盖编程、数学与通用智能体任务，以及 GPT-4、Claude 3、Qwen2.5 和 CodeLlama 等模型。
+- **大模型裁判标注器：** 加入上下文示例的可扩展流水线相对人工标签达到 94% 准确率和 κ=0.77，可供其他团队自动诊断自己的轨迹。
+- **问题是组织性的，而非只受能力限制：** 失败与人类组织中研究充分的崩溃模式相似。论文有意排除普通单模型错误，如单纯文本重复，因为这些并非多智能体系统专属。
+- **验证层薄弱且漏水：** 过早结束、缺失验证与错误验证表明，增加智能体数量不会自动增加严谨性；很多系统没有真正检查步骤，错误输出因此直接通过。
+- **三类失败大致均匀：** 没有一种模式占据主导，推翻了“一切只是幻觉”的简单解释；问题具有系统性且类型多样。
+- **修复有帮助但无法消除差距：** 对 AG2 风格系统改进编排和验证，在一种设置中让任务完成率提高约 14%，但仍有任务失败，支持结构重设计而非提示词补丁。
+- **公开发布：** 分类法、1,600 多条轨迹数据集和大模型标注器均公开，使 MAST 成为共享诊断词汇和可复现实验底座。
 
-## Verified quotes
-- "Despite increasing adoption of MAS, the gain in accuracy or performance remains minimal compared to single agent frameworks (Xia et al., 2024) or even simple baselines such as best-of-N sampling on popular benchmarks" — https://arxiv.org/html/2503.13657
-- "even organizations of sophisticated individuals can fail catastrophically (Perrow, 1984) if the organization structure is flawed." — https://arxiv.org/html/2503.13657
-- "many MAS failures arise from the challenges in inter-agent interactions rather than the limitations of individual agents." — https://arxiv.org/html/2503.13657
-- "Even though we encountered some common LLM failure modes like text-repetition, we exclude them from MASFT as these issues do not pertain specifically to MAS, and can occur even in single-LLM call pipelines. On the other hand, we find evidence of MAS facing similar issues as complex human organizations, as the failure modes align with common failure modes observed in human organizations." — https://arxiv.org/html/2503.13657
-- "As we achieve an accuracy of 94% and a Cohen's Kappa value of 77%, we deem that the LLM annotator, with in context examples provided, to be a reliable annotator." — https://arxiv.org/html/2503.13657
+## 已核验引述（中文翻译）
+- “尽管多智能体系统日益普及，相较单智能体框架乃至流行基准上的 best-of-N 等简单基线，其准确率或性能收益仍然有限。”——https://arxiv.org/html/2503.13657
+- “如果组织结构存在缺陷，即使由能力高超的个体组成，组织也可能发生灾难性失败。”——同上
+- “许多多智能体系统失败源于智能体间交互的挑战，而不是单个智能体的能力限制。”——同上
+- “虽然我们遇到文本重复等常见大模型失败，但并未将其纳入 MASFT，因为这些问题并非多智能体系统特有，单次大模型调用流水线也会发生。另一方面，多智能体系统展现出类似复杂人类组织的问题，其失败模式与人类组织中的常见失败相吻合。”——同上
+- “由于达到 94% 准确率和 77% 的 Cohen's Kappa，我们认为提供上下文示例后的大模型标注器是可靠的。”——同上
 
-## What it adds / why it's good
-Most agent papers report a single scalar — pass@1, task success — and stop. This paper supplies the missing **failure vocabulary**: a structured, empirically-grounded answer to *where* multi-agent systems break, so a regression can be attributed to a named mode (e.g., "premature termination" or "information withholding") rather than a shrug at "the model." Three things make it non-BS: (1) it's grounded theory over 1,600+ real traces with a measured κ = 0.88, not a speculative list; (2) it ships an **automated annotator** (94% / κ = 0.77) so the taxonomy is operational at scale, not just descriptive; and (3) it reframes the problem as **organizational design** — borrowing from high-reliability-organization theory — and then *shows* with a case study that tactical patches leave the gap open. The honest negative result (fixes help but don't solve it) is itself valuable signal. For an evals library, MAST is the reference label set for diagnostic, mode-level scoring of agent traces.
+## 它带来了什么／为什么值得读
+多数智能体论文报告 pass@1 或任务成功率这一个标量后便止步。本文补上了缺失的失败词汇，给出多智能体系统在哪里崩溃的结构化、经验性答案，使回归问题能被归因于“过早终止”或“信息隐瞒”等具名模式，而不是笼统归咎于模型。它的可信度来自三点：以 1,600 多条真实轨迹和 κ=0.88 的一致性构建扎根理论分类；发布 94% 准确率、κ=0.77 的自动标注器，使分类法可规模化运行；借鉴高可靠组织理论，把问题重构为组织设计问题，并通过案例说明战术补丁仍留有缺口。这个诚实的否定结果本身也很有价值。对评测资料库而言，MAST 是对智能体轨迹进行诊断性、模式级评分的参考标签集。
 
-## Themes
-- **9 agent-specific** (primary): the central artifact is a failure taxonomy purpose-built for multi-agent LLM systems.
-- **8 judge/verifiers**: ships a validated LLM-as-a-judge annotator (94% / κ = 0.77) and treats verification failures (FC3) as a first-class category.
-- **1 why-evals**: argues benchmark scalars alone hide *why* systems fail and motivates mode-level diagnostic evaluation.
-- **4 observability/surfaces**: trace-level annotation of where breakdowns occur is exactly an observability surface for agent runs.
-- **6 benchmark-vs-eval/integrity**: highlights that benchmark gains are minimal/illusory and that the meaningful signal is in failure structure, not aggregate scores.
+## 主题
+- **9 智能体专项**（主要）：面向多智能体大模型系统的失败分类法。
+- **8 裁判／验证器：** 提供经验证的大模型裁判标注器，并把验证失败作为一等类别。
+- **1 为什么要评测：** 汇总分数隐藏失败原因，需要模式级诊断评测。
+- **4 可观测性／界面：** 对崩溃位置进行轨迹级标注，构成智能体运行的可观测界面。
+- **6 基准与评测／完整性：** 指出基准收益可能有限或虚幻，真正信号在失败结构中。

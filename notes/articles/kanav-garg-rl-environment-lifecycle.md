@@ -1,60 +1,60 @@
-# Notes — "The Life Cycle of an RL Environment: From idea to large model training"
+# 笔记——《强化学习环境的生命周期：从想法到大模型训练》
 
-**Author:** Kanav Garg — Co-founder & Researcher, **Core Automation** (a new research lab, ~1 month old). Previously **Google DeepMind** for 2 years; one of the initial inventors of computer use; shipped the first computer-use product (**Project Mariner**); collaborated with 10+ RL-environment companies; integrated RL environments into the main Gemini models.
-**Format:** 28-slide deck (read in full from local PDF).
-**Why it matters to the book:** This is the single best answer to the reader's question — *how do you go from "if you can eval it, you have it" to actually having it?* The answer is the RL-environment lifecycle. It directly pressure-tests our thesis and Principle 3.
+**作者：** Kanav Garg——新研究实验室 **Core Automation** 联合创始人兼研究员；此前在 **Google DeepMind** 工作两年，是计算机使用能力的早期发明者之一，推出首个计算机使用产品 **Project Mariner**，曾与十余家强化学习环境公司合作，并将强化学习环境集成进 Gemini 主模型。
+**形式：** 28 页幻灯片（已完整阅读本地 PDF）。
+**对本书的意义：** 这是对“如果能评测某项能力，就等于拥有它了吗”这一问题最好的回答：还需要完整的强化学习环境生命周期。它直接检验了本书主张和原则 3。
 
-## The 6 components of an RL environment (≈ our "agent eval is a system")
-1. **Prompt** — the task instruction. Should be specific, actionable, verifiable; feel natural; have stylistic variations.
-2. **Initial State** — input files, instructions, setup scripts. "A poorly configured initial state can make a perfectly good task unlearnable." (≈ our P6 "task = world state + goal + verifier")
-3. **Environment** — the substrate: Linux box / Docker container / user's computer / bash shell. (≈ our P7 "worlds")
-4. **Configuration** — runtime tweaks: internet access, screen resolution, available tools, package install. (SWE-Bench: internet off, only bash exposed.) (≈ our P2 harness/config)
-5. **Reward** — verifier functions. Scalar vs Boolean. Three reward types — **Model-judged, Agentic, Execution-based** — "all combined with different weights" = the foundation of **reward shaping**. (≈ our P11/P12 judges-vs-verifiers, but adds the *combine-with-weights* idea)
-6. **Agent Loop (Harness)** — the main loop (like a Codex harness): expose tools → process tool calls → return responses. (≈ our P2/P4)
+## 强化学习环境的六个组成部分（约等于“智能体评测是一个系统”）
+1. **提示词：** 任务指令应具体、可执行、可核验、自然，并具有措辞变化。
+2. **初始状态：** 输入文件、说明与初始化脚本。配置不良的初始状态会让原本合理的任务无法学习，呼应原则 6“任务＝世界状态＋目标＋验证器”。
+3. **环境：** Linux 主机、Docker 容器、用户计算机或 Bash shell 等运行底座，呼应原则 7“世界”。
+4. **配置：** 网络访问、屏幕分辨率、可用工具、软件包安装等运行时调整。SWE-Bench 会关闭网络且只开放 Bash，呼应原则 2 的工具框架与配置。
+5. **奖励：** 验证函数，可以是标量或布尔值。三类奖励分别是模型判断、智能体式与基于执行的奖励；以不同权重组合，是奖励塑形的基础。
+6. **智能体循环（工具框架）：** 类似 Codex 工具框架的主循环，负责公开工具、处理工具调用并返回响应。
 
-> A benchmark/eval and an RL environment share these components — **the eval IS the environment minus the policy-update loop.** (corroborates our P2/P3 + Han-Chung Lee.)
+> 基准／评测与强化学习环境共享这些组件：**评测就是缺少策略更新循环的环境。**
 
-## The lifecycle (the part our book is MISSING)
-1. **Design** → 2. **Verify** (it runs, produces non-zero reward) → 3. **Difficulty Calibration** → 4. **Single-Dataset Ablation** → 5. **Reward Shaping** → 6. **Full-Bundle Ablation** → 7. **Maintain**.
+## 生命周期（本书目前缺失的部分）
+1. **设计** → 2. **验证**（能够运行并产生非零奖励）→ 3. **难度校准** → 4. **单数据集消融** → 5. **奖励塑形** → 6. **完整数据包消融** → 7. **维护**。
 
-### Difficulty calibration (the crux)
-- Goal: find tasks an open-source model passes at a **non-zero but low rate — ideally 1–4 out of 16 ("assay-16" / the Goldilocks zone).**
-- **"Over 90% of data has been thrown out first-hand because tasks became too easy."**
-- Too easy (12–16/16): no room to learn. Just right (1–4/16): RL can sharpen to 12–14/16. Too hard (0/16): maybe nothing to learn (partial scalar rewards still useful).
+### 难度校准：关键环节
+- 目标是寻找开源模型以非零但较低概率通过的任务，理想区间是 16 次中通过 1–4 次，即 `assay-16` 的“恰到好处区间”。
+- 超过 90% 的数据会在第一轮被丢弃，因为任务变得过于简单。
+- 过易（12–16/16）没有学习空间；恰当（1–4/16）可经强化学习提升到 12–14/16；过难（0/16）可能无从学习，但部分标量奖励仍有价值。
 
-### Why the Goldilocks zone matters: **RL = variance reduction**
-- Before RL: agent right **1–2 / 16** (unreliable, users can't depend on it). After RL: **12–14 / 16** (reliable).
-- **"RL sharpens the distribution. If the agent can occasionally solve a task, RL makes it solve that task reliably."**
-- **THIS is the bridge:** "if you can eval it" gets you a task the agent *sometimes* passes; turning *sometimes* into *reliably* is what RL/training does. Evaluation is necessary but not sufficient.
+### 为什么恰当区间重要：强化学习就是降低方差
+- 强化学习前，智能体 16 次只对 1–2 次，用户无法依赖；训练后可达到 12–14 次，趋于可靠。
+- 强化学习会收紧分布：如果智能体偶尔能解决任务，强化学习会使它稳定解决。
+- 这正是桥梁：可评测只意味着智能体有时成功，把“有时”变成“可靠”才是训练的工作。评测必要但不充分。
 
-### Difficulty calibration ≠ done
-- "This is only **40–50%** of the way there." Most reward-hacking stories **unfurl in later stages, during RL ablations** — low-hanging hacks get caught early; subtle hacks emerge under training pressure.
+### 校准并非终点
+难度校准只完成了约 40%–50%。多数奖励投机在后续强化学习消融中展开：明显漏洞早期可发现，更隐蔽的问题会在训练压力下出现。
 
-### Choosing what data to add to RL
-Target capabilities; transfer to siblings (does SWE-Bench training help web-dev / reverse-engineering?); work backwards from the capability; **use evals honestly** ("Evals keep you focused. Vibe testing in products and transfer results keep you honest. Most evals are not fully representative of what users actually care about.").
+### 如何选择强化学习数据
+应瞄准明确能力，测试能否迁移到相邻任务，从能力目标反向设计，并诚实使用评测。评测使团队保持聚焦，产品中的实际体验和迁移结果使团队保持诚实；多数评测不能完全代表用户真正关心的内容。
 
-### Stage 1 — single-dataset training
-Train only on the new dataset, small batch, 4–5 epochs (isolate the signal). Watch reward slope, scalar rewards, qualitative behavior. Red flags: no improvement → unlearnable; reward shoots up too fast → new reward hack.
+### 阶段 1：单数据集训练
+只在新数据集上用小批量训练 4–5 个 epoch，以隔离信号。观察奖励斜率、标量奖励与定性行为；没有提升意味着任务可能无法学习，奖励飞速上升则可能出现新漏洞。
 
-### Reward shaping
-Reward self-verification (test-writing); reward exploring ≥3 files before editing; nuanced rubrics. "Simple rewards are hackable" → make them progressively more nuanced. Iterative science + art.
+### 奖励塑形
+奖励自我验证（如编写测试）、编辑前探索至少三个文件，以及更细致的评分规约。简单奖励容易被投机，需要逐步增加细节；这是科学，也是技艺。
 
-### Stage 2 — full-bundle ablation
-Add the 500–1,000-task dataset at **~5% of the full data distribution**; train against a clear no-dataset baseline; check reward slope, cross-dataset transfer (+/-), downstream evals; try a 10% mixture. Mixture is "an art as much as a science."
+### 阶段 2：完整数据包消融
+把 500–1,000 个任务的数据集以完整数据分布约 5% 的比例加入，设置清晰的无数据集基线，检查奖励斜率、跨数据集正负迁移和下游评测，再尝试 10% 混合比例。数据混合既是科学，也是技艺。
 
-### The most important thing: **look at traces**
-"I can't stress enough how extremely important it is to look at the behavior changes." **10× more reward hacks are discovered during training** than during difficulty calibration. Hard tasks breed hacking → then learning. Evals don't tell the whole story; qualitative trace analysis after training is often more revealing than eval scores.
+### 最重要的事：查看轨迹
+必须观察行为变化。训练阶段发现的奖励漏洞约为难度校准阶段的十倍；困难任务先诱发投机，再促进学习。评测无法讲完整故事，训练后的定性轨迹分析往往比分数更有揭示力。
 
-### Handling reward hacking
-**Golden rule:** never reward a task completed in an unintended way — traces with reward hacking get a negative/bad reward, **always.** Counterintuitive: a task with early-stage reward hacking is **not necessarily a bad task** — with the right rewards it can become an excellent training signal. People throw away good tasks because they see early hacking. Don't.
+### 处理奖励投机
+黄金规则是：绝不奖励以非预期方式完成的任务，出现投机的轨迹始终给予负面／差奖励。反直觉的是，早期出现投机不表示任务本身糟糕；配合正确奖励，它可能成为极佳训练信号，不应草率丢弃。
 
-### Automating the quality pipeline
-Agent trace review (agent inspects traces for reward hacking) → multi-stage prompted-checkpoint filters → SFT seed traces (rejection-sampled RL runs for fine-tuning). "The art of RL-env creation has shifted: the majority of effort is now in **building the right pipeline**, not designing individual tasks." Using RL runs to improve SFT creates a **virtuous cycle**.
+### 自动化质量流水线
+让智能体审查轨迹中的奖励投机，再经过多阶段提示检查点筛选，并用拒绝采样的强化学习运行生成 SFT 种子轨迹。强化学习环境创作的重点已经转变：主要工作在于构建正确流水线，而非逐个设计任务。再利用强化学习运行改进 SFT，可形成良性循环。
 
-### Maintain (datasets are living)
-Shrinking dataset lifespan as models improve; continuously monitor the same distributions you checked at creation; add complexity/scope instead of discarding; **maintain like a codebase.** "Era of experience" — human-data value approaching its ceiling; frontier = synthetic data / synthetic RL-env pipelines (cf. David Silver).
+### 维护：数据集是活的
+随着模型提升，数据集寿命缩短；需要持续监测创建时检查的同一分布，通过增加复杂度和范围更新数据，而非直接丢弃，并像维护代码库一样维护它。“经验时代”意味着人类数据价值接近上限，前沿方向是合成数据和合成强化学习环境流水线。
 
-## Integration proposal for the book
-- **Refine the thesis / P3.** "If you can eval it, you have built it" is too glib. The honest version: *a verifiable eval makes a capability **trainable and reliable**, but having it requires the lifecycle (difficulty calibration → variance reduction → reward shaping → de-hacking).* Eval = necessary, not sufficient.
-- **Strong candidate for a new/expanded principle:** "From Eval to Capability: An Eval Is the Start of an RL Environment" — difficulty calibration (Goldilocks 1–4/16), RL = variance reduction, reward hacking unfurls under training pressure, look at traces.
-- Reinforces P16 (Evals Rot / living datasets) and P12 (reward shaping vs hackable rewards) and P5 (look at traces).
+## 对本书的整合建议
+- **修正主张／原则 3：** “能评测就等于拥有”过于轻率。更诚实的说法是：可核验评测使能力变得可训练、可可靠化，但真正拥有能力还需要难度校准、方差降低、奖励塑形与消除投机的完整生命周期。
+- **可扩展为新原则：** “从评测到能力：评测是强化学习环境的起点”，涵盖 1–4/16 的恰当区间、强化学习降低方差、投机在训练压力下展开，以及查看轨迹。
+- 同时强化原则 16（评测腐化／活数据集）、原则 12（奖励塑形与可投机奖励）和原则 5（查看轨迹）。

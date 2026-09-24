@@ -1,35 +1,35 @@
-# Notes — "Artificial Analysis: Independent LLM Evals"
-**Speaker/Guest:** Cameron & Hill-Smith (Latent Space) · **Venue:** Latent Space · **Type:** podcast · **URL:** https://www.youtube.com/watch?v=v5mBjeX4TJ8
+# 笔记——“Artificial Analysis：独立 LLM 评测”
+**讲者/嘉宾：** Cameron 与 Hill-Smith（Latent Space） · **出处：** Latent Space · **类型：** 播客 · **链接：** https://www.youtube.com/watch?v=v5mBjeX4TJ8
 
-## Summary
-Micah Hill-Smith and George Cameron, founders of Artificial Analysis, walk through how they run independent LLM evals at scale and why running them yourself — rather than trusting lab-reported numbers — is non-negotiable. The core argument: a single "Intelligence Index" number is useful only when read alongside cost and speed, evals saturate fast so you must constantly build harder ones, and "what gets measured gets targeted" (Goodhart) is an unavoidable structural force, not just cheating. They detail concrete machinery — statistical repeats to hit ±1 at 95% confidence, a "mystery shopper" anti-gaming policy, an LLM-judge GDPval pipeline validated against human preference, and a minimalist open-source agentic harness (Stirrup). For agent evals specifically, they argue the future is multi-turn, that harness design materially changes scores (models beat their own vendor chatbots inside AA's harness), and that token- and turn-efficiency are about to become first-class metrics. It matters because it's a rare ground-truth view from the people who benchmark every model on the market.
+## 摘要
+Artificial Analysis 创始人 Micah Hill-Smith 和 George Cameron 介绍了如何大规模运行独立 LLM 评测，以及为何必须亲自运行，而不能相信实验室自报数字。核心论点是：单一“智能指数”只有与成本和速度结合解读才有意义；评测很快饱和，必须不断构建更难的新评测；“凡被测量者都会成为优化目标”（Goodhart）是不可避免的结构力量，而不只是作弊。他们详述了具体机制：通过统计重复实现 95% 置信水平下 ±1 的误差范围；防止操纵的“神秘顾客”政策；经人类偏好验证的 LLM 裁判 GDPval 流水线；以及极简开源智能体执行框架 Stirrup。对智能体评测而言，他们认为未来属于多轮交互，执行框架设计会实质改变分数（模型在 AA 框架内胜过自家厂商聊天产品），token 效率和轮次效率即将成为一等指标。它难得地提供了评估市场上每个模型的团队所掌握的实况。
 
-## Key points
-- **Run evals yourself, never trust lab numbers.** Labs prompt models differently and, when competing over a few points, can effectively "put the answer into the model" — e.g. Gemini 1.0 Ultra reportedly used custom 32-shot chain-of-thought per MMLU topic to beat GPT-4. AA runs every eval identically across all models.
-- **Variance is brutal on small evals.** A 4-question multiple-choice eval at lab-recommended temperature on a reasoning model has "pretty enormous" variance in a single run. AA runs huge numbers of repeats when developing evals to dial in the repeat count needed for ±1 at 95% confidence on the Intelligence Index. This multiplies cost.
-- **Reported cost ≠ real cost.** The website's "cost to run Intelligence Index" assumes one repeat; their actual spend is much higher because of repeats. Started at "hundreds of dollars" total; now far more than linear due to repeats, harder evals, agentic harnesses, and reasoning tokens.
-- **Mystery shopper policy** to defeat private-endpoint gaming: when labs give a private eval endpoint (which could be a different model than the public one), AA also registers accounts off their own domain and re-runs both intelligence and performance benchmarks without being identifiable. Labs accept it because each wants assurance competitors can't game AA either.
-- **Goodhart is structural, not just shenanigans.** "Things that get measured become things that get targeted." Models are now exceptional at competition math, which only partly transfers to real coding-agent use. The only counter is to keep building new evals that track what real users care about.
-- **Intelligence Index (currently V3) = synthesis of 10 eval datasets** — Q&A sets (MMLU/GPQA-style), a couple of agentic datasets, their own long-context reasoning set (AA-LCR, open-sourced), plus use-case-focused sets. V1 would be fully saturated today (e.g. HumanEval Python functions are now trivial).
-- **Omniscience / "Amnesiacs" hallucination eval** scores from -100 to +100, subtracting a point for a wrong answer to a factual question — explicitly designed to reward "I don't know" over confident wrong answers and to shift the lab incentive away from "always take a shot." Only 10% of the test set is public (held-out to prevent contamination, since it's pure factual recall).
-- **Empirical finding: knowledge accuracy tracks total parameter count more closely than anything else they measure**, and is *not* correlated with active params — used to infer frontier models are likely well above the 1T cap of open-weights models (speculatively 5–10T for Gemini 3 Pro; cited Musk's claim of Grok 3/4 at 3T, Grok 5 at 6T). Hallucination rate, by contrast, is uncorrelated with intelligence and reflects post-training recipe (Claude models hallucinate least; Haiku < Sonnet < Opus).
-- **GDPval-AA**: took OpenAI's GDPval dataset (44 tasks / ~220–225 subtasks of broad white-collar, non-coding work with input files) and turned it into something runnable on *any* model by building a reference agentic harness plus an LLM-judge evaluator. Reported as Elo (no ground truth for documents/video/audio outputs), validated against human preference.
-- **Judge design insight:** the grading task is deliberately *different* from the test-taking task (test = full agentic tools/many turns; grade = extract visual+text versions of files, compare two outputs against task criteria). Uses Gemini 3 Pro as judge — and notably found *no self-preference* (Gemini 3 Pro doesn't even score that well on GDPval-AA itself). Contrasts with early style-judging LLM-judge work like MTBench.
-- **Harness matters: every model scored better in AA's agentic harness than in its own vendor web chatbot** (e.g. Claude 4.5 Opus). They copy-paste manually into chatbots for the reference. This led them to open-source the harness as **Stirrup** (GitHub) — minimalist, Claude-Code-inspired: context management, web search/browse, code execution, plus a custom "view image" tool; recommended workflow is `git clone` then let a coding agent modify it.
-- **Openness Index** (out of 18 points): scores not just weights/license but disclosure of pre/post-training data, methodology, and training code. Olmo 3 32B (AI2) leads. Explicitly value-laden — rewards fully-open-but-not-frontier work; flags license traps like Llama's 700M-DAU clause; favors OSI licenses (MIT/Apache 2) because "the box is just checked."
-- **Cost paradox ("smiling curve"):** GPT-4-level intelligence is now 100–1000x cheaper than at launch (Amazon Nova), yet total inference spend is way up because frontier intelligence uses bigger models + reasoning tokens + agentic workflows consuming enormous input/output tokens over long runs.
-- **Reasoning vs non-reasoning is now a spectrum, not a binary.** The old "reasoning models use 10x tokens" slide no longer holds; token efficiency now varies >1 order of magnitude across models. Recommends using "cost to run Intelligence Index" as the starting metric. Agentic evals make **number-of-turns efficiency** matter as much as token efficiency — on τ²-bench Telecom, GPT-5 can be *cheaper end-to-end* than smaller open models despite higher per-token price, because it resolves in fewer turns.
+## 要点
+- **自己运行评测，不要相信实验室数字。**实验室采用不同提示方式，在竞争几个百分点时几乎可把答案“塞进模型”；据称 Gemini 1.0 Ultra 曾针对每个 MMLU 主题定制 32 样本思维链以超过 GPT-4。AA 对所有模型使用完全相同的评测。
+- **小型评测的方差极其严重。**在实验室推荐温度下，推理模型一次运行仅含 4 道多选题的评测会有“相当巨大”的方差。AA 开发评测时运行大量重复，确定让智能指数在 95% 置信水平下达到 ±1 所需的重复数，成本随之倍增。
+- **标称成本不等于实际成本。**网站“运行智能指数的成本”按一次重复计算；由于重复、更难评测、智能体框架和推理 token，实际支出远高于最初的“数百美元”，增长幅度也远超线性。
+- **“神秘顾客”政策**防止私有端点操纵：实验室提供私有评测端点时，AA 还会用非自有域名注册账户，在无法被识别的情况下复测智能与性能。实验室接受这种做法，因为它们也希望确认竞争对手无法操纵 AA。
+- **Goodhart 效应是结构性的。**“被测量的事物会成为优化目标。”模型如今极擅长竞赛数学，但只部分迁移到真实编码智能体。唯一对策是不断创建追踪真实用户需求的新评测。
+- **智能指数 V3 综合 10 个评测数据集：**MMLU/GPQA 类问答、两个智能体数据集、自建并开源的长上下文推理集 AA-LCR，以及面向用例的数据集。V1 如今已完全饱和，例如 HumanEval Python 函数已十分简单。
+- **Omniscience/“Amnesiacs”幻觉评测**范围为 −100 到 +100；事实问题答错扣 1 分，明确奖励“我不知道”而非自信犯错，以改变实验室“总要猜一下”的激励。测试集仅公开 10%，其余保留以避免纯事实回忆污染。
+- **经验发现：知识准确率与总参数量的相关性强于其他测量，**与激活参数数目无关。这被用于推断前沿模型可能远超开放权重模型的 1T 上限（推测 Gemini 3 Pro 为 5–10T；引用 Musk 称 Grok 3/4 为 3T、Grok 5 为 6T）。相反，幻觉率与智能无关，更反映后训练方案；Claude 幻觉最少，且 Haiku < Sonnet < Opus。
+- **GDPval-AA：**将 OpenAI GDPval 数据集（44 个任务、约 220—225 个包含输入文件的广泛白领非编程子任务）改造成任何模型都可运行的评测，配有参考智能体框架和 LLM 裁判。由于文档/视频/音频输出没有真值，用 Elo 报告，并由人类偏好验证。
+- **裁判设计洞见：**评分任务刻意不同于答题任务。答题使用完整智能体工具与多轮交互；评分则提取文件的视觉和文本版本，依据任务标准比较两个输出。采用 Gemini 3 Pro 作裁判，且未发现自我偏好；它自身在 GDPval-AA 上甚至并不突出。这不同于 MTBench 等早期风格裁判工作。
+- **执行框架极其重要：每个模型在 AA 智能体框架中的表现都优于自家厂商网页聊天产品**，如 Claude 4.5 Opus。参考聊天结果通过手工复制粘贴产生。团队因此开源极简、受 Claude Code 启发的 **Stirrup**：包含上下文管理、网页搜索/浏览、代码执行及自定义“查看图像”工具；推荐 `git clone` 后让编码智能体直接修改。
+- **开放性指数**满分 18 分，不只评权重/许可证，还评预训练和后训练数据、方法与训练代码披露。AI2 的 Olmo 3 32B 领先。该指标明确带有价值判断，奖励完全开放但非前沿的工作；会标记 Llama 的 7 亿日活条款等许可证陷阱，并偏好 MIT/Apache 2 等 OSI 许可证。
+- **成本悖论（“微笑曲线”）：**达到 GPT-4 水平的智能比发布时便宜 100—1000 倍（如 Amazon Nova），但总推理支出反而大增，因为前沿智能使用更大模型、推理 token 和长时智能体工作流，消耗巨量输入输出 token。
+- **推理与非推理如今是连续谱。**“推理模型使用 10 倍 token”的旧说法已失效，模型间 token 效率差异超过一个数量级。应从“运行智能指数的成本”开始比较。在智能体评测中，**轮次效率**与 token 效率同等重要；τ²-bench Telecom 上，GPT-5 虽单 token 更贵，却因更少轮次完成任务，总成本可能低于较小开放模型。
 
-## Verified quotes
-- "[14:01] no one's ever had a problem with that. Cuz like a thing that turns out to actually be quite a good factor in the industry is that they all want to believe that none of their competitors could manipulate what we're doing either."
-- "[14:43] the things that get measured become things that get targeted... once an eval becomes the thing that everyone's looking at, the scores can get better on it without that being a reflection of overall generalized intelligence of these models getting better." *(lightly stitched across ASR line breaks; wording faithful)*
-- "[28:54] almost every eval across all of AI up until this point, it's been graded by simple percentage correct as the main metric... And so, you should take a shot at everything. There's no incentive to say I don't know."
-- "[41:51] the thing that you have to watch out for with LLM judges self-preference that models usually prefer their own output. And in this case there was not."
-- "[45:53] in every case, the model performs better in our agentic harness than its web chatbot counterpart, the harness that they created."
-- "[83:?]" *(omitted — none beyond above)*; "[64:55] I think one interesting that gives me kind of pause... is that we in our benchmarks see a lot of performance correlated more with total parameters than active, and not that correlated with how sparse like the models are." *(lightly cleaned ASR)*
+## 已核验引述（中文翻译）
+- [14:01] “从来没有人对此有异议。因为这个行业里一个确实不错的因素是：他们都希望相信，竞争对手也无法操纵我们的工作。”
+- [14:43] “被测量的事物会成为优化目标……一旦某项评测成为所有人关注的目标，分数可以持续上升，却并不意味着模型的整体通用智能真的提升。”（跨自动字幕换行拼接，措辞保持忠实。）
+- [28:54] “迄今几乎所有 AI 评测都以简单正确率作为主要指标……所以每道题都应该猜一次，根本没有说‘我不知道’的激励。”
+- [41:51] “使用 LLM 裁判必须警惕自我偏好，模型通常更喜欢自己的输出；但在这个案例中并没有出现。”
+- [45:53] “在每个案例中，模型在我们的智能体执行框架里都比它在自家网页聊天产品中表现更好。”
+- [64:55] “有一点让我有所警惕……在我们的基准中，大量表现与总参数量的相关性高于激活参数量，与模型有多稀疏则没有那么强的相关性。”（轻微清理自动语音识别错误。）
 
-## What it adds
-This is operational ground-truth from people who eval *every* model commercially, not a written best-practices doc. Non-obvious, talk-specific value: (1) the **"mystery shopper" anti-gaming protocol** and the game-theoretic reason labs tolerate it; (2) hard numbers on **statistical-rigor cost** (repeats to hit ±1 at 95% CI; reported cost assumes 1 repeat) — a concrete answer to "how many repeats" that most writeups hand-wave; (3) the empirical **knowledge-accuracy ∝ total-params** correlation as a parameter-counting oracle, and the orthogonality of hallucination rate to intelligence; (4) the measured result that **models beat their own vendor chatbots inside a neutral minimal harness**, quantifying how much harness design (not the model) drives agent scores; (5) a **working LLM-judge recipe** where asymmetry between test-taking and grading tasks plus criteria-based pairwise comparison yields human-aligned Elo with no self-preference; (6) the **negative-scoring "I don't know" eval** as a deliberate incentive-shifting design; and (7) the **turn-efficiency-beats-per-token-price** finding on τ²-bench Telecom that inverts naive cost intuition for agents.
+## 独特增量
+这是评估几乎所有商业模型的团队所提供的运营实况，而非书面最佳实践。独特价值包括：（1）**“神秘顾客”反操纵协议**及实验室容忍它的博弈原因；（2）统计严谨性的硬数字，即通过重复实现 95% 置信区间下 ±1，而公开成本仅按一次运行计算；（3）**知识准确率 ∝ 总参数量**的经验相关性可反推参数量，且幻觉率与智能正交；（4）实测**模型在中立极简框架中胜过自家聊天产品**，量化框架而非模型对智能体分数的贡献；（5）一种可行的 LLM 裁判方案，通过答题与评分任务不对称、按标准成对比较，得到与人类偏好一致且无自我偏好的 Elo；（6）以负分奖励“我不知道”的激励重塑评测；（7）τ²-bench Telecom 上**轮次效率胜过单 token 价格**，颠覆对智能体成本的直觉。
 
-## Themes
-1 why-evals · 3 model/harness/skill · 5 eval infra · 6 benchmark-vs-eval · 8 judge/verifiers · 9 agent-specific
+## 主题
+1 为何评测 · 3 模型/执行框架/技能 · 5 评测基础设施 · 6 基准与评测 · 8 裁判/验证器 · 9 智能体特有

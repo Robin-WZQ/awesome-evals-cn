@@ -1,31 +1,31 @@
-# Notes — "Macro Evals for Agentic Systems"
+# 笔记——《智能体系统的宏观评测》
 
-**Author:** Shikhar Kwatra, Will Thieme, Bradley Strauss (OpenAI Cookbook) · **URL:** https://developers.openai.com/cookbook/examples/partners/macro_evals_for_agentic_systems/macro_evals_for_agentic_systems · **Type:** tool (runnable Cookbook recipe / partner notebook) · **Found:** true
+**作者：** Shikhar Kwatra、Will Thieme、Bradley Strauss（OpenAI Cookbook）· **网址：** https://developers.openai.com/cookbook/examples/partners/macro_evals_for_agentic_systems/macro_evals_for_agentic_systems · **类型：** 工具（可运行的 Cookbook 配方／合作方 notebook）· **已找到：** 是
 
-## Summary (3-6 sentences)
-This OpenAI Cookbook recipe argues that for multi-agent systems, grading the final answer against a rubric is insufficient — failures usually live in the *workflow* (a late handoff, a specialist that repeatedly misses the same signal, a review step that fires for the wrong class of cases). It proposes a two-layer scheme: **agent-level (micro) evals** that grade individual decisions with rubrics, and **macro-evals** that discover *recurring behavior patterns across the whole population of traces*. The pipeline normalizes each run's trace into a readable "trace document," embeds those documents, and uses a BERTopic-style clustering stack (embed → UMAP → HDBSCAN → distinctive-term labeling) to surface patterns, then prioritizes them by an impact score combining prevalence and severity. High-impact clusters get an AgentTrace-style backward root-cause walk through the execution graph to find upstream suspect events. The whole thing is demonstrated on a simulated automotive EV post-configuration order system (1,000 synthetic orders, 992 analyzable traces) with specialist agents for validation, supply, pricing, compliance, scheduling, and factory routing.
+## 摘要（3–6 句）
+这份 OpenAI Cookbook 配方指出，对多智能体系统而言，只按评分规约评判最终答案并不充分，因为失败通常藏在工作流中，例如交接太晚、某个专家反复漏掉同一信号，或审查步骤针对错误类别触发。它提出两层方案：智能体级的微观评测用评分规约评价单项决策，宏观评测则在全部轨迹中发现反复出现的行为模式。流水线把每次运行的轨迹规范化为可读的“轨迹文档”，嵌入这些文档，再使用 BERTopic 风格的聚类栈——嵌入、UMAP、HDBSCAN、特征词标注——发现模式，并以结合流行度和严重度的影响分数排序。高影响聚类再采用 AgentTrace 风格方法，从执行图中的关注事件反向遍历，寻找上游可疑事件。示例是模拟的电动汽车配置后订单系统，包含验证、供应、定价、合规、排程和工厂路由等专家智能体，共生成 1,000 个合成订单和 992 条可分析轨迹。
 
-## Key points
-- **Macro vs micro framing is the core contribution.** Micro/agent-level evals grade single decisions; macro-evals find patterns that only show up across many runs. The recipe ships *both* layers, not one.
-- **Five lower-level (Promptfoo-layer) rubrics** grade individual agent decisions: final decision quality, policy compliance correctness, routing & specialist activation, market-drift awareness, and review appropriateness.
-- **Agentic eval dimensions are explicit and concrete:** did the system use the right tools, delegate to the right specialist, pause for review when risk was high, and stay grounded in business context — vs. a simple model call where you "compare one output against a rubric or reference answer."
-- **Trace-document construction is treated as eval design, not preprocessing.** Each run is compressed into a document preserving business setup, run outcome + severity, important handoffs/specialist activations, review/finding markers, and a short state-transition digest.
-- **Discovery pipeline (BERTopic-style):** (1) embed trace documents, (2) reduce geometry with UMAP, (3) cluster dense regions with HDBSCAN, (4) represent each topic with distinctive terms.
-- **Impact scoring prioritizes patterns that are both common and severe:** `impact_score = prevalence_share × severity_weighted_prevalence`. This keeps you from chasing rare-but-loud or common-but-harmless clusters.
-- **Root-cause drill-down (AgentTrace-style):** from a focus event (review marker, failure, late-stage decision) it backward-walks the execution graph and scores upstream suspects via `suspect_score = 0.4·proximity + 0.3·frequency + 0.2·bridge + 0.1·role`.
-- **Four label types tie micro and macro together:** `case_type` (scenario), `run_outcome` (completed / awaiting_review / blocked / failed), `eval_finding` (local symptom from rubrics), and `behavior_pattern` (cluster-discovered recurring pattern).
-- **Realistic scale numbers from the EV simulation:** 1,000 synthetic orders → 992 complete trace bundles; medians per trace of ~30 normalized events, ~18 SDK spans, ~4 handoffs, ~6 agents, ~5 environment signals. This is a useful sense of how "noisy" a real agent trace is.
-- **Modular, runnable code:** `data_prep.py` (normalize bundles, build documents, load labels) and `macro_eval_pipeline.py` (discovery, diagnostics, plots), with functions like `build_trace_documents()`, `run_macro_discovery()`, `drill_down_topic_root_causes()`, plus leaderboard/scatter/heatmap plotters.
-- **Environment signals are first-class inputs** to grading (tariffs, incentives, stockouts, promotions, market pressure) — the eval checks whether agents stayed grounded in those signals, e.g., "the pricing agent ignored an incentive" or "the supply agent missed a stockout."
+## 要点
+- **宏观与微观的划分是核心贡献。** 微观／智能体级评测评价单个决策；宏观评测寻找跨多次运行才显现的模式。配方同时提供两层，而非二选一。
+- **五项底层 Promptfoo 评分规约：** 最终决策质量、政策合规正确性、路由与专家激活、对市场漂移的感知，以及审查是否恰当。
+- **智能体评测维度具体明确：** 系统是否用了正确工具、委派给正确专家、在高风险时暂停并等待审查，以及是否基于业务上下文；这不同于简单模型调用只把一个输出与评分规约或参考答案比较。
+- **构建轨迹文档属于评测设计，而非普通预处理。** 每次运行被压缩为一份文档，保留业务设置、结果和严重度、重要交接／专家激活、审查／发现标记，以及简短状态转换摘要。
+- **BERTopic 风格发现流水线：** 嵌入轨迹文档；用 UMAP 降维；以 HDBSCAN 聚类密集区域；用区分性词语表示每个主题。
+- **影响评分兼顾常见程度与严重度：** `impact_score = prevalence_share × severity_weighted_prevalence`，避免追逐罕见但显眼或常见却无害的聚类。
+- **AgentTrace 风格根因下钻：** 从审查标记、失败或后期决策等关注事件出发，沿执行图反向遍历，并按 `suspect_score = 0.4·proximity + 0.3·frequency + 0.2·bridge + 0.1·role` 为上游嫌疑事件评分。
+- **四类标签连接微观与宏观：** `case_type` 表示场景；`run_outcome` 表示完成、等待审查、阻塞或失败；`eval_finding` 表示评分规约发现的局部症状；`behavior_pattern` 表示聚类发现的反复模式。
+- **电动汽车模拟的规模：** 1,000 个合成订单产生 992 个完整轨迹包；每条轨迹中位数约为 30 个规范化事件、18 个 SDK span、4 次交接、6 个智能体和 5 个环境信号，体现真实轨迹的噪声规模。
+- **代码模块化且可运行：** `data_prep.py` 负责规范化轨迹包、构建文档和加载标签；`macro_eval_pipeline.py` 负责发现、诊断和作图；提供 `build_trace_documents()`、`run_macro_discovery()`、`drill_down_topic_root_causes()` 以及排行榜、散点图和热力图函数。
+- **环境信号是一等评分输入：** 包括关税、激励、缺货、促销与市场压力；评测会检查智能体是否基于这些信号行动，例如定价智能体是否忽略激励、供应智能体是否漏掉缺货。
 
-## Verified quotes
-- "For a simple model call, an eval might compare one output against a rubric or reference answer. For an agentic system, we also need to evaluate whether the system used the right tools, delegated to the right specialist, paused for review when risk was high, and stayed grounded in the business context." — [recipe](https://developers.openai.com/cookbook/examples/partners/macro_evals_for_agentic_systems/macro_evals_for_agentic_systems)
-- "When an agentic system fails, the problem is often larger than a single bad response. A handoff may happen too late, a specialist agent may miss the same signal across many runs, or a review process may trigger for the wrong class of cases." — [recipe](https://developers.openai.com/cookbook/examples/partners/macro_evals_for_agentic_systems/macro_evals_for_agentic_systems)
-- "A release recommendation can look plausible while the trace reveals that the pricing agent ignored an incentive, the supply agent missed a stockout, or the orchestrator routed around a required review step." — [recipe](https://developers.openai.com/cookbook/examples/partners/macro_evals_for_agentic_systems/macro_evals_for_agentic_systems)
-- "The quality of the trace document is therefore part of the evaluation design, not a mechanical cleanup step." — [recipe](https://developers.openai.com/cookbook/examples/partners/macro_evals_for_agentic_systems/macro_evals_for_agentic_systems)
+## 已核验引述（中文翻译）
+- “对于简单模型调用，评测可能只是把一个输出与评分规约或参考答案比较。对智能体系统，我们还要评估系统是否使用正确工具、委派给正确专家、在高风险时暂停审查，以及是否始终基于业务上下文。”——[配方](https://developers.openai.com/cookbook/examples/partners/macro_evals_for_agentic_systems/macro_evals_for_agentic_systems)
+- “智能体系统失败时，问题往往比单个糟糕回答更大：交接可能太晚，某个专家智能体可能在多次运行中漏掉同一信号，审查流程也可能针对错误类别触发。”——同上
+- “发布建议看似合理，但轨迹可能揭示定价智能体忽略激励、供应智能体漏掉缺货，或编排器绕开了必要审查步骤。”——同上
+- “因此，轨迹文档的质量是评测设计的一部分，而不是机械清理步骤。”——同上
 
-## What it adds / why it's good
-Most eval guidance (and most LLM-judge tutorials) stops at "grade the final output against a rubric." This recipe is one of the few practitioner artifacts that takes population-scale agent traces seriously and gives you a *runnable* pipeline for it. The genuinely non-obvious moves: (1) treating the **trace document as an eval-design artifact** rather than log cleanup — what you choose to preserve (handoffs, severity, state transitions) determines what your clustering can ever find; (2) **prevalence × severity impact scoring** so you triage patterns instead of drowning in per-run findings; (3) a **structured backward root-cause walk** with an explicit suspect-scoring formula, which is more rigorous than the usual "ask an LLM why it failed." It also cleanly separates the *local symptom* (`eval_finding`) from the *systemic pattern* (`behavior_pattern`), which maps directly onto the difference between debugging one bad run and fixing the orchestration. The honest caveat: it runs on a synthetic simulated domain, so the rubrics/labels are illustrative rather than battle-tested production numbers — it's a methodology template, not a war-story postmortem.
+## 它带来了什么／为什么值得读
+多数评测指南和大模型裁判教程都止步于按评分规约评价最终输出。该配方少见地认真处理群体规模的智能体轨迹，并给出可运行流水线。三个真正不直观的做法是：把轨迹文档视为评测设计产物，因为保留哪些交接、严重度和状态转换决定聚类能发现什么；用流行度乘严重度进行影响评分，以便对模式排序而不淹没于逐次运行发现；用明确公式结构化反向追踪根因，比简单询问大模型为何失败更严谨。它也清晰区分局部症状 `eval_finding` 和系统模式 `behavior_pattern`，正好对应调试单次运行与修复编排机制的区别。局限是示例来自合成模拟领域，因此评分规约与标签是方法演示，而非经生产检验的数据；它是一份方法模板，不是事故复盘。
 
-## Themes
-1 why-evals · 4 observability · 5 eval infra · 8 judge/verifiers · 9 agent-specific
+## 主题
+1 为什么要评测 · 4 可观测性 · 5 评测基础设施 · 8 裁判／验证器 · 9 智能体专项
